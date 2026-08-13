@@ -35,3 +35,10 @@ mercato-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Personal Claude Code config/state — not shared across the team.
+# Skill content itself lives in /.agents/skills/, which stays tracked.
+/.claude/
+
+# Claude Code-specific pointer to AGENTS.md — the real content lives there.
+/CLAUDE.md
+
