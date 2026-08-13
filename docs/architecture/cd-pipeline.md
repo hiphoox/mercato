@@ -3,14 +3,18 @@ type: architecture
 title: CD Pipeline
 description: Continuous deployment workflow, environments, and triggers for shipping to Fly.io.
 tags: [cd, github-actions, fly-io, deployment]
-timestamp: 2026-07-29T00:00:00Z
+timestamp: 2026-08-13T00:00:00Z
 ---
 
-The CD pipeline delivers verified code to Fly.io automatically once it lands on `main` or is tagged as a release, using the `fly deploy` mechanics defined in [infrastructure-and-deployment.md](infrastructure-and-deployment.md).
+The CD pipeline delivers verified code to Fly.io, using the `fly deploy` mechanics defined in [infrastructure-and-deployment.md](infrastructure-and-deployment.md).
 
 ## Workflow execution
 
-The CD pipeline is implemented using **GitHub Actions** (`.github/workflows/cd.yml`) and is triggered under the following conditions:
+The CD pipeline is implemented using **GitHub Actions** (`.github/workflows/cd.yml`).
+
+**Currently manual-only (`workflow_dispatch`):** the project is still in early development and not yet deployed to Fly.io, so the automatic push/tag triggers are disabled. A run is started by hand from the Actions tab, and which job executes still depends on the ref the run is dispatched against — `refs/heads/main` runs `deploy-staging`, a `refs/tags/v*.*.*` ref runs `deploy-production`.
+
+The intended steady-state triggers (to restore once the project starts deploying regularly) are:
 
 - **Push to `main`:** Deploys to the **staging** [GitHub Environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment). `main` is protected — a pull request, a passing [CI](ci-pipeline.md) status check, and an up-to-date branch are all required before merge — so every push here is already quality-gated.
 - **Push of a version tag (`v*.*.*`):** Deploys to the **production** GitHub Environment. Tagging a commit is the deliberate release action described in [git-strategy.md](git-strategy.md). The production environment is restricted to tags matching `v*.*.*`, and a tag ruleset restricts who can push those tags — that combination is the approval gate (required reviewers on environments is unavailable on a personal-account private repo at any plan tier).
