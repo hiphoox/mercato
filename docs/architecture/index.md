@@ -1,0 +1,40 @@
+---
+type: index
+title: Architecture Docs
+description: Map of docs/architecture/.
+tags: [architecture, index]
+timestamp: 2026-07-23T00:00:00Z
+---
+
+Map of `docs/architecture/`. Open a file only when its concern is relevant — none of these are loaded by default.
+
+## The system's shape
+
+- [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
+- [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
+- [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
+- [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
+
+## Standards & process
+
+- [coding-standards.md](coding-standards.md) — Elixir, Mix, and Phoenix (backend) conventions. Read it when writing any Elixir/Phoenix code.
+- [liveview.md](liveview.md) — LiveView module conventions: layouts, scope, component structure. Read it when writing a LiveView module.
+- [heex-templates.md](heex-templates.md) — HEEx template syntax. Read it when writing a HEEx template.
+- [liveview-streams.md](liveview-streams.md) — Using LiveView streams for collections. Read it when about to use streams for a collection.
+- [liveview-css.md](liveview-css.md) — Tailwind/CSS asset pipeline. Read it when writing CSS or touching the asset pipeline.
+- [liveview-js.md](liveview-js.md) — LiveView JS interop: hooks, push_event. Read it when writing a JS hook or client/server event.
+- [ui-guidelines.md](ui-guidelines.md) — Guiding principles for the design system. Read it when starting any UI/design work.
+- [design-tokens.md](design-tokens.md) — Color, typography, and spacing/radius tokens, with code mapping. Read it when styling a component or picking a color/type value.
+- [ui-components.md](ui-components.md) — Specs for buttons, form fields, badges, chips, listing card, and nav bar. Read it when building or reviewing a UI component.
+- [commerce-ux-patterns.md](commerce-ux-patterns.md) — Discovery, trust signals, cart/checkout, optional offer negotiation, order tracking, sell flow, and notification/feedback patterns. Read it when building browsing, purchase, offer, selling, order-status, or notification UI.
+- [accessibility-dark-mode.md](accessibility-dark-mode.md) — Accessibility rules and dark mode token overrides. Read it when checking contrast, focus states, or dark mode.
+- [testing.md](testing.md) — Backend and Ash test conventions. Read it when writing backend/Ash tests.
+- [liveview-testing.md](liveview-testing.md) — LiveView test conventions. Read it when writing LiveView tests.
+- [git-strategy.md](git-strategy.md) — Branching model, release workflow, versioning. Read it when branching, releasing, or versioning.
+- [ci-pipeline.md](ci-pipeline.md) — Quality gates, CI commands, verification. Read it when setting up or debugging CI.
+- [cd-pipeline.md](cd-pipeline.md) — Deploy workflow, triggers, and environments. Read it when setting up or debugging deployment automation.
+- [infrastructure-and-deployment.md](infrastructure-and-deployment.md) — Compute specs, persistence, backups, deploy. Read it when deploying or changing infrastructure.
+
+## Guides & runbooks
+
+- [fly-provisioning.md](fly-provisioning.md) — Step-by-step runbook for creating a Fly.io app, database, storage, and secrets. Read it when standing up a new environment.

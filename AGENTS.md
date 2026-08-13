@@ -4,7 +4,11 @@
 
 Mercato is a general-purpose C2C marketplace platform, built to be infrastructure-less as much as possible. Users buy and sell items through an escrow-style flow where payment is held until delivery is confirmed.
 
+**IMPORTANT: Rule of thumb — infra-less as much as possible:** no separate database server, no required external services beyond the app itself. Everything the app needs to run defaults to living on the same Fly.io instance, with external providers (object storage, payments, shipping) as opt-in, swappable adapters rather than hard dependencies. When adding a new integration or persistence need, prefer a local/in-app default with an external provider as a pluggable option, not the other way around.
+
 Payment, shipping, and similar third-party vendors are pluggable — the platform is designed to accept additional providers beyond the ones currently integrated.
+
+**IMPORTANT: Rule of thumb — minimal core, extend on top:** entities and features default to the smallest field/action set a use case actually needs, not the largest one it might someday need. A `User` starts with the fields auth and a listing actually require; a marketplace-specific field (e.g. a seller rating, a shipping preference) gets added when a feature needs it, not speculatively. This keeps the starter kit generic and reusable — see [principles.md → OCP](docs/architecture/principles.md#ocp--openclosed) for how extension happens without touching existing code.
 
 ## 🛠 Tech Stack
 

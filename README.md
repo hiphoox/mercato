@@ -2,9 +2,9 @@
 
 <img src="priv/static/images/mercato-logo.png" alt="Mercato logo" width="128">
 
-Mercato is a general-purpose C2C marketplace platform, built to be infrastructure-less as much as possible. Users buy and sell items through an escrow-style flow where payment is held until delivery is confirmed.
+Mercato is a general-purpose C2C marketplace platform, built to be **infra-less as much as possible**: no separate database server, no required external services beyond the app itself — everything the app needs to run defaults to living on the same Fly.io instance. Users buy and sell items through an escrow-style flow where payment is held until delivery is confirmed.
 
-Payment, shipping, and similar third-party vendors are pluggable. Defaults: Google & Apple OAuth, Stripe + Stripe Connect, and Shippo (chosen for its sandbox/test mode).
+External providers — object storage, payment, shipping, and similar third-party vendors — are opt-in, swappable adapters rather than hard dependencies. Defaults: Google & Apple OAuth, Stripe + Stripe Connect, and Shippo (chosen for its sandbox/test mode).
 
 ## Tech stack
 
