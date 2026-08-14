@@ -1,6 +1,6 @@
 ---
 name: write-docs
-description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, features) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
+description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, features, explore) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
 ---
 
 # Writing OKF Baseline Docs
@@ -52,7 +52,11 @@ Each `docs/<section>/` has an `index.md` (`type: index`) mapping its files. When
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 ```
 
-`docs/` has three fixed sections — `architecture/`, `domain/`, `features/` — listed in `docs/index.md`. This is a closed set: never create a new top-level `docs/<section>/` folder on your own judgment. If a doc genuinely doesn't fit any of the three, ask the user before adding a section.
+`docs/` has four fixed sections — `architecture/`, `domain/`, `features/`, `explore/` — listed in `docs/index.md`. This is a closed set: never create a new top-level `docs/<section>/` folder on your own judgment. If a doc genuinely doesn't fit any of the four, ask the user before adding a section.
+
+## `docs/explore/` — Research for What Doesn't Exist Yet
+
+Holds decisions/research for not-yet-built capabilities — exempt from "Code Is the Source of Truth" below. Once built, the file graduates: move it to the owning section (usually `architecture/`), update `type` and content to match the real implementation, and update both indexes.
 
 ## Code Is the Source of Truth Once It Exists
 

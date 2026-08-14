@@ -17,7 +17,7 @@ The index files exist to resolve both: they name each doc's concern and when to 
 ## The Discovery Procedure (index-first)
 
 1. **Name the concern(s)** of your task — e.g. "writing a LiveView", "changing the transactions schema", "the checkout flow".
-2. **Open `docs/index.md`** to find which section owns the concern, then that section's own `index.md`.
+2. **Open `docs/index.md`** to find which section owns the concern, then that section's own `index.md`. **If the task involves something that doesn't exist in the codebase yet** (a new library, integration, or capability), check `docs/explore/index.md` first — the research or decision may already be done.
 3. **Open only the files whose "Read it when…" line matches.** The one-liner tells you before you open it — do not read every file in a section.
 4. **If a resource exists in code for what you're reading about** (an Ash resource, a config module), the code is authoritative — a doc may lag behind it. Trust the code over the doc when they disagree, and note the gap.
 

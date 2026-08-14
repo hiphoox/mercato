@@ -20,7 +20,9 @@ Payment, shipping, and similar third-party vendors are pluggable — the platfor
 
 ## 🗺️ Documentation
 
-This project uses a distributed documentation model: one source of truth per concern, indexed for on-demand reading rather than upfront loading. Start at [docs/index.md](docs/index.md) — it maps every section (`docs/architecture/`, `docs/domain/`, …), and each section's own `index.md` maps its files. See the `read-docs` and `write-docs` skills for the discovery/authoring procedure.
+This project uses a distributed documentation model: one source of truth per concern, indexed for on-demand reading rather than upfront loading. Start at [docs/index.md](docs/index.md) — it maps every section (`docs/architecture/`, `docs/domain/`, `docs/explore/`, …), and each section's own `index.md` maps its files. See the `read-docs` and `write-docs` skills for the discovery/authoring procedure.
+
+Before researching or designing an approach for something that doesn't exist in the codebase yet (a new library, integration, or capability), check [docs/explore/index.md](docs/explore/index.md) first — the exploration may already be done. `docs/explore/` holds decisions/research for not-yet-built capabilities; once built, the file graduates to the section that owns it (usually `docs/architecture/`) and is reconciled to match the real code.
 
 ## 🤖 Agent Skills
 

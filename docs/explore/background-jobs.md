@@ -1,12 +1,12 @@
 ---
-type: architecture
+type: explore
 title: Background Jobs
 description: Background/scheduled job processing baseline and its SQLite constraint.
-tags: [architecture, jobs, oban, sqlite]
+tags: [explore, jobs, oban, sqlite]
 timestamp: 2026-08-14T00:00:00Z
 ---
 
-Mercato has no background job library installed yet. When one is added, it is **Oban used directly**, not the `ash_oban` wrapper — a constraint driven by the project's infra-less/SQLite-only rule of thumb (see [data-architecture.md](data-architecture.md)).
+Mercato has no background job library installed yet. When one is added, it is **Oban used directly**, not the `ash_oban` wrapper — a constraint driven by the project's infra-less/SQLite-only rule of thumb (see [data-architecture.md](../architecture/data-architecture.md)).
 
 ## 1. Oban Core Supports SQLite
 

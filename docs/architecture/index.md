@@ -13,7 +13,6 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
 - [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
-- [background-jobs.md](background-jobs.md) — Background/scheduled job processing baseline (Oban core, not `ash_oban`) and its SQLite constraint. Read it before adding a job queue, worker, or scheduled task.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 
 ## Standards & process
