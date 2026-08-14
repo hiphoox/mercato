@@ -1,4 +1,6 @@
 import Config
+config :mercato, token_signing_secret: "1ZRKixWCxSwI+xAHYzYncz1/IIBy7fnO"
+config :bcrypt_elixir, log_rounds: 1
 config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database

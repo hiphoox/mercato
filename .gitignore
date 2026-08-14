@@ -46,3 +46,6 @@ npm-debug.log
 /*.db
 /*.db-shm
 /*.db-wal
+
+# Personal scratch todo list — not shared across the team.
+/todos.md

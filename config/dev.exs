@@ -50,7 +50,7 @@ config :mercato, MercatoWeb.Endpoint,
 # different ports.
 
 # Enable dev routes for dashboard and mailbox
-config :mercato, dev_routes: true
+config :mercato, dev_routes: true, token_signing_secret: "f8++0PyI4o4j5WpbRmntldlQ9iDfU2qi"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
