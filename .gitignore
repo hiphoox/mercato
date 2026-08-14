@@ -42,3 +42,7 @@ npm-debug.log
 # Claude Code-specific pointer to AGENTS.md — the real content lives there.
 /CLAUDE.md
 
+# Local - test - SQLite databases
+/*.db
+/*.db-shm
+/*.db-wal
