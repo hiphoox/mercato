@@ -13,6 +13,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
 - [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
+- [background-jobs.md](background-jobs.md) — Background/scheduled job processing baseline (Oban core, not `ash_oban`) and its SQLite constraint. Read it before adding a job queue, worker, or scheduled task.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 
 ## Standards & process
@@ -31,6 +32,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [testing.md](testing.md) — Backend and Ash test conventions. Read it when writing backend/Ash tests.
 - [liveview-testing.md](liveview-testing.md) — LiveView test conventions. Read it when writing LiveView tests.
 - [git-strategy.md](git-strategy.md) — Branching model, release workflow, versioning. Read it when branching, releasing, or versioning.
+- [cli-commands.md](cli-commands.md) — Deterministic Mix/CLI commands for tasks like db setup, migrations, seeding, resource generation. Read it before doing a task by hand that a command might already do.
 - [ci-pipeline.md](ci-pipeline.md) — Quality gates, CI commands, verification. Read it when setting up or debugging CI.
 - [cd-pipeline.md](cd-pipeline.md) — Deploy workflow, triggers, and environments. Read it when setting up or debugging deployment automation.
 - [infrastructure-and-deployment.md](infrastructure-and-deployment.md) — Compute specs, persistence, backups, deploy. Read it when deploying or changing infrastructure.
