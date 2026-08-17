@@ -11,7 +11,7 @@ description: Use when creating, editing, converting, or splitting any markdown f
 
 Four rules make that work: OKF frontmatter, one concern per file, a current index, and updating docs alongside the code they describe. Follow all four on every new or edited doc — automatically, without being asked.
 
-**The most important rule is One File = One Concern.** Everything else in this skill exists to serve it — a doc that mixes concerns costs every future agent tokens, no matter how clean its frontmatter is.
+**Two rules matter most, everything else in this skill exists to serve them:** One File = One Concern (how docs are structured) and Behavior, Not Implementation (what goes in them, see Style below). A doc that mixes concerns costs every future agent tokens; a doc full of module/function names instead of rules is wrong even when it's fresh and accurate.
 
 ## When to Use
 
@@ -72,7 +72,19 @@ This is a doc about the current system, not a roadmap: never write "planned" / "
 
 **ER diagrams and other docs describing an Ash resource are a special case:** once the resource exists in code, the code is authoritative for its specifics (attributes, types, defaults) — reconcile the diagram/doc to match the code, not the other way around.
 
-## Style: State What IS
+## Style
+
+### Behavior, Not Implementation
+
+A doc describes **what the system does** — its rules, guarantees, and observable behavior — not **how the code achieves it**. A reader should be able to act on the doc without knowing the language, framework, or module structure underneath.
+
+- Write: "a user's email is visible only to themselves." Not: "`Mercato.Accounts.User.Checks.ActorHasRole` — an `Ash.Policy.SimpleCheck` — loads `user_roles` and matches on role name."
+- Write: "a banned or deleted account cannot sign in." Not: "`prepare build(filter: [status: :active])` on `sign_in_with_password`."
+- Module names, function names, action names, check/validation module names, config snippets, and framework-specific mechanism names (a specific check type, a specific DSL macro) are all implementation detail — they belong in the code, which is always the authoritative, current source for exactly that.
+
+This isn't the same rule as "code is authoritative for a resource's specifics" (see Update Docs Alongside Code above) — that rule is about *trusting* the code over a stale doc. This rule is about what the doc should *contain* in the first place: even a perfectly fresh, perfectly accurate doc is wrong if it's full of module/function names instead of the rules those modules implement. If you catch yourself naming a module, a check, or a function to explain a behavior, stop and write the behavior itself instead — the name is not the point.
+
+### State What IS
 
 Write plain declarative facts about the current system. Cut justification prose about roads not taken — `"X, not Y"`, `"rather than"`, `"instead of"`, `"not a formal Z because…"`. A reader needs the current shape, not a design-rationale record. Keep a contrast only when it is load-bearing (e.g. a table cell documenting two exclusive states).
 
@@ -85,5 +97,6 @@ Write plain declarative facts about the current system. Cut justification prose 
 | Index | Entry added/edited with "Read it when…" in the same change | Forgetting the index — an unlisted doc is undiscoverable |
 | Freshness | Update the doc in the same change as the code | Letting a doc go stale "for later" |
 | Resource docs | Code is authoritative for a resource's specifics once it exists | Trusting a stale ER diagram over the actual resource code |
+| Behavior vs. implementation | Describe rules/behavior; leave module/function/check names to the code | Naming a module or function to explain a behavior instead of stating the behavior |
 | Roadmap notes | None outside `docs/explore/` — no "planned" / "nice to have" / "future" | Writing roadmap notes into a doc about existing code |
 | Style | Declarative facts, no negation prose | Explaining what wasn't chosen ("X, not Y") |
