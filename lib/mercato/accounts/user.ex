@@ -366,6 +366,10 @@ defmodule Mercato.Accounts.User do
     attribute :last_active_at, :utc_datetime_usec
   end
 
+  relationships do
+    has_many :user_roles, Mercato.Accounts.UserRole
+  end
+
   identities do
     identity :unique_email, [:email]
     identity :unique_handle, [:handle]
