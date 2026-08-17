@@ -1,5 +1,5 @@
 ---
-type: architecture
+type: guide
 title: Fly.io Provisioning
 description: Runbook for creating the Fly.io app, volume, storage, and secrets an environment needs.
 tags: [fly-io, provisioning, runbook, sqlite, tigris]

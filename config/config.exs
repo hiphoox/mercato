@@ -84,6 +84,10 @@ config :phoenix_live_view,
 # at the `config/runtime.exs`.
 config :mercato, Mercato.Mailer, adapter: Swoosh.Adapters.Local
 
+# Configure file storage. The default local-disk adapter needs no external
+# service; a future S3/Tigris adapter overrides this in config/runtime.exs.
+config :mercato, :storage_adapter, Mercato.Ports.Storage.Local
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

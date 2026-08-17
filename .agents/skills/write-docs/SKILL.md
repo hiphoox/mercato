@@ -1,6 +1,6 @@
 ---
 name: write-docs
-description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, features, explore) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
+description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, features, explore, guides) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
 ---
 
 # Writing OKF Baseline Docs
@@ -24,7 +24,7 @@ Three rules make that work: OKF frontmatter, one concern per file, and a current
 
 ```yaml
 ---
-type: architecture        # section-generic: architecture | domain | feature | index
+type: architecture        # section-generic: architecture | domain | feature | explore | guide | index
 title: Short Title        # the subject only — "Principles", "Security". No project name suffix.
 description: One short sentence.
 tags: [relevant, lowercase, tags]
@@ -52,11 +52,15 @@ Each `docs/<section>/` has an `index.md` (`type: index`) mapping its files. When
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 ```
 
-`docs/` has four fixed sections — `architecture/`, `domain/`, `features/`, `explore/` — listed in `docs/index.md`. This is a closed set: never create a new top-level `docs/<section>/` folder on your own judgment. If a doc genuinely doesn't fit any of the four, ask the user before adding a section.
+`docs/` has five fixed sections — `architecture/`, `domain/`, `features/`, `explore/`, `guides/` — listed in `docs/index.md`. This is a closed set: never create a new top-level `docs/<section>/` folder on your own judgment. If a doc genuinely doesn't fit any of the five, ask the user before adding a section.
 
 ## `docs/explore/` — Research for What Doesn't Exist Yet
 
 Holds decisions/research for not-yet-built capabilities — exempt from "Code Is the Source of Truth" below. Once built, the file graduates: move it to the owning section (usually `architecture/`), update `type` and content to match the real implementation, and update both indexes.
+
+## `docs/guides/` — Step-by-Step How-Tos
+
+Holds procedures for a task performed occasionally (provisioning an environment, adding a new adapter to an existing port) rather than documentation of the system's current shape. A guide can describe a step that isn't done yet (e.g. adding an adapter that doesn't exist) without needing to graduate elsewhere once it is — the procedure stays valid for the next time someone does it.
 
 ## Code Is the Source of Truth Once It Exists
 

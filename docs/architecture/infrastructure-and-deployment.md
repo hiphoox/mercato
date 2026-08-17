@@ -46,7 +46,7 @@ The technical delivery of the application is automated to ensure environment par
 
 ### Server initialization
 
-New environments must be provisioned with a Fly.io app, a persistent volume for the SQLite database, and the required secrets — plus a Tigris bucket only if that storage adapter is in use — see [fly-provisioning.md](fly-provisioning.md) for the exact runbook.
+New environments must be provisioned with a Fly.io app, a persistent volume for the SQLite database, and the required secrets — plus a Tigris bucket only if that storage adapter is in use — see [fly-provisioning.md](../guides/fly-provisioning.md) for the exact runbook.
 
 ## Schema maintenance
 
