@@ -14,14 +14,14 @@ A fixed sequence for turning a task into a change, so the user stays in control 
 1. **Ask clarifying questions if needed.** Don't guess at ambiguous scope or an unstated design choice — ask, one question at a time if there are several.
 2. **Always read the docs and code before proposing anything.** Use `read-docs` and `understand-code` per their own trigger conditions — don't rely on memory of an earlier turn or an earlier session.
 3. **Propose a plan as a simple bullet list** before writing any code. Keep it short — what will change, in what files, and why. Wait for the user to confirm before implementing.
-4. **Implement test-first.** Write a failing test for the behavior, confirm it fails for the right reason, then write the minimal code to pass it — see Verify RED For The Right Reason below.
+4. **Implement test-first.** Write a failing test for the behavior, confirm it fails for the right reason, then write the minimal code to pass it — see Verify RED For The Right Reason below. If the change adds or touches an action meant to be called from outside the resource, give it a public interface in the same change — see Externally-Called Actions Get A Public Interface below.
 5. **Run the full test suite before declaring the work done**, not just the tests you added — a change can pass its own tests while breaking something else.
 6. **Give the user something to manually verify the change with.** For backend/non-UI work, provide a ready-to-paste `iex -S mix` snippet exercising the new/changed behavior (not just "trust the tests"). For UI work, give concrete click-through steps (page, action, expected result). Do this before asking about commits — the user should be able to see the change work before deciding whether to commit it.
 7. **Propose a commit list and ask for explicit permission before committing.** Never commit without the user saying so, even after a successful implementation. Group changes the way the user asks when they respond.
 
 ## Verify RED For The Right Reason
 
-Before treating a failing test as proof the behavior isn't implemented yet, confirm *why* it's failing. A test that fails for an unrelated reason (a typo, a different bug, missing test setup) isn't RED for the behavior under test — it's just broken, and "fixing" it proves nothing.
+Before treating a failing test as proof the behavior isn't implemented yet, confirm _why_ it's failing. A test that fails for an unrelated reason (a typo, a different bug, missing test setup) isn't RED for the behavior under test — it's just broken, and "fixing" it proves nothing.
 
 The same applies in reverse: **a test that passes before you've written the implementation is a red flag, not a green light.** It means the test isn't actually exercising the behavior. Stop and investigate why it passed instead of moving on.
 
@@ -35,6 +35,18 @@ Automated tests prove the code does what the test says — they don't prove the 
 - **UI change:** concrete steps — which page, what to click or type, what should appear. Start the dev server yourself and confirm the flow works before describing it, per this project's UI-testing conventions.
 
 Skipping this and just citing "tests pass" is not equivalent — tests can pass while still testing the wrong thing (see Verify RED For The Right Reason above), and the user can't eyeball a test suite's intent the way they can eyeball a real run.
+
+## Externally-Called Actions Get A Public Interface
+
+This applies to actions meant to be invoked from _outside_ the resource — by another context/domain, a LiveView, a controller, a test asserting on real behavior. It does not apply to actions that exist purely as internal implementation details: an action only ever triggered by a `Preparation`/`Change` on another action, an internal token/subject lookup used by a library integration, a helper action nothing outside the resource calls. Forcing an interface onto those adds a layer nothing uses — judge each action by whether outside code has (or will have) a legitimate reason to call it directly, not by a blanket rule.
+
+When an action _does_ meet that bar, define its public interface in the same change you add or change the action — don't leave callers (or tests) to reach into the underlying resource directly. In this project that means a matching `define` on `Mercato.Accounts` (or the owning domain).
+
+This isn't just a testing rule. Code that calls the resource directly instead of through the interface has the same problem tests do: it bypasses whatever the interface layer is responsible for (arg mapping, a stable call shape, a single place to change later) and nothing catches a broken or missing interface definition, because nothing exercises it.
+
+**Consequently, tests of an externally-called action must call it through the interface**, not through the resource directly — a test that bypasses the interface can't catch a wrong `args:` mapping or a missing `define`. Building fixtures or preconditions is different from testing behavior: it's fine to set up test state with lower-level/direct calls (seeding a related record, forcing an attribute the interface doesn't expose) as long as the thing actually under test goes through the real interface.
+
+Concrete example from this session: `change_status` and `update_handle` are `User` actions callers outside the resource need (an admin action, a self-service profile action) — but neither had a matching `define` on `Mercato.Accounts`. Tests then had no interface to call, so they used `Ash.Changeset.for_update(:change_status, ...) |> Ash.update!()` directly. Fixing it meant two things: adding `define :change_status, ...` (and the others) to the domain, _and_ rewriting the tests to call `Accounts.change_status/4` instead — the missing interface was the root cause, the direct-resource test was a symptom of it. By contrast, `bump_last_active_at` is only ever triggered internally by a sign-in `Preparation` — it doesn't need one.
 
 ## Scope Creep
 
