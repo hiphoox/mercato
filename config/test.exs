@@ -11,7 +11,7 @@ config :ash, policies: [show_policy_breakdowns?: true]
 config :mercato, Mercato.Repo,
   database: Path.join(__DIR__, "../mercato_test#{System.get_env("MIX_TEST_PARTITION")}.db"),
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: 10
+  pool_size: 1
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
