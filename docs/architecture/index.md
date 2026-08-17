@@ -12,6 +12,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 
 - [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
 - [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
+- [ports.md](ports.md) — The `Mercato.Ports` namespace: behaviour-plus-adapter pattern for swappable external-service boundaries (storage, and future payments/search). Read it when adding a new boundary module or a new adapter to an existing one.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 
@@ -36,6 +37,4 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [cd-pipeline.md](cd-pipeline.md) — Deploy workflow, triggers, and environments. Read it when setting up or debugging deployment automation.
 - [infrastructure-and-deployment.md](infrastructure-and-deployment.md) — Compute specs, persistence, backups, deploy. Read it when deploying or changing infrastructure.
 
-## Guides & runbooks
-
-- [fly-provisioning.md](fly-provisioning.md) — Step-by-step runbook for creating a Fly.io app, database, storage, and secrets. Read it when standing up a new environment.
+Step-by-step guides and runbooks live in [docs/guides/](../guides/index.md).
