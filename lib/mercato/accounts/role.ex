@@ -17,6 +17,11 @@ defmodule Mercato.Accounts.Role do
   actions do
     defaults [:read]
 
+    read :get_by_name do
+      description "Looks up a role by its name"
+      get_by :name
+    end
+
     create :create do
       primary? true
       accept [:name, :description]
