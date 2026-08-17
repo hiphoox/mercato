@@ -2,6 +2,7 @@ defmodule Mercato.Accounts.UserTest do
   use Mercato.DataCase, async: true
 
   alias AshAuthentication.Strategy.MagicLink
+  alias Mercato.Accounts
   alias Mercato.Accounts.Setting
 
   import Mercato.TestGenerators
@@ -28,12 +29,9 @@ defmodule Mercato.Accounts.UserTest do
       |> Ash.update!()
 
       result =
-        Mercato.Accounts.User
-        |> Ash.Query.for_read(:sign_in_with_password, %{
-          email: created.email,
-          password: "password1234"
-        })
-        |> Ash.read_one(authorize?: false)
+        Accounts.sign_in_with_password(to_string(created.email), "password1234", %{},
+          authorize?: false
+        )
 
       assert {:error, _} = result
     end
@@ -42,23 +40,17 @@ defmodule Mercato.Accounts.UserTest do
       created = generate(user(password: "password1234", password_confirmation: "password1234"))
 
       {:ok, %{__metadata__: %{token: sign_in_token}}} =
-        Mercato.Accounts.User
-        |> Ash.Query.for_read(:sign_in_with_password, %{
-          email: created.email,
-          password: "password1234"
-        })
-        |> Ash.Query.set_context(%{token_type: :sign_in})
-        |> Ash.read_one(authorize?: false)
+        Accounts.sign_in_with_password(to_string(created.email), "password1234", %{},
+          authorize?: false,
+          context: %{token_type: :sign_in}
+        )
 
       created
       |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
       |> Ash.Changeset.force_change_attribute(:status, :banned)
       |> Ash.update!()
 
-      result =
-        Mercato.Accounts.User
-        |> Ash.Query.for_read(:sign_in_with_token, %{token: sign_in_token})
-        |> Ash.read_one(authorize?: false)
+      result = Accounts.sign_in_with_token(sign_in_token, %{}, authorize?: false)
 
       assert {:error, _} = result
     end
@@ -77,10 +69,7 @@ defmodule Mercato.Accounts.UserTest do
       strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
       {:ok, token} = MagicLink.request_token_for(strategy, created)
 
-      signed_in =
-        Mercato.Accounts.User
-        |> Ash.Changeset.for_create(:sign_in_with_magic_link, %{token: token}, authorize?: false)
-        |> Ash.create!()
+      signed_in = Accounts.sign_in_with_magic_link!(token, %{}, authorize?: false)
 
       assert signed_in.handle == created.handle
     end
@@ -97,10 +86,7 @@ defmodule Mercato.Accounts.UserTest do
       strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
       {:ok, token} = MagicLink.request_token_for(strategy, created)
 
-      result =
-        Mercato.Accounts.User
-        |> Ash.Changeset.for_create(:sign_in_with_magic_link, %{token: token}, authorize?: false)
-        |> Ash.create()
+      result = Accounts.sign_in_with_magic_link(token, %{}, authorize?: false)
 
       assert {:error, _} = result
     end
@@ -112,12 +98,9 @@ defmodule Mercato.Accounts.UserTest do
       refute created.last_active_at
 
       signed_in =
-        Mercato.Accounts.User
-        |> Ash.Query.for_read(:sign_in_with_password, %{
-          email: created.email,
-          password: "password1234"
-        })
-        |> Ash.read_one!(authorize?: false)
+        Accounts.sign_in_with_password!(to_string(created.email), "password1234", %{},
+          authorize?: false
+        )
 
       assert signed_in.last_active_at
     end
@@ -154,11 +137,7 @@ defmodule Mercato.Accounts.UserTest do
     test "updates the handle and stamps handle_changed_at" do
       user = generate(user())
 
-      updated =
-        user
-        |> Ash.Changeset.for_update(:update_handle, %{handle: "new_handle"}, authorize?: false)
-        |> Ash.update!()
-
+      assert {:ok, updated} = Accounts.update_handle(user, "new_handle", %{}, authorize?: false)
       assert updated.handle == "new_handle"
       assert updated.handle_changed_at
     end
@@ -166,10 +145,7 @@ defmodule Mercato.Accounts.UserTest do
     test "rejects a reserved handle" do
       user = generate(user())
 
-      assert {:error, changeset} =
-               user
-               |> Ash.Changeset.for_update(:update_handle, %{handle: "admin"}, authorize?: false)
-               |> Ash.update()
+      assert {:error, changeset} = Accounts.update_handle(user, "admin", %{}, authorize?: false)
 
       assert "is reserved" in field_error_messages(changeset, :handle)
     end
@@ -178,11 +154,7 @@ defmodule Mercato.Accounts.UserTest do
       user = generate(user())
 
       assert {:error, error} =
-               user
-               |> Ash.Changeset.for_update(:update_handle, %{handle: "Jane Doe!"},
-                 authorize?: false
-               )
-               |> Ash.update()
+               Accounts.update_handle(user, "Jane Doe!", %{}, authorize?: false)
 
       assert field_error_messages(error, :handle) != []
     end
@@ -190,17 +162,10 @@ defmodule Mercato.Accounts.UserTest do
     test "rejects a second change within the cooldown window" do
       user = generate(user())
 
-      first =
-        user
-        |> Ash.Changeset.for_update(:update_handle, %{handle: "first_handle"}, authorize?: false)
-        |> Ash.update!()
+      assert {:ok, first} = Accounts.update_handle(user, "first_handle", %{}, authorize?: false)
 
       assert {:error, changeset} =
-               first
-               |> Ash.Changeset.for_update(:update_handle, %{handle: "second_handle"},
-                 authorize?: false
-               )
-               |> Ash.update()
+               Accounts.update_handle(first, "second_handle", %{}, authorize?: false)
 
       assert "must wait before changing handle again" in field_error_messages(changeset, :handle)
     end
@@ -212,17 +177,10 @@ defmodule Mercato.Accounts.UserTest do
 
       user = generate(user())
 
-      first =
-        user
-        |> Ash.Changeset.for_update(:update_handle, %{handle: "first_handle"}, authorize?: false)
-        |> Ash.update!()
+      assert {:ok, first} = Accounts.update_handle(user, "first_handle", %{}, authorize?: false)
 
       assert {:ok, second} =
-               first
-               |> Ash.Changeset.for_update(:update_handle, %{handle: "second_handle"},
-                 authorize?: false
-               )
-               |> Ash.update()
+               Accounts.update_handle(first, "second_handle", %{}, authorize?: false)
 
       assert second.handle == "second_handle"
     end

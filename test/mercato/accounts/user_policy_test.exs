@@ -3,6 +3,7 @@ defmodule Mercato.Accounts.UserPolicyTest do
 
   import Mercato.TestGenerators
 
+  alias Mercato.Accounts
   alias Mercato.Accounts.{Role, User, UserRole}
 
   defp assign_role(user, role_name) do
@@ -15,21 +16,21 @@ defmodule Mercato.Accounts.UserPolicyTest do
     test "a user can update their own record" do
       user = generate(user())
 
-      assert Ash.can?({user, :update_handle}, user)
+      assert Accounts.can_update_handle?(user, user, "new_handle")
     end
 
     test "a user cannot update another user's record" do
       user = generate(user())
       other = generate(user())
 
-      refute Ash.can?({user, :update_handle}, other)
+      refute Accounts.can_update_handle?(other, user, "new_handle")
     end
 
     test "an admin can update another user's record" do
       user = generate(user())
       admin = generate(user()) |> assign_role("admin")
 
-      assert Ash.can?({user, :update_handle}, admin)
+      assert Accounts.can_update_handle?(admin, user, "new_handle")
     end
   end
 
@@ -38,31 +39,27 @@ defmodule Mercato.Accounts.UserPolicyTest do
       user = generate(user())
       admin = generate(user()) |> assign_role("admin")
 
-      assert Ash.can?({user, :change_status}, admin)
+      assert Accounts.can_change_status?(admin, user, :banned)
     end
 
     test "a user cannot change their own status" do
       user = generate(user())
 
-      refute Ash.can?({user, :change_status}, user)
+      refute Accounts.can_change_status?(user, user, :banned)
     end
 
     test "a non-admin cannot change another user's status" do
       user = generate(user())
       other = generate(user())
 
-      refute Ash.can?({user, :change_status}, other)
+      refute Accounts.can_change_status?(other, user, :banned)
     end
 
     test "an admin banning a user persists the new status" do
       user = generate(user())
       admin = generate(user()) |> assign_role("admin")
 
-      banned =
-        user
-        |> Ash.Changeset.for_update(:change_status, %{status: :banned}, actor: admin)
-        |> Ash.update!()
-
+      assert {:ok, banned} = Accounts.change_status(user, :banned, %{}, actor: admin)
       assert banned.status == :banned
     end
 
@@ -70,9 +67,7 @@ defmodule Mercato.Accounts.UserPolicyTest do
       user = generate(user())
 
       assert_raise Ash.Error.Forbidden, fn ->
-        user
-        |> Ash.Changeset.for_update(:change_status, %{status: :banned}, actor: user)
-        |> Ash.update!()
+        Accounts.change_status!(user, :banned, %{}, actor: user)
       end
     end
   end

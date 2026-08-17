@@ -8,7 +8,15 @@ defmodule Mercato.Accounts do
 
   resources do
     resource Mercato.Accounts.Token
-    resource Mercato.Accounts.User
+
+    resource Mercato.Accounts.User do
+      define :change_status, action: :change_status, args: [:status]
+      define :sign_in_with_password, action: :sign_in_with_password, args: [:email, :password]
+      define :sign_in_with_token, action: :sign_in_with_token, args: [:token]
+      define :sign_in_with_magic_link, action: :sign_in_with_magic_link, args: [:token]
+      define :update_handle, action: :update_handle, args: [:handle]
+    end
+
     resource Mercato.Accounts.Setting
 
     resource Mercato.Accounts.Role do
