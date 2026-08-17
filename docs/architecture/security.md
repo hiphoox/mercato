@@ -22,6 +22,10 @@ Email + password (`ash_authentication`'s `Password` strategy) and magic link. `h
 
 **v1:** every user holds exactly one role via `user_roles`, seeded with `trader` (default — buy + sell) and `admin` (platform staff), enforced at the application/policy layer rather than the schema. There is no in-session active-role switching in v1; a user's single role applies for the life of the session.
 
+`Mercato.Accounts.User` uses `Ash.Policy.Authorizer`. `AshAuthentication.Checks.AshAuthenticationInteraction` is bypassed so the authentication strategies (registration, sign-in, password reset) run unauthenticated. Beyond that: `:read` is open to any actor; `:update` actions require the actor to be the record itself (`actor.id == id`) or hold the `admin` role, checked via `Mercato.Accounts.User.Checks.ActorHasRole` (an `Ash.Policy.SimpleCheck` that loads the actor's `user_roles` and matches on role name).
+
+Most `users` attributes are public (name, handle, avatar, status) — anyone can read them, e.g. a buyer viewing a seller's profile on a product page. `email` is not: the raw `email` attribute stays on the struct for internal use (auth, identities), but the resource exposes a `visible_email` calculation that resolves to the actor's own email and `nil` for every other actor. Consumers displaying a user's email to another user read `visible_email`, never `email`, directly.
+
 ## Account Status
 
 `users.status` gates authentication and available actions, independent of role. Implemented as a plain `status` attribute (`active | banned | deleted`) with Ash policies gating actions per state.
