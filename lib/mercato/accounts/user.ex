@@ -151,6 +151,12 @@ defmodule Mercato.Accounts.User do
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
     end
 
+    update :change_status do
+      description "Admin action to change a user's status (ban/reactivate)."
+      accept [:status]
+      require_atomic? false
+    end
+
     update :update_handle do
       description "Self-service handle change, subject to the reserved-word and cooldown rules."
       accept [:handle]
@@ -338,6 +344,10 @@ defmodule Mercato.Accounts.User do
 
     policy action_type(:update) do
       authorize_if expr(id == ^actor(:id))
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasRole, role: :admin}
+    end
+
+    policy action(:change_status) do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasRole, role: :admin}
     end
   end

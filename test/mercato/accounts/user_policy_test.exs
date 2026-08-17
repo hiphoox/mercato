@@ -33,6 +33,50 @@ defmodule Mercato.Accounts.UserPolicyTest do
     end
   end
 
+  describe "change_status" do
+    test "an admin can change another user's status" do
+      user = generate(user())
+      admin = generate(user()) |> assign_role("admin")
+
+      assert Ash.can?({user, :change_status}, admin)
+    end
+
+    test "a user cannot change their own status" do
+      user = generate(user())
+
+      refute Ash.can?({user, :change_status}, user)
+    end
+
+    test "a non-admin cannot change another user's status" do
+      user = generate(user())
+      other = generate(user())
+
+      refute Ash.can?({user, :change_status}, other)
+    end
+
+    test "an admin banning a user persists the new status" do
+      user = generate(user())
+      admin = generate(user()) |> assign_role("admin")
+
+      banned =
+        user
+        |> Ash.Changeset.for_update(:change_status, %{status: :banned}, actor: admin)
+        |> Ash.update!()
+
+      assert banned.status == :banned
+    end
+
+    test "a self-attempt to change status raises Forbidden" do
+      user = generate(user())
+
+      assert_raise Ash.Error.Forbidden, fn ->
+        user
+        |> Ash.Changeset.for_update(:change_status, %{status: :banned}, actor: user)
+        |> Ash.update!()
+      end
+    end
+  end
+
   describe "visible_email calculation" do
     test "resolves to the real email for the user's own record" do
       user = generate(user())
