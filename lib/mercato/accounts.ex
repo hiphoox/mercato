@@ -5,5 +5,6 @@ defmodule Mercato.Accounts do
   resources do
     resource Mercato.Accounts.Token
     resource Mercato.Accounts.User
+    resource Mercato.Accounts.Setting
   end
 end

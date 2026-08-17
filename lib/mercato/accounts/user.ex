@@ -99,6 +99,9 @@ defmodule Mercato.Accounts.User do
       change {AshAuthentication.Strategy.RememberMe.MaybeGenerateTokenChange,
               strategy_name: :remember_me}
 
+      change set_attribute(:last_active_at, &DateTime.utc_now/0)
+      change Mercato.Accounts.User.Changes.GenerateHandle
+
       metadata :token, :string do
         allow_nil? false
       end
@@ -135,6 +138,38 @@ defmodule Mercato.Accounts.User do
       change {AshAuthentication.Strategy.Password.HashPasswordChange, strategy_name: :password}
     end
 
+    update :bump_last_active_at do
+      description "Stamps last_active_at with the current time."
+      accept []
+      change set_attribute(:last_active_at, &DateTime.utc_now/0)
+    end
+
+    update :update_handle do
+      description "Self-service handle change, subject to the reserved-word and cooldown rules."
+      accept [:handle]
+      require_atomic? false
+
+      validate Mercato.Accounts.User.Validations.HandleNotReserved
+      validate Mercato.Accounts.User.Validations.HandleCooldown
+      change set_attribute(:handle_changed_at, &DateTime.utc_now/0)
+    end
+
+    update :update_avatar do
+      description "Uploads a new avatar image via the storage port and sets avatar_url."
+      accept []
+      require_atomic? false
+
+      argument :avatar, :binary do
+        allow_nil? false
+      end
+
+      argument :filename, :string do
+        allow_nil? false
+      end
+
+      change Mercato.Accounts.User.Changes.UploadAvatar
+    end
+
     read :sign_in_with_password do
       description "Attempt to sign in using a email and password."
       get? true
@@ -152,6 +187,7 @@ defmodule Mercato.Accounts.User do
 
       # validates the provided email and password and generates a token
       prepare AshAuthentication.Strategy.Password.SignInPreparation
+      prepare Mercato.Accounts.User.Preparations.StampLastActiveAt
 
       metadata :token, :string do
         description "A JWT that can be used to authenticate the user."
@@ -179,6 +215,7 @@ defmodule Mercato.Accounts.User do
 
       # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
+      prepare Mercato.Accounts.User.Preparations.StampLastActiveAt
 
       metadata :token, :string do
         description "A JWT that can be used to authenticate the user."
@@ -191,6 +228,14 @@ defmodule Mercato.Accounts.User do
 
       argument :email, :ci_string do
         allow_nil? false
+      end
+
+      argument :first_name, :string do
+        allow_nil? false
+      end
+
+      argument :last_name, :string do
+        allow_nil? true
       end
 
       argument :password, :string do
@@ -208,6 +253,9 @@ defmodule Mercato.Accounts.User do
 
       # Sets the email from the argument
       change set_attribute(:email, arg(:email))
+      change set_attribute(:first_name, arg(:first_name))
+      change set_attribute(:last_name, arg(:last_name))
+      change Mercato.Accounts.User.Changes.GenerateHandle
 
       # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
@@ -282,14 +330,44 @@ defmodule Mercato.Accounts.User do
       public? true
     end
 
+    attribute :first_name, :string do
+      allow_nil? false
+      public? true
+    end
+
+    attribute :last_name, :string do
+      public? true
+    end
+
+    attribute :handle, :string do
+      allow_nil? false
+      public? true
+      constraints min_length: 3, max_length: 30, match: ~r/^[a-z0-9_]+$/
+    end
+
+    attribute :handle_changed_at, :utc_datetime_usec
+
+    attribute :avatar_url, :string do
+      public? true
+    end
+
     attribute :hashed_password, :string do
       sensitive? true
     end
 
+    attribute :status, Mercato.Accounts.User.Status do
+      allow_nil? false
+      default :active
+      public? true
+    end
+
     attribute :confirmed_at, :utc_datetime_usec
+
+    attribute :last_active_at, :utc_datetime_usec
   end
 
   identities do
     identity :unique_email, [:email]
+    identity :unique_handle, [:handle]
   end
 end
