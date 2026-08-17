@@ -344,11 +344,11 @@ defmodule Mercato.Accounts.User do
 
     policy action_type(:update) do
       authorize_if expr(id == ^actor(:id))
-      authorize_if {Mercato.Accounts.User.Checks.ActorHasRole, role: :admin}
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
 
     policy action(:change_status) do
-      authorize_if {Mercato.Accounts.User.Checks.ActorHasRole, role: :admin}
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
   end
 

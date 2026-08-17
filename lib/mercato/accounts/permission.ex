@@ -15,6 +15,14 @@ defmodule Mercato.Accounts.Permission do
 
   actions do
     defaults [:read]
+
+    create :create do
+      primary? true
+      accept [:name, :description]
+      upsert? true
+      upsert_identity :unique_name
+      upsert_fields [:description]
+    end
   end
 
   attributes do

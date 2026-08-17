@@ -15,6 +15,13 @@ defmodule Mercato.Accounts.RolePermission do
 
   actions do
     defaults [:read]
+
+    create :create do
+      primary? true
+      accept [:role_id, :permission_id]
+      upsert? true
+      upsert_identity :unique_role_permission
+    end
   end
 
   relationships do
@@ -27,5 +34,9 @@ defmodule Mercato.Accounts.RolePermission do
       primary_key? true
       allow_nil? false
     end
+  end
+
+  identities do
+    identity :unique_role_permission, [:role_id, :permission_id]
   end
 end
