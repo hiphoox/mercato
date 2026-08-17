@@ -107,6 +107,8 @@ defmodule Mercato.Accounts.User do
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
       change Mercato.Accounts.User.Changes.GenerateHandle
 
+      validate Mercato.Accounts.User.Validations.AccountActive
+
       metadata :token, :string do
         allow_nil? false
       end
@@ -190,6 +192,8 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
+      prepare build(filter: [status: :active])
+
       # validates the provided email and password and generates a token
       prepare AshAuthentication.Strategy.Password.SignInPreparation
       prepare Mercato.Accounts.User.Preparations.StampLastActiveAt
@@ -217,6 +221,8 @@ defmodule Mercato.Accounts.User do
         allow_nil? false
         sensitive? true
       end
+
+      prepare build(filter: [status: :active])
 
       # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
@@ -345,7 +351,7 @@ defmodule Mercato.Accounts.User do
     end
 
     attribute :first_name, :string do
-      allow_nil? false
+      allow_nil? true
       public? true
     end
 
@@ -354,7 +360,7 @@ defmodule Mercato.Accounts.User do
     end
 
     attribute :handle, :string do
-      allow_nil? false
+      allow_nil? true
       public? true
       constraints min_length: 3, max_length: 30, match: ~r/^[a-z0-9_]+$/
     end

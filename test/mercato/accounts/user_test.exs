@@ -1,6 +1,7 @@
 defmodule Mercato.Accounts.UserTest do
   use Mercato.DataCase, async: true
 
+  alias AshAuthentication.Strategy.MagicLink
   alias Mercato.Accounts.Setting
 
   import Mercato.TestGenerators
@@ -16,6 +17,92 @@ defmodule Mercato.Accounts.UserTest do
       user = generate(user())
 
       assert user.status == :active
+    end
+
+    test "blocks password sign-in for a banned account" do
+      created = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:status, :banned)
+      |> Ash.update!()
+
+      result =
+        Mercato.Accounts.User
+        |> Ash.Query.for_read(:sign_in_with_password, %{
+          email: created.email,
+          password: "password1234"
+        })
+        |> Ash.read_one(authorize?: false)
+
+      assert {:error, _} = result
+    end
+
+    test "blocks sign-in-with-token for a banned account" do
+      created = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      {:ok, %{__metadata__: %{token: sign_in_token}}} =
+        Mercato.Accounts.User
+        |> Ash.Query.for_read(:sign_in_with_password, %{
+          email: created.email,
+          password: "password1234"
+        })
+        |> Ash.Query.set_context(%{token_type: :sign_in})
+        |> Ash.read_one(authorize?: false)
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:status, :banned)
+      |> Ash.update!()
+
+      result =
+        Mercato.Accounts.User
+        |> Ash.Query.for_read(:sign_in_with_token, %{token: sign_in_token})
+        |> Ash.read_one(authorize?: false)
+
+      assert {:error, _} = result
+    end
+  end
+
+  describe "sign_in_with_magic_link" do
+    test "does not regenerate the handle of a returning user" do
+      created = generate(user(first_name: "Jane", last_name: "Doe"))
+
+      created =
+        created
+        |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+        |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+        |> Ash.update!()
+
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for(strategy, created)
+
+      signed_in =
+        Mercato.Accounts.User
+        |> Ash.Changeset.for_create(:sign_in_with_magic_link, %{token: token}, authorize?: false)
+        |> Ash.create!()
+
+      assert signed_in.handle == created.handle
+    end
+
+    test "blocks sign-in for a banned account" do
+      created = generate(user())
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+      |> Ash.Changeset.force_change_attribute(:status, :banned)
+      |> Ash.update!()
+
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for(strategy, created)
+
+      result =
+        Mercato.Accounts.User
+        |> Ash.Changeset.for_create(:sign_in_with_magic_link, %{token: token}, authorize?: false)
+        |> Ash.create()
+
+      assert {:error, _} = result
     end
   end
 
