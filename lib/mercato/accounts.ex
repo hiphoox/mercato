@@ -1,4 +1,8 @@
 defmodule Mercato.Accounts do
+  @moduledoc """
+  Domain for user accounts, authentication, and the RBAC (roles/permissions) schema.
+  """
+
   use Ash.Domain,
     otp_app: :mercato
 

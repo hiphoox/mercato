@@ -1,4 +1,9 @@
 defmodule Mercato.Secrets do
+  @moduledoc """
+  Resolves signing secrets for `ash_authentication` (e.g. the token signing
+  secret for `Mercato.Accounts.User`).
+  """
+
   use AshAuthentication.Secret
 
   def secret_for(

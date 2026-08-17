@@ -21,7 +21,7 @@ defmodule Mercato.Accounts.User.Senders.SendMagicLinkEmail do
       end
 
     new()
-    # TODO: Replace with your email
+    # Sender address is a deployment-config placeholder, not a tracked task.
     |> from({"noreply", "noreply@example.com"})
     |> to(to_string(email))
     |> subject("Your login link")

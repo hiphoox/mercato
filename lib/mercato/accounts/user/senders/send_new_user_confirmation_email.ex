@@ -13,7 +13,7 @@ defmodule Mercato.Accounts.User.Senders.SendNewUserConfirmationEmail do
   @impl true
   def send(user, token, opts) do
     new()
-    # TODO: Replace with your email
+    # Sender address is a deployment-config placeholder, not a tracked task.
     |> from({"noreply", "noreply@example.com"})
     |> to(to_string(user.email))
     |> subject(subject(opts))

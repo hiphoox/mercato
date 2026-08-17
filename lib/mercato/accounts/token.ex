@@ -1,4 +1,9 @@
 defmodule Mercato.Accounts.Token do
+  @moduledoc """
+  Stores `ash_authentication` tokens (session, sign-in, confirmation, etc.)
+  for `Mercato.Accounts.User`.
+  """
+
   use Ash.Resource,
     otp_app: :mercato,
     domain: Mercato.Accounts,

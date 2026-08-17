@@ -1,4 +1,8 @@
 defmodule MercatoWeb.AuthOverrides do
+  @moduledoc """
+  UI overrides for the generated `ash_authentication_phoenix` components.
+  """
+
   use AshAuthentication.Phoenix.Overrides
 
   # configure your UI overrides here

@@ -1,4 +1,9 @@
 defmodule Mercato.Accounts.User do
+  @moduledoc """
+  A marketplace account: authentication (email/password, magic link),
+  profile fields, account status, and RBAC role membership via `user_roles`.
+  """
+
   use Ash.Resource,
     otp_app: :mercato,
     domain: Mercato.Accounts,
