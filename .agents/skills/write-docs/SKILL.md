@@ -9,7 +9,7 @@ description: Use when creating, editing, converting, or splitting any markdown f
 
 `docs/` holds this project's baseline knowledge (architecture, domain, features). These are reference files agents pull on demand — none load by default. Every file is a node in a machine-readable knowledge graph: markdown body + OKF YAML frontmatter. The whole design exists so an agent opens **exactly the one doc it needs** and spends no tokens on anything else.
 
-Three rules make that work: OKF frontmatter, one concern per file, and a current index. Follow all three on every new or edited doc — automatically, without being asked.
+Four rules make that work: OKF frontmatter, one concern per file, a current index, and updating docs alongside the code they describe. Follow all four on every new or edited doc — automatically, without being asked.
 
 **The most important rule is One File = One Concern.** Everything else in this skill exists to serve it — a doc that mixes concerns costs every future agent tokens, no matter how clean its frontmatter is.
 
@@ -20,7 +20,7 @@ Three rules make that work: OKF frontmatter, one concern per file, and a current
 - Converting a legacy doc that has no frontmatter.
 - A doc has grown to cover more than one concern and needs splitting.
 
-## The Frontmatter (required, opens every file)
+## Format (required, opens every file)
 
 ```yaml
 ---
@@ -38,13 +38,25 @@ timestamp: 2026-07-23T00:00:00Z   # date added/updated, midnight UTC
 - `tags` are lowercase.
 - Add `resource:` only when the doc genuinely points at one external resource. Omit otherwise.
 
+## Where Docs Live
+
+`docs/` has five fixed sections:
+
+- `architecture/` — system shape and cross-cutting standards.
+- `domain/` — entities, business rules, ER diagrams.
+- `features/` — feature decisions, flows, per-feature specs.
+- `explore/` — research/decisions for capabilities not yet built. A file here graduates to the owning section once built, updating `type` and content to match the real implementation.
+- `guides/` — step-by-step how-tos for occasional tasks (provisioning an environment, adding an adapter). A guide may describe a step that doesn't exist yet, since the procedure is the content — it doesn't need to graduate once the step exists.
+
+This is a closed set — never create a new top-level `docs/<section>/` folder on your own judgment; ask the user first if a doc genuinely doesn't fit any of the five.
+
 ## One File = One Concern
 
 An agent must be able to pull *just* security, or *just* streams, without loading a monolith. When a doc spans more than one concern, split it into separate OKF files rather than keeping it combined. Flag this when converting or reviewing existing docs, not only when writing new ones.
 
 **Length is a signal to recheck the concern boundary.** Past ~100-150 lines, a doc is usually covering more than one concern — split it. Don't pad a doc to dodge the threshold, and don't split apart facts a reader needs together.
 
-## Keep the Index Discoverable
+## Keep Docs Discoverable
 
 Each `docs/<section>/` has an `index.md` (`type: index`) mapping its files. When you add, rename, or split a doc, update that section's index in the same change. Each entry is a link + one line naming the concern **and when to open it**:
 
@@ -52,41 +64,26 @@ Each `docs/<section>/` has an `index.md` (`type: index`) mapping its files. When
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 ```
 
-`docs/` has five fixed sections — `architecture/`, `domain/`, `features/`, `explore/`, `guides/` — listed in `docs/index.md`. This is a closed set: never create a new top-level `docs/<section>/` folder on your own judgment. If a doc genuinely doesn't fit any of the five, ask the user before adding a section.
+## Update Docs Alongside Code
 
-## `docs/explore/` — Research for What Doesn't Exist Yet
+When code changes, update the doc describing it in the same change — not "eventually." A stale doc (describing removed fields, wrong defaults, capabilities that no longer exist) is read as authoritative and is worse than no doc at all.
 
-Holds decisions/research for not-yet-built capabilities — exempt from "Code Is the Source of Truth" below. Once built, the file graduates: move it to the owning section (usually `architecture/`), update `type` and content to match the real implementation, and update both indexes.
+This is a doc about the current system, not a roadmap: never write "planned" / "nice to have" / "future extension" scope notes into it — track that wherever this project manages tasks (an issue tracker, a todo file, a project board), not in baseline knowledge. `docs/explore/` is the one exception, since it exists specifically to hold not-yet-built research/decisions.
 
-## `docs/guides/` — Step-by-Step How-Tos
-
-Holds procedures for a task performed occasionally (provisioning an environment, adding a new adapter to an existing port) rather than documentation of the system's current shape. A guide can describe a step that isn't done yet (e.g. adding an adapter that doesn't exist) without needing to graduate elsewhere once it is — the procedure stays valid for the next time someone does it.
-
-## Code Is the Source of Truth Once It Exists
-
-A doc (an ER diagram, a config reference, a flow description) can describe a design before code exists for it — while it does, the doc is authoritative. Once real code exists for what a doc describes (an Ash resource, a module, a config file), the code — not the doc — is authoritative for the specifics. Before trusting or editing a doc that has a code counterpart, open the code and reconcile the doc to match it, not the other way around.
+**ER diagrams and other docs describing an Ash resource are a special case:** once the resource exists in code, the code is authoritative for its specifics (attributes, types, defaults) — reconcile the diagram/doc to match the code, not the other way around.
 
 ## Style: State What IS
 
 Write plain declarative facts about the current system. Cut justification prose about roads not taken — `"X, not Y"`, `"rather than"`, `"instead of"`, `"not a formal Z because…"`. A reader needs the current shape, not a design-rationale record. Keep a contrast only when it is load-bearing (e.g. a table cell documenting two exclusive states).
 
-## Quick Reference
+## Reference
 
-| Check | Rule |
-|-------|------|
-| Frontmatter present | All five fields, `type` lowercase & section-generic |
-| H1 heading | Removed — `title` replaces it |
-| Concern count | Exactly one; split if more |
-| Length | Past ~100-150 lines, recheck concern boundary |
-| Index updated | Entry added/edited with "Read it when…" |
-| Style | Declarative facts, no negation prose |
-
-## Common Mistakes
-
-- **Keeping the `# H1`** alongside the frontmatter `title` — remove the H1.
-- **Unique `type` per file** — `type` is section-generic, not the doc's title.
-- **Long `description`** — one sentence.
-- **Forgetting the index** — a doc absent from `index.md` is undiscoverable.
-- **Combining concerns** "to save a file" — defeats the token-saving purpose; split.
-- **Letting a doc grow past ~100-150 lines unchecked** — it's almost always mixing concerns by that point; split it.
-- **Explaining what was *not* chosen** — state what is.
+| Check | Rule | Common mistake |
+|-------|------|-----------------|
+| Frontmatter | All five fields; `type` lowercase & section-generic, never a unique per-file value | Keeping the `# H1` alongside `title`; a multi-sentence `description` |
+| Concern | Exactly one; split past ~100-150 lines | Combining concerns "to save a file" |
+| Index | Entry added/edited with "Read it when…" in the same change | Forgetting the index — an unlisted doc is undiscoverable |
+| Freshness | Update the doc in the same change as the code | Letting a doc go stale "for later" |
+| Resource docs | Code is authoritative for a resource's specifics once it exists | Trusting a stale ER diagram over the actual resource code |
+| Roadmap notes | None outside `docs/explore/` — no "planned" / "nice to have" / "future" | Writing roadmap notes into a doc about existing code |
+| Style | Declarative facts, no negation prose | Explaining what wasn't chosen ("X, not Y") |
