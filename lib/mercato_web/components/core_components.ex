@@ -102,11 +102,11 @@ defmodule MercatoWeb.CoreComponents do
   def button(%{rest: rest} = assigns) do
     variants = %{
       "primary" =>
-        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white",
+        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white",
       "neutral" =>
-        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-11 bg-ink-100 text-ink-900",
+        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-11 bg-ink-100 text-ink-900",
       nil =>
-        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white"
+        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white"
     }
 
     assigns =
