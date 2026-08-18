@@ -8,6 +8,7 @@ defmodule Mercato.Accounts.User.Senders.SendPasswordResetEmail do
 
   import Swoosh.Email
 
+  alias Mercato.Accounts.User.Senders.EmailLayout
   alias Mercato.Mailer
 
   @impl true
@@ -22,11 +23,14 @@ defmodule Mercato.Accounts.User.Senders.SendPasswordResetEmail do
   end
 
   defp body(params) do
-    url = url(~p"/password-reset/#{params[:token]}")
+    reset_url = url(~p"/password-reset/#{params[:token]}")
 
-    """
-    <p>Click this link to reset your password:</p>
-    <p><a href="#{url}">#{url}</a></p>
-    """
+    EmailLayout.render(
+      "Reset your password",
+      ["Click the button below to choose a new password."],
+      "Reset password",
+      reset_url,
+      "If you didn't request this, you can safely ignore this email — your password won't change."
+    )
   end
 end
