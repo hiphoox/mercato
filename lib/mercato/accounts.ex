@@ -16,6 +16,16 @@ defmodule Mercato.Accounts do
       define :sign_in_with_magic_link, action: :sign_in_with_magic_link, args: [:token]
       define :update_handle, action: :update_handle, args: [:handle]
 
+      define :update_profile_info,
+        action: :update_profile_info,
+        args: [:first_name, :last_name]
+
+      define :update_avatar, action: :update_avatar, args: [:avatar, :filename]
+
+      define :change_password,
+        action: :change_password,
+        args: [:current_password, :password, :password_confirmation]
+
       define :register_with_password,
         action: :register_with_password,
         args: [:email, :first_name, :password, :password_confirmation]
