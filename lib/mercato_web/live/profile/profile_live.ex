@@ -1,0 +1,294 @@
+defmodule MercatoWeb.ProfileLive do
+  @moduledoc """
+  Account settings page: name, handle, avatar, and password — each its own
+  independent form/submit, so a failure in one section never blocks another.
+  """
+
+  use MercatoWeb, :live_view
+
+  alias Mercato.Accounts
+
+  on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
+
+  @impl true
+  def mount(_params, _session, socket) do
+    user = socket.assigns.current_user
+
+    socket =
+      socket
+      |> assign(:user, user)
+      |> assign(:name_form, name_form(user))
+      |> assign(:handle_form, handle_form(user))
+      |> assign(:security_form, security_form(user))
+      |> allow_upload(:avatar,
+        accept: ~w(.jpg .jpeg .png),
+        max_entries: 1,
+        auto_upload: true,
+        progress: &handle_avatar_progress/3
+      )
+
+    {:ok, socket}
+  end
+
+  defp name_form(user) do
+    user
+    |> AshPhoenix.Form.for_update(:update_profile_info,
+      domain: Accounts,
+      as: "name",
+      actor: user
+    )
+    |> to_form()
+  end
+
+  defp handle_form(user) do
+    user
+    |> AshPhoenix.Form.for_update(:update_handle, domain: Accounts, as: "handle", actor: user)
+    |> to_form()
+  end
+
+  defp security_form(user) do
+    user
+    |> AshPhoenix.Form.for_update(:change_password, domain: Accounts, as: "security", actor: user)
+    |> to_form()
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <Layouts.app flash={@flash} current_scope={assigns[:current_scope]}>
+      <div class="flex flex-col items-center gap-8 max-w-[560px] mx-auto py-8">
+        <div class="text-center">
+          <h1 class="text-h2 font-bold text-ink-900">Account settings</h1>
+          <p class="text-body-sm text-ink-500 mt-0.5">Manage your profile and security</p>
+        </div>
+
+        <.card class="w-full flex flex-col gap-5">
+          <div>
+            <h2 class="text-title-lg font-bold text-ink-900">Name</h2>
+            <p class="text-caption-lg text-ink-500 mt-0.5">
+              Your first and last name as shown to other members.
+            </p>
+          </div>
+          <.form
+            :let={form}
+            id="name-form"
+            for={@name_form}
+            phx-change="validate_name"
+            phx-submit="save_name"
+            class="flex flex-col gap-5"
+          >
+            <div class="grid grid-cols-2 gap-3">
+              <.input field={form[:first_name]} label="First name" required />
+              <.input field={form[:last_name]} label="Last name" required />
+            </div>
+            <.button type="submit" variant="primary" phx-disable-with="Saving…">
+              Save name
+            </.button>
+          </.form>
+        </.card>
+
+        <.card class="w-full flex flex-col gap-5">
+          <div>
+            <h2 class="text-title-lg font-bold text-ink-900">Handle</h2>
+            <p class="text-caption-lg text-ink-500 mt-0.5">
+              Your public @handle, used across Mercato.
+            </p>
+          </div>
+          <.form
+            :let={form}
+            id="handle-form"
+            for={@handle_form}
+            phx-change="validate_handle"
+            phx-submit="save_handle"
+            class="flex flex-col gap-5"
+          >
+            <.input field={form[:handle]} label="Handle" required />
+            <.button type="submit" variant="primary" phx-disable-with="Saving…">
+              Save handle
+            </.button>
+          </.form>
+        </.card>
+
+        <.card class="w-full flex flex-col gap-5">
+          <div>
+            <h2 class="text-title-lg font-bold text-ink-900">Avatar</h2>
+            <p class="text-caption-lg text-ink-500 mt-0.5">
+              JPG or PNG, up to 5MB. Saves automatically.
+            </p>
+          </div>
+          <form id="avatar-form" phx-change="noop" phx-submit="noop" class="flex items-center gap-5">
+            <div class="relative w-[72px] h-[72px] shrink-0">
+              <img
+                :if={@user.avatar_url}
+                src={@user.avatar_url}
+                class="w-[72px] h-[72px] rounded-full object-cover"
+              />
+              <div
+                :if={!@user.avatar_url}
+                class="w-[72px] h-[72px] rounded-full bg-ink-100 flex items-center justify-center text-ink-500 font-semibold"
+              >
+                {String.first(@user.first_name || "?")}
+              </div>
+              <div
+                :if={@uploads.avatar.entries != []}
+                class="absolute inset-0 rounded-full bg-ink-900/45 flex items-center justify-center"
+              >
+                <.icon name="hero-arrow-path" class="size-5 text-white animate-spin" />
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-ink-100 text-ink-700 font-semibold text-body-sm cursor-pointer w-fit">
+                {if @uploads.avatar.entries != [],
+                  do: "Uploading…",
+                  else: if(@user.avatar_url, do: "Change photo", else: "Upload photo")}
+                <.live_file_input upload={@uploads.avatar} class="hidden" />
+              </label>
+              <p class="text-caption-md text-ink-500">Square images look best.</p>
+              <p :for={err <- upload_errors(@uploads.avatar)} class="text-caption-md text-error">
+                {error_to_string(err)}
+              </p>
+            </div>
+          </form>
+        </.card>
+
+        <.card class="w-full flex flex-col gap-5 border-[1.5px] border-ink-300 shadow-md">
+          <div class="flex items-center gap-2.5">
+            <.icon name="hero-shield-check" class="size-5 text-ink-900" />
+            <h2 class="text-title-lg font-bold text-ink-900 flex-1">Security</h2>
+            <span class="inline-flex items-center h-6 px-2 rounded-full bg-ink-100 text-ink-700 text-caption-md font-semibold">
+              Sensitive
+            </span>
+          </div>
+          <p class="text-caption-lg text-ink-500 -mt-3">
+            Choose a strong password you don't use anywhere else.
+          </p>
+          <.form
+            :let={form}
+            id="security-form"
+            for={@security_form}
+            phx-change="validate_security"
+            phx-submit="save_security"
+            class="flex flex-col gap-4"
+          >
+            <.input
+              field={form[:current_password]}
+              type="password"
+              label="Current password"
+              required
+            />
+            <.input field={form[:password]} type="password" label="New password" required />
+            <.input
+              field={form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+              required
+            />
+            <.button type="submit" variant="primary" phx-disable-with="Updating…">
+              Update password
+            </.button>
+          </.form>
+        </.card>
+
+        <.link
+          id="sign-out-link"
+          href={~p"/sign-out"}
+          method="delete"
+          class="text-error-text hover:text-error font-medium text-body-sm"
+        >
+          Sign out
+        </.link>
+      </div>
+    </Layouts.app>
+    """
+  end
+
+  @impl true
+  def handle_event("validate_name", %{"name" => params}, socket) do
+    {:noreply,
+     assign(socket, :name_form, AshPhoenix.Form.validate(socket.assigns.name_form, params))}
+  end
+
+  def handle_event("save_name", %{"name" => params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.name_form, params: params) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:user, user)
+         |> assign(:name_form, name_form(user))
+         |> put_flash(:info, "Name updated.")}
+
+      {:error, form} ->
+        {:noreply, assign(socket, :name_form, form)}
+    end
+  end
+
+  def handle_event("validate_handle", %{"handle" => params}, socket) do
+    {:noreply,
+     assign(socket, :handle_form, AshPhoenix.Form.validate(socket.assigns.handle_form, params))}
+  end
+
+  def handle_event("save_handle", %{"handle" => params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.handle_form, params: params) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:user, user)
+         |> assign(:handle_form, handle_form(user))
+         |> put_flash(:info, "Handle updated.")}
+
+      {:error, form} ->
+        {:noreply, assign(socket, :handle_form, form)}
+    end
+  end
+
+  def handle_event("validate_security", %{"security" => params}, socket) do
+    {:noreply,
+     assign(
+       socket,
+       :security_form,
+       AshPhoenix.Form.validate(socket.assigns.security_form, params)
+     )}
+  end
+
+  def handle_event("save_security", %{"security" => params}, socket) do
+    case AshPhoenix.Form.submit(socket.assigns.security_form, params: params) do
+      {:ok, user} ->
+        {:noreply,
+         socket
+         |> assign(:user, user)
+         |> assign(:security_form, security_form(user))
+         |> put_flash(:info, "Password updated.")}
+
+      {:error, form} ->
+        {:noreply, assign(socket, :security_form, form)}
+    end
+  end
+
+  def handle_event("noop", _params, socket), do: {:noreply, socket}
+
+  defp handle_avatar_progress(:avatar, entry, socket) do
+    if entry.done? do
+      current_user = socket.assigns.user
+
+      user =
+        consume_uploaded_entry(socket, entry, fn %{path: path} ->
+          {:ok, File.read!(path)}
+        end)
+        |> then(
+          &Accounts.update_avatar!(current_user, &1, entry.client_name, actor: current_user)
+        )
+
+      {:noreply,
+       socket
+       |> assign(:user, user)
+       |> put_flash(:info, "Avatar updated.")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp error_to_string(:too_large), do: "Image is too large (max 5MB)."
+  defp error_to_string(:not_accepted), do: "Only JPG or PNG images are accepted."
+  defp error_to_string(:too_many_files), do: "Only one image at a time."
+  defp error_to_string(_), do: "Could not upload this image."
+end
