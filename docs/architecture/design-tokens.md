@@ -3,7 +3,7 @@ type: architecture
 title: Design Tokens
 description: Mercato's design tokens as Tailwind v4 @theme variables, with usage rules.
 tags: [ui, design, tokens, color, typography, tailwind, theming]
-timestamp: 2026-08-04T00:00:00Z
+timestamp: 2026-08-18T00:00:00Z
 ---
 
 See [ui-guidelines.md](ui-guidelines.md) for the principles these tokens serve, [ui-components.md](ui-components.md) for how they apply to components, and [liveview-css.md](liveview-css.md) for the Tailwind pipeline conventions.
@@ -53,10 +53,11 @@ The palette below is Mercato's default — a neutral, brand-agnostic starting po
   --color-error-bg: #FDEAEA;
   --color-info-text: #1D5FA8;
   --color-info-bg: #E7F1FD;
+
+  --color-bg: #FFFFFF;    /* page surface; cards sit on this */
+  --color-bg-2: #F5F5F5;  /* secondary surface — page background behind a white card, non-critical fills */
 }
 ```
-
-`bg`/`bg-2` don't need tokens — they're Tailwind's built-in `white` and `neutral-100`-equivalent; use `bg-white`, or the exact secondary-surface token only if a precise value matters, otherwise `bg-neutral-100` is close enough for non-critical surfaces.
 
 ### Usage rules
 
