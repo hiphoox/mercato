@@ -8,12 +8,10 @@ defmodule MercatoWeb.CoreComponents do
   with doc strings and declarative assigns. You may customize and style
   them in any way you want, based on your application growth and needs.
 
-  The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
-
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
+  The foundation for styling is Tailwind CSS, a utility-first CSS framework.
+  Components are hand-written directly with Tailwind utility classes (see
+  docs/architecture/liveview-css.md) rather than a component library like
+  daisyUI. Here are useful references:
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
       we build on. You will use it for layout, sizing, flexbox, grid, and
@@ -64,13 +62,13 @@ defmodule MercatoWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class="fixed top-4 right-4 z-50"
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
+        "flex items-start gap-2 w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap rounded-md shadow-md p-4 text-body-sm",
+        @kind == :info && "bg-info-bg text-info-text",
+        @kind == :error && "bg-error-bg text-error-text"
       ]}>
         <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
         <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
@@ -96,17 +94,24 @@ defmodule MercatoWeb.CoreComponents do
       <.button phx-click="go" variant="primary">Send!</.button>
       <.button navigate={~p"/"}>Home</.button>
   """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
+  attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
   attr :class, :any
-  attr :variant, :string, values: ~w(primary)
+  attr :variant, :string, values: ~w(primary neutral)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    variants = %{
+      "primary" =>
+        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white",
+      "neutral" =>
+        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-11 bg-ink-100 text-ink-900",
+      nil =>
+        "rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white"
+    }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        Map.fetch!(variants, assigns[:variant])
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -122,6 +127,46 @@ defmodule MercatoWeb.CoreComponents do
       </button>
       """
     end
+  end
+
+  @doc """
+  Renders an accent link (form footers, "forgot password?", etc).
+
+  ## Examples
+
+      <.accent_link patch={~p"/sign-in"}>Log in</.accent_link>
+  """
+  attr :rest, :global, include: ~w(href navigate patch)
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def accent_link(assigns) do
+    ~H"""
+    <.link class={[@class, "text-primary-700 hover:text-primary-600 font-medium"]} {@rest}>
+      {render_slot(@inner_block)}
+    </.link>
+    """
+  end
+
+  @doc """
+  Renders a white, bordered, shadowed card surface.
+
+  ## Examples
+
+      <.card class="flex flex-col gap-5">...</.card>
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def card(assigns) do
+    ~H"""
+    <div class={[
+      @class,
+      "bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-700 rounded-lg shadow-sm p-8"
+    ]}>
+      {render_slot(@inner_block)}
+    </div>
+    """
   end
 
   @doc """
@@ -213,7 +258,7 @@ defmodule MercatoWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
         <input
           type="hidden"
@@ -222,14 +267,14 @@ defmodule MercatoWeb.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
+        <span class="text-body-sm font-medium text-ink-700">
           <input
             type="checkbox"
             id={@id}
             name={@name}
             value="true"
             checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
+            class={@class || "size-4 rounded border-ink-300 text-primary-500 focus:ring-primary-100"}
             {@rest}
           />{@label}
         </span>
@@ -241,13 +286,17 @@ defmodule MercatoWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-body-sm font-medium text-ink-700 mb-1">{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class ||
+              "block w-full rounded-md border-[1.5px] border-ink-300 px-[14px] py-[11px] text-body-md focus:outline-none focus:ring-[3px] focus:ring-primary-100 focus:border-primary-500",
+            @errors != [] && (@error_class || "border-error focus:ring-error-bg focus:border-error")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -262,15 +311,16 @@ defmodule MercatoWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-body-sm font-medium text-ink-700 mb-1">{@label}</span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class ||
+              "block w-full rounded-md border-[1.5px] border-ink-300 px-[14px] py-[11px] text-body-md placeholder-ink-500 focus:outline-none focus:ring-[3px] focus:ring-primary-100 focus:border-primary-500",
+            @errors != [] && (@error_class || "border-error focus:ring-error-bg focus:border-error")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -283,17 +333,18 @@ defmodule MercatoWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class="block text-body-sm font-medium text-ink-700 mb-1">{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class ||
+              "block w-full rounded-md border-[1.5px] border-ink-300 px-[14px] py-[11px] text-body-md placeholder-ink-500 focus:outline-none focus:ring-[3px] focus:ring-primary-100 focus:border-primary-500",
+            @errors != [] && (@error_class || "border-error focus:ring-error-bg focus:border-error")
           ]}
           {@rest}
         />
@@ -327,7 +378,7 @@ defmodule MercatoWeb.CoreComponents do
         <h1 class="text-lg font-semibold leading-8">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-sm text-ink-500">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -368,17 +419,21 @@ defmodule MercatoWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class="w-full text-left text-body-sm border-collapse">
       <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
+        <tr class="border-b border-ink-100">
+          <th :for={col <- @col} class="py-2 font-semibold text-ink-700">{col[:label]}</th>
           <th :if={@action != []}>
             <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
       </thead>
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
+        <tr
+          :for={row <- @rows}
+          id={@row_id && @row_id.(row)}
+          class="border-b border-ink-100 odd:bg-bg-2"
+        >
           <td
             :for={col <- @col}
             phx-click={@row_click && @row_click.(row)}
@@ -415,9 +470,9 @@ defmodule MercatoWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
+    <ul class="divide-y divide-ink-100">
+      <li :for={item <- @item} class="flex items-center justify-between py-3">
+        <div class="flex-1">
           <div class="font-bold">{item.title}</div>
           <div>{render_slot(item)}</div>
         </div>
