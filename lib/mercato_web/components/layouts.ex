@@ -35,48 +35,20 @@ defmodule MercatoWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
+    <div class="min-h-screen bg-bg-2 dark:bg-ink-900">
+      <header class="navbar p-4 sm:px-6 lg:px-8">
+        <a href="/" class="flex items-center gap-2">
+          <img src={~p"/images/mercato-logo.png"} width="28" height="28" />
+          <span class="text-body-lg font-extrabold text-ink-900">Mercato</span>
         </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="px-4 py-2 rounded-md hover:bg-bg-2">
-              Website
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://github.com/phoenixframework/phoenix"
-              class="px-4 py-2 rounded-md hover:bg-bg-2"
-            >
-              GitHub
-            </a>
-          </li>
-          <li>
-            <.theme_toggle />
-          </li>
-          <li>
-            <a
-              href="https://phoenix.hexdocs.pm/overview.html"
-              class="px-4 py-2 rounded-md shadow-sm font-semibold bg-primary-500 hover:brightness-95 text-white"
-            >
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </header>
+      </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
-    </main>
+      <main class="p-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl space-y-4">
+          {render_slot(@inner_block)}
+        </div>
+      </main>
+    </div>
 
     <.flash_group flash={@flash} />
     """
