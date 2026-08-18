@@ -13,6 +13,59 @@ defmodule Mercato.Accounts.UserTest do
     |> Enum.map(& &1.message)
   end
 
+  describe "default role" do
+    test "register_with_password assigns the trader role" do
+      user = generate(user())
+
+      role_names =
+        user
+        |> Ash.load!(:user_roles, authorize?: false)
+        |> Map.fetch!(:user_roles)
+        |> Ash.load!(:role, authorize?: false)
+        |> Enum.map(& &1.role.name)
+
+      assert role_names == ["trader"]
+    end
+
+    test "sign_in_with_magic_link assigns the trader role to a new user" do
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for_identity(strategy, "roled@example.com")
+
+      user = Accounts.sign_in_with_magic_link!(token, %{}, authorize?: false)
+
+      role_names =
+        user
+        |> Ash.load!(:user_roles, authorize?: false)
+        |> Map.fetch!(:user_roles)
+        |> Ash.load!(:role, authorize?: false)
+        |> Enum.map(& &1.role.name)
+
+      assert role_names == ["trader"]
+    end
+
+    test "does not double-assign a role on a returning magic-link sign-in" do
+      created = generate(user())
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+      |> Ash.update!()
+
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for(strategy, created)
+
+      signed_in = Accounts.sign_in_with_magic_link!(token, %{}, authorize?: false)
+
+      role_count =
+        signed_in
+        |> Ash.load!(:user_roles, authorize?: false)
+        |> Map.fetch!(:user_roles)
+        |> length()
+
+      assert role_count == 1
+    end
+  end
+
   describe "status" do
     test "defaults to :active on registration" do
       user = generate(user())
@@ -53,6 +106,59 @@ defmodule Mercato.Accounts.UserTest do
       result = Accounts.sign_in_with_token(sign_in_token, %{}, authorize?: false)
 
       assert {:error, _} = result
+    end
+  end
+
+  describe "sign_in_with_magic_link registration" do
+    defp register_via_magic_link(email, params \\ %{}) do
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for_identity(strategy, email)
+
+      Accounts.sign_in_with_magic_link!(token, params, authorize?: false)
+    end
+
+    test "registers a brand-new user with no name, deriving the handle from the email" do
+      user = register_via_magic_link("newcomer@example.com")
+
+      refute user.first_name
+      assert user.handle == "newcomer"
+    end
+
+    test "pads a short email local part to the minimum handle length" do
+      user = register_via_magic_link("jo@example.com")
+
+      assert user.handle == "jo_1"
+    end
+
+    test "accepts first_name and last_name, using them for the handle" do
+      user = register_via_magic_link("named@example.com", %{first_name: "Jane", last_name: "Doe"})
+
+      assert user.first_name == "Jane"
+      assert user.last_name == "Doe"
+      assert user.handle == "jane_doe"
+    end
+
+    test "accepts first_name without last_name" do
+      user = register_via_magic_link("solo@example.com", %{first_name: "Jane"})
+
+      assert user.first_name == "Jane"
+      refute user.last_name
+      assert user.handle == "jane"
+    end
+
+    test "does not overwrite a returning user's existing name" do
+      created = generate(user(first_name: "Jane", last_name: "Doe"))
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+      |> Ash.update!()
+
+      signed_in = register_via_magic_link(to_string(created.email), %{first_name: "Impostor"})
+
+      assert signed_in.first_name == "Jane"
+      assert signed_in.last_name == "Doe"
+      assert signed_in.handle == created.handle
     end
   end
 
@@ -130,6 +236,34 @@ defmodule Mercato.Accounts.UserTest do
       second = generate(user(first_name: "Jane", last_name: "Doe"))
 
       assert second.handle == "jane_doe_1"
+    end
+
+    test "pads a name shorter than the 3-character minimum" do
+      user = generate(user(first_name: "Al", last_name: nil))
+
+      assert user.handle == "al_1"
+    end
+
+    test "truncates a name longer than the 30-character maximum" do
+      user = generate(user(first_name: String.duplicate("a", 40), last_name: nil))
+
+      assert user.handle == String.duplicate("a", 30)
+    end
+
+    test "leaves no trailing underscore when truncation lands on a separator" do
+      user = generate(user(first_name: String.duplicate("a", 30), last_name: "Doe"))
+
+      assert user.handle == String.duplicate("a", 30)
+      refute String.ends_with?(user.handle, "_")
+    end
+
+    test "keeps a truncated handle within the maximum once a collision suffix is added" do
+      first = generate(user(first_name: String.duplicate("b", 40), last_name: nil))
+      second = generate(user(first_name: String.duplicate("b", 40), last_name: nil))
+
+      assert first.handle == String.duplicate("b", 30)
+      assert second.handle == String.duplicate("b", 28) <> "_1"
+      assert String.length(second.handle) <= 30
     end
   end
 

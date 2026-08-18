@@ -4,12 +4,21 @@ defmodule Mercato.Accounts.User.Changes.GenerateHandle do
 
   Falls back to `first_name_last_name` (slugified), then the email's local
   part, then the literal "user" — suffixed `_1`, `_2`, ... on collision.
+
+  The generated value always satisfies the `handle` attribute's length
+  constraints: a base longer than 30 characters is truncated (leaving room for
+  any collision suffix), and one shorter than 3 is padded via the same suffix
+  mechanism, so a short name like "Al" yields `al_1` rather than an invalid
+  `al`.
   """
 
   use Ash.Resource.Change
 
   alias Mercato.Accounts.User
   alias Mercato.Accounts.User.ReservedHandles
+
+  @min_length 3
+  @max_length 30
 
   @impl true
   def change(changeset, _opts, _context) do
@@ -62,12 +71,32 @@ defmodule Mercato.Accounts.User.Changes.GenerateHandle do
   end
 
   defp unique_handle(base) do
-    if handle_taken?(base), do: unique_handle(base, 1), else: base
+    base = truncate(base, @max_length)
+
+    if String.length(base) < @min_length or handle_taken?(base) do
+      unique_handle(base, 1)
+    else
+      base
+    end
   end
 
-  defp unique_handle(base, suffix) do
-    candidate = "#{base}_#{suffix}"
-    if handle_taken?(candidate), do: unique_handle(base, suffix + 1), else: candidate
+  defp unique_handle(base, counter) do
+    suffix = "_#{counter}"
+    candidate = truncate(base, @max_length - String.length(suffix)) <> suffix
+
+    if handle_taken?(candidate) do
+      unique_handle(base, counter + 1)
+    else
+      candidate
+    end
+  end
+
+  # Cuts to at most `max` characters, dropping a separator the cut may have
+  # left dangling so the result never ends in a stray underscore.
+  defp truncate(string, max) do
+    string
+    |> String.slice(0, max)
+    |> String.trim_trailing("_")
   end
 
   defp handle_taken?(handle) do

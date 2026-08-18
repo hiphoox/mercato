@@ -84,6 +84,12 @@ defmodule Mercato.Accounts.User do
     create :sign_in_with_magic_link do
       description "Sign in or register a user with magic link."
 
+      # first_name/last_name are optional, for a brand-new account. Unlike
+      # password registration, a magic link click carries only the token, so
+      # a returning user never supplies them — upsert_fields below keeps
+      # their stored name untouched either way.
+      accept [:first_name, :last_name]
+
       argument :token, :string do
         description "The token from the magic link that was sent to the user"
         allow_nil? false
@@ -106,6 +112,7 @@ defmodule Mercato.Accounts.User do
 
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
       change Mercato.Accounts.User.Changes.GenerateHandle
+      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
       validate Mercato.Accounts.User.Validations.AccountActive
 
@@ -243,16 +250,14 @@ defmodule Mercato.Accounts.User do
     create :register_with_password do
       description "Register a new user with a email and password."
 
-      argument :email, :ci_string do
-        allow_nil? false
-      end
+      accept [:email, :last_name]
 
+      # first_name is required at password registration, unlike the
+      # attribute itself (which stays nilable for magic-link accounts) — so
+      # it needs its own argument rather than accept, which would inherit
+      # the attribute's allow_nil?: true.
       argument :first_name, :string do
         allow_nil? false
-      end
-
-      argument :last_name, :string do
-        allow_nil? true
       end
 
       argument :password, :string do
@@ -268,11 +273,9 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
-      # Sets the email from the argument
-      change set_attribute(:email, arg(:email))
       change set_attribute(:first_name, arg(:first_name))
-      change set_attribute(:last_name, arg(:last_name))
       change Mercato.Accounts.User.Changes.GenerateHandle
+      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
       # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange

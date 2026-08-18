@@ -32,28 +32,26 @@ Ash.create!(RolePermission, %{role_id: admin.id, permission_id: user_update.id},
 )
 
 if Mix.env() == :dev do
+  alias Mercato.Accounts
   alias Mercato.Accounts.{User, UserRole}
 
   register_with_role = fn email, first_name, role ->
     case Ash.get(User, [email: email], authorize?: false, not_found_error?: false) do
       {:ok, nil} ->
         user =
-          User
-          |> Ash.create!(
-            %{
-              email: email,
-              first_name: first_name,
-              password: "password1234",
-              password_confirmation: "password1234"
-            },
-            action: :register_with_password,
+          Accounts.register_with_password!(email, first_name, "password1234", "password1234",
             authorize?: false
           )
           |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
           |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
           |> Ash.update!()
 
-        Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
+        # register_with_password already assigns the default `trader` role;
+        # the admin seed user still needs `admin` assigned on top of it.
+        if role.id != trader.id do
+          Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
+        end
+
         user
 
       {:ok, user} ->

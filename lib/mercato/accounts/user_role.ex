@@ -16,6 +16,11 @@ defmodule Mercato.Accounts.UserRole do
 
   actions do
     defaults [:read]
+
+    create :create do
+      primary? true
+      accept [:user_id, :role_id]
+    end
   end
 
   relationships do

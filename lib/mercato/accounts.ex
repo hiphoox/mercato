@@ -15,6 +15,10 @@ defmodule Mercato.Accounts do
       define :sign_in_with_token, action: :sign_in_with_token, args: [:token]
       define :sign_in_with_magic_link, action: :sign_in_with_magic_link, args: [:token]
       define :update_handle, action: :update_handle, args: [:handle]
+
+      define :register_with_password,
+        action: :register_with_password,
+        args: [:email, :first_name, :password, :password_confirmation]
     end
 
     resource Mercato.Accounts.Setting
