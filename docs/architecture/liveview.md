@@ -3,8 +3,15 @@ type: architecture
 title: LiveView
 description: Conventions for Phoenix LiveView modules — layouts, scope, and component structure.
 tags: [liveview, elixir, phoenix]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-08-18T00:00:00Z
 ---
+
+## Component structure
+
+- **LiveView pages** live in `live/<feature>/*_live.ex` — one folder per feature domain.
+- **Reusable components** — generic, usable by any feature regardless of domain (buttons, inputs, cards, links) — live in `components/core_components.ex`.
+- **Live components and feature-specific function components** — used by only one feature, whether stateful (`use ... :live_component`) or not — live colocated in that feature's `live/<feature>/` folder, next to the LiveView that owns them. Stateful vs. not doesn't change where the module lives, only what it `use`s.
+- The line between "feature-specific" and "reusable" is scope, not statefulness: a component stays in `live/<feature>/` as long as only that feature uses it. The moment a second feature would reuse it as-is, promote it to `components/core_components.ex`.
 
 ## Phoenix v1.8 guidelines
 
