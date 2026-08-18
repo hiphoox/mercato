@@ -15,7 +15,8 @@ defmodule Mercato.Application do
       # Start a worker by calling: Mercato.Worker.start_link(arg)
       # {Mercato.Worker, arg},
       # Start to serve requests, typically the last entry
-      MercatoWeb.Endpoint
+      MercatoWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :mercato]}
     ]
 
     # See https://elixir.hexdocs.pm/Supervisor.html

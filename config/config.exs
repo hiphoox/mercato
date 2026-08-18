@@ -31,6 +31,9 @@ config :spark,
     remove_parens?: true,
     "Ash.Resource": [
       section_order: [
+        :authentication,
+        :token,
+        :user_identity,
         :resource,
         :code_interface,
         :actions,
@@ -52,7 +55,9 @@ config :spark,
 
 config :mercato,
   ecto_repos: [Mercato.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  ash_domains: [Mercato.Accounts],
+  ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint
 config :mercato, MercatoWeb.Endpoint,

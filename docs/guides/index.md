@@ -10,3 +10,4 @@ Map of `docs/guides/`. Each file is a step-by-step procedure for a task performe
 
 - [fly-provisioning.md](fly-provisioning.md) — Step-by-step runbook for creating a Fly.io app, database, storage, and secrets. Read it when standing up a new environment.
 - [storage-adapters.md](storage-adapters.md) — How to add a new `Mercato.Ports.Storage` adapter (e.g. Tigris/S3) alongside the local-disk default. Read it when implementing a new storage provider.
+- [customizing-ui.md](customizing-ui.md) — How to rebrand or restyle a marketplace built on Mercato: theme tokens, shared components, feature-specific components. Read it when forking Mercato for a new marketplace's look and feel.

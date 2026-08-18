@@ -1,0 +1,417 @@
+defmodule Mercato.Accounts.User do
+  @moduledoc """
+  A marketplace account: authentication (email/password, magic link),
+  profile fields, account status, and RBAC role membership via `user_roles`.
+  """
+
+  use Ash.Resource,
+    otp_app: :mercato,
+    domain: Mercato.Accounts,
+    data_layer: AshSqlite.DataLayer,
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshAuthentication]
+
+  sqlite do
+    table "users"
+    repo Mercato.Repo
+  end
+
+  authentication do
+    add_ons do
+      log_out_everywhere do
+        apply_on_password_change? true
+      end
+
+      confirmation :confirm_new_user do
+        monitor_fields [:email]
+        confirm_on_create? true
+        confirm_on_update? false
+        require_interaction? true
+        confirmed_at_field :confirmed_at
+        auto_confirm_actions [:sign_in_with_magic_link, :reset_password_with_token]
+        sender Mercato.Accounts.User.Senders.SendNewUserConfirmationEmail
+      end
+    end
+
+    tokens do
+      enabled? true
+      token_resource Mercato.Accounts.Token
+      signing_secret Mercato.Secrets
+      store_all_tokens? true
+      require_token_presence_for_authentication? true
+    end
+
+    strategies do
+      magic_link do
+        identity_field :email
+        registration_enabled? true
+        require_interaction? true
+
+        sender Mercato.Accounts.User.Senders.SendMagicLinkEmail
+      end
+
+      remember_me :remember_me
+
+      password :password do
+        identity_field :email
+        hash_provider AshAuthentication.BcryptProvider
+
+        resettable do
+          sender Mercato.Accounts.User.Senders.SendPasswordResetEmail
+          # these configurations will be the default in a future release
+          password_reset_action_name :reset_password_with_token
+          request_password_reset_action_name :request_password_reset_token
+        end
+      end
+    end
+  end
+
+  actions do
+    defaults [:read]
+
+    read :get_by_subject do
+      description "Get a user by the subject claim in a JWT"
+      argument :subject, :string, allow_nil?: false
+      get? true
+      prepare AshAuthentication.Preparations.FilterBySubject
+    end
+
+    read :get_by_email do
+      description "Looks up a user by their email"
+      get_by :email
+    end
+
+    create :sign_in_with_magic_link do
+      description "Sign in or register a user with magic link."
+
+      # first_name/last_name are optional, for a brand-new account. Unlike
+      # password registration, a magic link click carries only the token, so
+      # a returning user never supplies them — upsert_fields below keeps
+      # their stored name untouched either way.
+      accept [:first_name, :last_name]
+
+      argument :token, :string do
+        description "The token from the magic link that was sent to the user"
+        allow_nil? false
+      end
+
+      argument :remember_me, :boolean do
+        description "Whether to generate a remember me token"
+        allow_nil? true
+      end
+
+      upsert? true
+      upsert_identity :unique_email
+      upsert_fields [:email]
+
+      # Uses the information from the token to create or sign in the user
+      change AshAuthentication.Strategy.MagicLink.SignInChange
+
+      change {AshAuthentication.Strategy.RememberMe.MaybeGenerateTokenChange,
+              strategy_name: :remember_me}
+
+      change set_attribute(:last_active_at, &DateTime.utc_now/0)
+      change Mercato.Accounts.User.Changes.GenerateHandle
+      change Mercato.Accounts.User.Changes.AssignDefaultRole
+
+      validate Mercato.Accounts.User.Validations.AccountActive
+
+      metadata :token, :string do
+        allow_nil? false
+      end
+    end
+
+    action :request_magic_link do
+      argument :email, :ci_string do
+        allow_nil? false
+      end
+
+      run AshAuthentication.Strategy.MagicLink.Request
+    end
+
+    update :change_password do
+      # Use this action to allow users to change their password by providing
+      # their current password and a new password.
+
+      require_atomic? false
+      accept []
+      argument :current_password, :string, sensitive?: true, allow_nil?: false
+
+      argument :password, :string,
+        sensitive?: true,
+        allow_nil?: false,
+        constraints: [min_length: 8]
+
+      argument :password_confirmation, :string, sensitive?: true, allow_nil?: false
+
+      validate confirm(:password, :password_confirmation)
+
+      validate {AshAuthentication.Strategy.Password.PasswordValidation,
+                strategy_name: :password, password_argument: :current_password}
+
+      change {AshAuthentication.Strategy.Password.HashPasswordChange, strategy_name: :password}
+    end
+
+    update :bump_last_active_at do
+      description "Stamps last_active_at with the current time."
+      accept []
+      change set_attribute(:last_active_at, &DateTime.utc_now/0)
+    end
+
+    update :change_status do
+      description "Admin action to change a user's status (ban/reactivate)."
+      accept [:status]
+      require_atomic? false
+    end
+
+    update :update_handle do
+      description "Self-service handle change, subject to the reserved-word and cooldown rules."
+      accept [:handle]
+      require_atomic? false
+
+      validate Mercato.Accounts.User.Validations.HandleNotReserved
+      validate Mercato.Accounts.User.Validations.HandleCooldown
+      change set_attribute(:handle_changed_at, &DateTime.utc_now/0)
+    end
+
+    update :update_avatar do
+      description "Uploads a new avatar image via the storage port and sets avatar_url."
+      accept []
+      require_atomic? false
+
+      argument :avatar, :binary do
+        allow_nil? false
+      end
+
+      argument :filename, :string do
+        allow_nil? false
+      end
+
+      change Mercato.Accounts.User.Changes.UploadAvatar
+    end
+
+    read :sign_in_with_password do
+      description "Attempt to sign in using a email and password."
+      get? true
+
+      argument :email, :ci_string do
+        description "The email to use for retrieving the user."
+        allow_nil? false
+      end
+
+      argument :password, :string do
+        description "The password to check for the matching user."
+        allow_nil? false
+        sensitive? true
+      end
+
+      prepare build(filter: [status: :active])
+
+      # validates the provided email and password and generates a token
+      prepare AshAuthentication.Strategy.Password.SignInPreparation
+      prepare Mercato.Accounts.User.Preparations.StampLastActiveAt
+
+      metadata :token, :string do
+        description "A JWT that can be used to authenticate the user."
+        allow_nil? false
+      end
+    end
+
+    read :sign_in_with_token do
+      # In the generated sign in components, we validate the
+      # email and password directly in the LiveView
+      # and generate a short-lived token that can be used to sign in over
+      # a standard controller action, exchanging it for a standard token.
+      # This action performs that exchange. If you do not use the generated
+      # liveviews, you may remove this action, and set
+      # `sign_in_tokens_enabled? false` in the password strategy.
+
+      description "Attempt to sign in using a short-lived sign in token."
+      get? true
+
+      argument :token, :string do
+        description "The short-lived sign in token."
+        allow_nil? false
+        sensitive? true
+      end
+
+      prepare build(filter: [status: :active])
+
+      # validates the provided sign in token and generates a token
+      prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
+      prepare Mercato.Accounts.User.Preparations.StampLastActiveAt
+
+      metadata :token, :string do
+        description "A JWT that can be used to authenticate the user."
+        allow_nil? false
+      end
+    end
+
+    create :register_with_password do
+      description "Register a new user with a email and password."
+
+      accept [:email, :last_name]
+
+      # first_name is required at password registration, unlike the
+      # attribute itself (which stays nilable for magic-link accounts) — so
+      # it needs its own argument rather than accept, which would inherit
+      # the attribute's allow_nil?: true.
+      argument :first_name, :string do
+        allow_nil? false
+      end
+
+      argument :password, :string do
+        description "The proposed password for the user, in plain text."
+        allow_nil? false
+        constraints min_length: 8
+        sensitive? true
+      end
+
+      argument :password_confirmation, :string do
+        description "The proposed password for the user (again), in plain text."
+        allow_nil? false
+        sensitive? true
+      end
+
+      change set_attribute(:first_name, arg(:first_name))
+      change Mercato.Accounts.User.Changes.GenerateHandle
+      change Mercato.Accounts.User.Changes.AssignDefaultRole
+
+      # Hashes the provided password
+      change AshAuthentication.Strategy.Password.HashPasswordChange
+
+      # Generates an authentication token for the user
+      change AshAuthentication.GenerateTokenChange
+
+      # validates that the password matches the confirmation
+      validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+
+      metadata :token, :string do
+        description "A JWT that can be used to authenticate the user."
+        allow_nil? false
+      end
+    end
+
+    action :request_password_reset_token do
+      description "Send password reset instructions to a user if they exist."
+
+      argument :email, :ci_string do
+        allow_nil? false
+      end
+
+      # creates a reset token and invokes the relevant senders
+      run {AshAuthentication.Strategy.Password.RequestPasswordReset, action: :get_by_email}
+    end
+
+    update :reset_password_with_token do
+      argument :reset_token, :string do
+        allow_nil? false
+        sensitive? true
+      end
+
+      argument :password, :string do
+        description "The proposed password for the user, in plain text."
+        allow_nil? false
+        constraints min_length: 8
+        sensitive? true
+      end
+
+      argument :password_confirmation, :string do
+        description "The proposed password for the user (again), in plain text."
+        allow_nil? false
+        sensitive? true
+      end
+
+      # validates the provided reset token
+      validate AshAuthentication.Strategy.Password.ResetTokenValidation
+
+      # validates that the password matches the confirmation
+      validate AshAuthentication.Strategy.Password.PasswordConfirmationValidation
+
+      # Hashes the provided password
+      change AshAuthentication.Strategy.Password.HashPasswordChange
+
+      # Generates an authentication token for the user
+      change AshAuthentication.GenerateTokenChange
+    end
+  end
+
+  policies do
+    bypass AshAuthentication.Checks.AshAuthenticationInteraction do
+      authorize_if always()
+    end
+
+    policy action_type(:read) do
+      authorize_if always()
+    end
+
+    policy action_type(:update) do
+      authorize_if expr(id == ^actor(:id))
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
+    end
+
+    policy action(:change_status) do
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
+    end
+  end
+
+  attributes do
+    uuid_primary_key :id
+
+    attribute :email, :ci_string do
+      allow_nil? false
+      public? true
+    end
+
+    attribute :first_name, :string do
+      allow_nil? true
+      public? true
+    end
+
+    attribute :last_name, :string do
+      public? true
+    end
+
+    attribute :handle, :string do
+      allow_nil? true
+      public? true
+      constraints min_length: 3, max_length: 30, match: ~r/^[a-z0-9_]+$/
+    end
+
+    attribute :handle_changed_at, :utc_datetime_usec
+
+    attribute :avatar_url, :string do
+      public? true
+    end
+
+    attribute :hashed_password, :string do
+      sensitive? true
+    end
+
+    attribute :status, Mercato.Accounts.User.Status do
+      allow_nil? false
+      default :active
+      public? true
+    end
+
+    attribute :confirmed_at, :utc_datetime_usec
+
+    attribute :last_active_at, :utc_datetime_usec
+  end
+
+  relationships do
+    has_many :user_roles, Mercato.Accounts.UserRole
+  end
+
+  calculations do
+    calculate :visible_email, :ci_string, expr(if ^actor(:id) == id, do: email, else: nil) do
+      public? true
+      description "The user's email, visible only to themselves. Hidden (nil) for anyone else."
+    end
+  end
+
+  identities do
+    identity :unique_email, [:email]
+    identity :unique_handle, [:handle]
+  end
+end

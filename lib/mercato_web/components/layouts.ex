@@ -45,16 +45,26 @@ defmodule MercatoWeb.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
+            <a href="https://phoenixframework.org/" class="px-4 py-2 rounded-md hover:bg-bg-2">
+              Website
+            </a>
           </li>
           <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
+            <a
+              href="https://github.com/phoenixframework/phoenix"
+              class="px-4 py-2 rounded-md hover:bg-bg-2"
+            >
+              GitHub
+            </a>
           </li>
           <li>
             <.theme_toggle />
           </li>
           <li>
-            <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
+            <a
+              href="https://phoenix.hexdocs.pm/overview.html"
+              class="px-4 py-2 rounded-md shadow-sm font-semibold bg-primary-500 hover:brightness-95 text-white"
+            >
               Get Started <span aria-hidden="true">&rarr;</span>
             </a>
           </li>
@@ -128,8 +138,8 @@ defmodule MercatoWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
+    <div class="relative flex flex-row items-center border-2 border-ink-100 dark:border-ink-700 bg-ink-100 dark:bg-ink-700 rounded-full">
+      <div class="absolute w-1/3 h-full rounded-full border border-ink-100 dark:border-ink-700 bg-white dark:bg-ink-900 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

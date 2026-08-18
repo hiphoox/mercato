@@ -12,6 +12,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 
 - [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
 - [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
+- [ash-declarative-conventions.md](ash-declarative-conventions.md) — When to reach for Ash's built-in DSL (`accept`, builtin changes/validations/checks) over custom modules. Read it when writing or reviewing an Ash action, change, validation, or policy.
 - [ports.md](ports.md) — The `Mercato.Ports` namespace: behaviour-plus-adapter pattern for swappable external-service boundaries (storage, and future payments/search). Read it when adding a new boundary module or a new adapter to an existing one.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.

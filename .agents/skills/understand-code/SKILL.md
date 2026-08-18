@@ -27,7 +27,7 @@ If we had not indexed the code yet in this session, `index_repository` will auto
 
 ## The Discovery Procedure (graph-first)
 
-1. `index_status` / `list_projects` — confirm the project is indexed; if not, `index_repository` first.
+1. `index_status` / `list_projects` — confirm the project is indexed and check `head_sha` against the working tree's current commit; if unindexed or behind, run `index_repository` (same `repo_path`, same `name`) to refresh before querying. A stale graph silently omits recent edits instead of erroring, so re-index rather than trust an old snapshot.
 2. `search_graph(name_pattern="...")` — find a function/class/route by name.
 3. `trace_path(function_name=..., direction="inbound"|"outbound"|"both")` — callers / callees / full call context.
 4. `get_code_snippet(qualified_name="...")` — read exact source once located.
