@@ -365,7 +365,15 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a header with title.
+  Renders a page header: title, optional subtitle, optional actions.
+
+  ## Examples
+
+      <.header>
+        Furniture
+        <:subtitle>412 listings within 10 km</:subtitle>
+        <:actions><.button>Sell</.button></:actions>
+      </.header>
   """
   slot :inner_block, required: true
   slot :subtitle
@@ -373,16 +381,19 @@ defmodule MercatoWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
+    <header class={[
+      "flex items-end gap-4 flex-wrap",
+      @actions != [] && "justify-between"
+    ]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8">
+        <h1 class="text-display font-extrabold text-ink-900 dark:text-white">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-ink-500">
+        <p :if={@subtitle != []} class="mt-1 text-body-sm text-ink-500">
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div :if={@actions != []} class="flex-none">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -501,10 +512,11 @@ defmodule MercatoWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :any, default: "size-4"
+  attr :rest, :global, doc: "arbitrary attributes, e.g. aria-hidden on a decorative icon"
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <span class={[@name, @class]} {@rest} />
     """
   end
 

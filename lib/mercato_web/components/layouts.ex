@@ -5,6 +5,9 @@ defmodule MercatoWeb.Layouts do
   """
   use MercatoWeb, :html
 
+  import MercatoWeb.Layouts.AppHeader
+  import MercatoWeb.Layouts.Sidebar
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -12,15 +15,15 @@ defmodule MercatoWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
-  Renders your app layout.
+  Renders the app layout: header, sidebar, and the main content card.
 
-  This function is typically invoked from every template,
-  and it often contains your application menu, sidebar,
-  or similar.
+  One layout serves signed-in and signed-out visitors. Signing out doesn't
+  change the layout's shape — it removes the parts that need an account (the
+  sidebar, its toggle, the cart) and swaps the user menu's contents.
 
   ## Examples
 
-      <Layouts.app flash={@flash}>
+      <Layouts.app flash={@flash} current_user={@current_user} current_path={~p"/profile"}>
         <h1>Content</h1>
       </Layouts.app>
 
@@ -31,23 +34,30 @@ defmodule MercatoWeb.Layouts do
     default: nil,
     doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
 
+  attr :current_user, :map, default: nil, doc: "drives the sidebar, cart and user menu"
+  attr :current_path, :string, default: nil, doc: "used to mark the active sidebar entry"
+
   slot :inner_block, required: true
 
   def app(assigns) do
     ~H"""
-    <div class="min-h-screen bg-bg-2 dark:bg-ink-900">
-      <header class="navbar p-4 sm:px-6 lg:px-8">
-        <a href="/" class="flex items-center gap-2">
-          <img src={~p"/images/mercato-logo.png"} width="28" height="28" />
-          <span class="text-body-lg font-extrabold text-ink-900">Mercato</span>
-        </a>
-      </header>
+    <%!-- h-screen + overflow-hidden, so the page itself never scrolls: the sidebar
+          and the main column each get their own scrollbar below. --%>
+    <div class="h-screen overflow-hidden flex flex-col font-sans bg-bg-2 dark:bg-ink-900 text-ink-900 dark:text-white">
+      <.app_header current_user={@current_user} />
 
-      <main class="p-4 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-2xl space-y-4">
+      <%!-- The gap is lg-only: below that the sidebar is a fixed drawer and takes no
+            space in this row, so a gap would just indent the main card against nothing. --%>
+      <div class="flex-1 min-h-0 flex items-stretch lg:gap-3 px-3 pb-3 md:px-4 md:pb-4">
+        <.sidebar :if={@current_user} current_path={@current_path} />
+
+        <main class={[
+          "flex-1 min-w-0 overflow-y-auto rounded-md bg-bg dark:bg-ink-900 shadow-sm",
+          "px-4 pt-5 pb-8 md:px-8 md:pt-7 md:pb-12"
+        ]}>
           {render_slot(@inner_block)}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
 
     <.flash_group flash={@flash} />

@@ -87,6 +87,57 @@
 /* Use the data attribute for dark mode  */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+/* Which regime the sidebar is in at the current width. Retuning the breakpoints in
+   `@theme` above moves every rule below with them — no pixel value is restated here, in a
+   component, or in JS. The toggle hook reads `--sidebar-mode` rather than running its own
+   media query, so CSS stays the only place that decides where a regime starts. */
+:root {
+  --sidebar-mode: drawer;
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  :root {
+    --sidebar-mode: rail;
+  }
+}
+
+@media (width >= theme(--breakpoint-xl)) {
+  :root {
+    --sidebar-mode: expanded;
+  }
+}
+
+/* Sidebar collapse is client-only state (see the pre-paint script in root.html.heex),
+   so the rail is styled entirely in CSS — no LiveView round trip, and no flash of the
+   wrong width on load. Usage: `sidebar-collapsed:w-18`, `sidebar-collapsed:sr-only`.
+
+   The width regime is part of the variant, so a component writes `sidebar-collapsed:*`
+   once and gets all three behaviours:
+
+     below lg   the variant never matches — the sidebar is a drawer, always full width
+     lg to xl   the rail is the default; `data-sidebar-collapsed=false` opts out
+     xl and up  expanded is the default; `data-sidebar-collapsed=true` opts in
+
+   The selectors avoid `:where()` on purpose: at (0,2,0) they outrank the plain `lg:w-58`
+   they override, so the rail wins regardless of which rule Tailwind emits first. */
+@custom-variant sidebar-collapsed {
+  @media (width >= theme(--breakpoint-lg)) and (width < theme(--breakpoint-xl)) {
+    &:not([data-sidebar-collapsed="false"] *) {
+      @slot;
+    }
+  }
+
+  @media (width >= theme(--breakpoint-xl)) {
+    [data-sidebar-collapsed="true"] & {
+      @slot;
+    }
+  }
+}
+
+/* The off-canvas drawer, i.e. below lg. Separate from the collapse state above: a rail is
+   narrow but in flow, a drawer is full width but out of it, and the two never coexist. */
+@custom-variant sidebar-drawer-open (&:where([data-sidebar-drawer="open"] *));
+
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 

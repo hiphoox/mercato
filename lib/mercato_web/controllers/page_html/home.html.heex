@@ -1,40 +1,6 @@
-<Layouts.flash_group flash={@flash} />
-
-<div class="min-h-screen bg-bg-2 dark:bg-ink-900 flex flex-col items-center justify-center gap-8 px-4 py-8">
-  <div class="flex items-center gap-2">
-    <img src={~p"/images/mercato-logo.png"} width="32" height="32" />
-    <span class="text-[24px] font-extrabold text-ink-900 dark:text-white">Mercato</span>
-  </div>
-
-  <.card class="w-full max-w-md flex flex-col gap-5 text-center">
-    <%= if @current_user do %>
-      <div class="flex flex-col gap-1">
-        <h2 class="text-h2 font-bold text-ink-900">
-          Welcome, {@current_user.first_name || @current_user.handle || @current_user.email}
-        </h2>
-        <p class="text-body-md text-ink-500">{@current_user.email}</p>
-      </div>
-
-      <.accent_link href={~p"/profile"} class="text-body-sm">
-        Edit profile
-      </.accent_link>
-
-      <.button href={~p"/sign-out"} variant="neutral">
-        Sign out
-      </.button>
-    <% else %>
-      <div class="flex flex-col gap-1">
-        <h2 class="text-h2 font-bold text-ink-900">Buy and sell on Mercato</h2>
-        <p class="text-body-md text-ink-500">Sign in or create an account to get started</p>
-      </div>
-
-      <.button href={~p"/sign-in"} variant="primary">
-        Log in
-      </.button>
-
-      <.accent_link href={~p"/register"} class="text-body-sm">
-        Need an account? Sign up
-      </.accent_link>
-    <% end %>
-  </.card>
-</div>
+<Layouts.app flash={@flash} current_user={assigns[:current_user]} current_path={~p"/"}>
+  <.header>
+    Browse
+    <:subtitle>Find something worth buying, or list something worth selling.</:subtitle>
+  </.header>
+</Layouts.app>

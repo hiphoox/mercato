@@ -6,6 +6,9 @@ defmodule MercatoWeb.ProfileLive do
 
   use MercatoWeb, :live_view
 
+  import MercatoWeb.UI.Avatar
+  import MercatoWeb.UI.Breadcrumb
+
   alias Mercato.Accounts
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
@@ -55,13 +58,22 @@ defmodule MercatoWeb.ProfileLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={assigns[:current_scope]}>
-      <div class="flex flex-col items-center gap-8 max-w-[560px] mx-auto py-8">
-        <div class="text-center">
-          <h1 class="text-h2 font-bold text-ink-900">Account settings</h1>
-          <p class="text-body-sm text-ink-500 mt-0.5">Manage your profile and security</p>
-        </div>
+    <Layouts.app
+      flash={@flash}
+      current_scope={assigns[:current_scope]}
+      current_user={@current_user}
+      current_path={~p"/profile"}
+    >
+      <div class="flex flex-col gap-6">
+        <.breadcrumb items={[%{label: "Home", navigate: ~p"/"}, %{label: "Account settings"}]} />
 
+        <.header>
+          Account settings
+          <:subtitle>Manage your profile and security</:subtitle>
+        </.header>
+      </div>
+
+      <div class="flex flex-col items-center gap-8 max-w-[560px] mx-auto py-8">
         <.card class="w-full flex flex-col gap-5">
           <div>
             <h2 class="text-title-lg font-bold text-ink-900">Name</h2>
@@ -118,17 +130,11 @@ defmodule MercatoWeb.ProfileLive do
           </div>
           <form id="avatar-form" phx-change="noop" phx-submit="noop" class="flex items-center gap-5">
             <div class="relative w-[72px] h-[72px] shrink-0">
-              <img
-                :if={@user.avatar_url}
+              <.avatar
+                name={Enum.join(Enum.reject([@user.first_name, @user.last_name], &is_nil/1), " ")}
                 src={@user.avatar_url}
-                class="w-[72px] h-[72px] rounded-full object-cover"
+                size={72}
               />
-              <div
-                :if={!@user.avatar_url}
-                class="w-[72px] h-[72px] rounded-full bg-ink-100 flex items-center justify-center text-ink-500 font-semibold"
-              >
-                {String.first(@user.first_name || "?")}
-              </div>
               <div
                 :if={@uploads.avatar.entries != []}
                 class="absolute inset-0 rounded-full bg-ink-900/45 flex items-center justify-center"
