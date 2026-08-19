@@ -7,6 +7,7 @@ defmodule Mercato.Accounts.User.Senders.SendMagicLinkEmail do
   use MercatoWeb, :verified_routes
 
   import Swoosh.Email
+  alias Mercato.Accounts.User.Senders.EmailLayout
   alias Mercato.Mailer
 
   @impl true
@@ -31,10 +32,14 @@ defmodule Mercato.Accounts.User.Senders.SendMagicLinkEmail do
 
   defp body(params) do
     # NOTE: You may have to change this to match your magic link acceptance URL.
+    link_url = url(~p"/magic_link/#{params[:token]}")
 
-    """
-    <p>Hello, #{params[:email]}! Click this link to sign in:</p>
-    <p><a href="#{url(~p"/magic_link/#{params[:token]}")}">#{url(~p"/magic_link/#{params[:token]}")}</a></p>
-    """
+    EmailLayout.render(
+      "Sign in to Mercato",
+      ["Click the button below to sign in."],
+      "Sign in",
+      link_url,
+      "If you didn't request this, you can safely ignore this email."
+    )
   end
 end

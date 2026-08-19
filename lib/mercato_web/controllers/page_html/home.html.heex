@@ -1,6 +1,6 @@
 <Layouts.flash_group flash={@flash} />
 
-<div class="min-h-screen bg-bg-2 dark:bg-ink-900 flex flex-col items-center justify-center gap-8 px-4 py-12">
+<div class="min-h-screen bg-bg-2 dark:bg-ink-900 flex flex-col items-center justify-center gap-8 px-4 py-8">
   <div class="flex items-center gap-2">
     <img src={~p"/images/mercato-logo.png"} width="32" height="32" />
     <span class="text-[24px] font-extrabold text-ink-900 dark:text-white">Mercato</span>
@@ -15,7 +15,11 @@
         <p class="text-body-md text-ink-500">{@current_user.email}</p>
       </div>
 
-      <.button href={~p"/sign-out"} variant="neutral" class="flex items-center justify-center">
+      <.accent_link href={~p"/profile"} class="text-body-sm">
+        Edit profile
+      </.accent_link>
+
+      <.button href={~p"/sign-out"} variant="neutral">
         Sign out
       </.button>
     <% else %>
@@ -24,7 +28,7 @@
         <p class="text-body-md text-ink-500">Sign in or create an account to get started</p>
       </div>
 
-      <.button href={~p"/sign-in"} variant="primary" class="flex items-center justify-center">
+      <.button href={~p"/sign-in"} variant="primary">
         Log in
       </.button>
 

@@ -320,6 +320,52 @@ defmodule Mercato.Accounts.UserTest do
     end
   end
 
+  describe "update_profile_info" do
+    test "updates first_name and last_name" do
+      user = generate(user(first_name: "Jane", last_name: "Doe"))
+
+      assert {:ok, updated} =
+               Accounts.update_profile_info(user, "Janet", "Smith", authorize?: false)
+
+      assert updated.first_name == "Janet"
+      assert updated.last_name == "Smith"
+    end
+
+    test "does not touch other fields such as handle" do
+      user = generate(user(first_name: "Jane", last_name: "Doe"))
+
+      assert {:ok, updated} =
+               Accounts.update_profile_info(user, "Janet", "Smith", authorize?: false)
+
+      assert updated.handle == user.handle
+    end
+  end
+
+  describe "change_password" do
+    test "changes the password when the current password is correct" do
+      user = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      assert {:ok, _updated} =
+               Accounts.change_password(user, "password1234", "newpassword1", "newpassword1",
+                 authorize?: false
+               )
+
+      assert {:ok, _signed_in} =
+               Accounts.sign_in_with_password(to_string(user.email), "newpassword1", %{},
+                 authorize?: false
+               )
+    end
+
+    test "rejects an incorrect current password" do
+      user = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      assert {:error, _changeset} =
+               Accounts.change_password(user, "wrongpassword", "newpassword1", "newpassword1",
+                 authorize?: false
+               )
+    end
+  end
+
   describe "update_avatar" do
     setup do
       tmp_dir =
@@ -341,13 +387,7 @@ defmodule Mercato.Accounts.UserTest do
       refute user.avatar_url
 
       updated =
-        user
-        |> Ash.Changeset.for_update(
-          :update_avatar,
-          %{avatar: "fake image bytes", filename: "photo.jpg"},
-          authorize?: false
-        )
-        |> Ash.update!()
+        Accounts.update_avatar!(user, "fake image bytes", "photo.jpg", authorize?: false)
 
       assert updated.avatar_url =~ "photo.jpg"
 

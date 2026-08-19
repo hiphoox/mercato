@@ -8,6 +8,7 @@ defmodule Mercato.Accounts.User.Senders.SendNewUserConfirmationEmail do
 
   import Swoosh.Email
 
+  alias Mercato.Accounts.User.Senders.EmailLayout
   alias Mercato.Mailer
 
   @impl true
@@ -34,22 +35,29 @@ defmodule Mercato.Accounts.User.Senders.SendNewUserConfirmationEmail do
   end
 
   defp body(token, opts) do
-    url = url(~p"/confirm_new_user/#{token}")
+    confirm_url = url(~p"/confirm_new_user/#{token}")
 
     case opts[:confirmation_type] do
       :identity_link ->
-        """
-        <p>Someone signed in with #{opts[:provider]} using your email address
-        and wants to link it to your account.</p>
-        <p>If this was you, confirm here: <a href="#{url}">#{url}</a></p>
-        <p>If it wasn't you, ignore this email - nothing has changed.</p>
-        """
+        EmailLayout.render(
+          "Confirm linking your #{opts[:provider]} login",
+          [
+            "Someone signed in with #{opts[:provider]} using your email address and wants to link it to your account."
+          ],
+          "Confirm linking",
+          confirm_url,
+          "If this wasn't you, ignore this email — nothing has changed."
+        )
 
       _ ->
-        """
-        <p>Click this link to confirm your email:</p>
-        <p><a href="#{url}">#{url}</a></p>
-        """
+        EmailLayout.render(
+          "Confirm your email",
+          [
+            "Click the button below to confirm your email address and finish setting up your account."
+          ],
+          "Confirm email",
+          confirm_url
+        )
     end
   end
 end

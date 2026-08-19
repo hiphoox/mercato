@@ -17,7 +17,7 @@ defmodule MercatoWeb.AuthOverrides do
   use AshAuthentication.Phoenix.Overrides
 
   override AshAuthentication.Phoenix.SignInLive do
-    set :root_class, "grid min-h-screen place-items-center bg-bg-2 dark:bg-ink-900 py-12"
+    set :root_class, "grid min-h-screen place-items-center bg-bg-2 dark:bg-ink-900 py-8"
   end
 
   override AshAuthentication.Phoenix.Components.SignIn do

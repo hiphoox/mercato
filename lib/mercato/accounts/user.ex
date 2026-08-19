@@ -164,6 +164,16 @@ defmodule Mercato.Accounts.User do
       require_atomic? false
     end
 
+    update :update_profile_info do
+      description "Self-service update of a user's first and last name."
+      accept [:first_name, :last_name]
+
+      # first_name/last_name stay nilable on the attribute (a magic-link
+      # signup has neither), but this profile-edit action must not let a
+      # user clear their own name to blank.
+      validate present([:first_name, :last_name])
+    end
+
     update :update_handle do
       description "Self-service handle change, subject to the reserved-word and cooldown rules."
       accept [:handle]
@@ -366,10 +376,12 @@ defmodule Mercato.Accounts.User do
     attribute :first_name, :string do
       allow_nil? true
       public? true
+      constraints min_length: 1
     end
 
     attribute :last_name, :string do
       public? true
+      constraints min_length: 1
     end
 
     attribute :handle, :string do

@@ -35,6 +35,8 @@ defmodule MercatoWeb.Router do
       #
       # If an authenticated user must *not* be present:
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
+
+      live "/profile", ProfileLive
     end
   end
 
