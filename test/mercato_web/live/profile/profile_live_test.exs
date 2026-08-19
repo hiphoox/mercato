@@ -41,6 +41,54 @@ defmodule MercatoWeb.ProfileLiveTest do
     end
   end
 
+  describe "app layout" do
+    setup %{conn: conn} do
+      user = generate(user(first_name: "Jane", last_name: "Doe"))
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      %{view: view, user: user}
+    end
+
+    test "renders the sidebar", %{view: view} do
+      assert has_element?(view, "#app-sidebar")
+    end
+
+    test "marks the profile entry as the current page", %{view: view} do
+      assert has_element?(view, "#app-sidebar a[href='/profile'][aria-current='page']")
+    end
+
+    test "does not mark the home entry as current", %{view: view} do
+      refute has_element?(view, "#app-sidebar a[href='/'][aria-current='page']")
+    end
+
+    test "renders the sidebar toggle", %{view: view} do
+      assert has_element?(view, "#sidebar-toggle")
+    end
+
+    test "renders the search field", %{view: view} do
+      assert has_element?(view, "#app-search")
+    end
+
+    test "renders the cart", %{view: view} do
+      assert has_element?(view, "#app-cart")
+    end
+
+    test "renders the user menu with the signed-in user's initials", %{view: view} do
+      assert has_element?(view, "#user-menu-trigger [role='img'][aria-label='Jane Doe']")
+    end
+
+    test "offers sign out inside the user menu", %{view: view} do
+      assert has_element?(view, "#user-menu-panel a[href='/sign-out']")
+    end
+
+    test "renders a breadcrumb ending at the current page", %{view: view} do
+      assert has_element?(view, "nav[aria-label='Breadcrumb'] [aria-current='page']")
+    end
+
+    test "links the breadcrumb's home crumb", %{view: view} do
+      assert has_element?(view, "nav[aria-label='Breadcrumb'] a[href='/']")
+    end
+  end
+
   describe "name section" do
     setup %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
