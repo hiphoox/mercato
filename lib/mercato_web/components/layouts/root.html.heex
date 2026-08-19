@@ -34,6 +34,18 @@
             document.documentElement.setAttribute("data-theme", systemTheme());
           }
         });
+
+        // Sidebar collapse, applied before first paint for the same reason as the
+        // theme above: reading it after mount would flash the rail at the wrong width.
+        // Only written when the user has actually chosen — with no attribute at all,
+        // CSS picks the default for the current width (rail on a small laptop,
+        // expanded on a wide screen). Writing "false" here would pin it expanded
+        // everywhere and defeat that.
+        const collapsed = localStorage.getItem("mercato:sidebar-collapsed");
+        if (collapsed !== null) {
+          document.documentElement.setAttribute("data-sidebar-collapsed", collapsed);
+        }
+        document.documentElement.setAttribute("data-sidebar-drawer", "closed");
       })();
     </script>
   </head>
