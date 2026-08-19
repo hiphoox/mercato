@@ -3,15 +3,26 @@ type: architecture
 title: LiveView
 description: Conventions for Phoenix LiveView modules — layouts, scope, and component structure.
 tags: [liveview, elixir, phoenix]
-timestamp: 2026-08-18T00:00:00Z
+timestamp: 2026-08-19T00:00:00Z
 ---
 
 ## Component structure
 
 - **LiveView pages** live in `live/<feature>/*_live.ex` — one folder per feature domain.
-- **Reusable components** — generic, usable by any feature regardless of domain (buttons, inputs, cards, links) — live in `components/core_components.ex`.
-- **Live components and feature-specific function components** — used by only one feature, whether stateful (`use ... :live_component`) or not — live colocated in that feature's `live/<feature>/` folder, next to the LiveView that owns them. Stateful vs. not doesn't change where the module lives, only what it `use`s.
-- The line between "feature-specific" and "reusable" is scope, not statefulness: a component stays in `live/<feature>/` as long as only that feature uses it. The moment a second feature would reuse it as-is, promote it to `components/core_components.ex`.
+- **Primitives** — small, single-element building blocks usable anywhere (buttons, inputs, icons, cards, flashes) — live in `components/core_components.ex`. This module is imported for every template, so its components are callable unqualified from any LiveView, component, or layout.
+- **Composites** — reusable components built out of primitives, carrying their own slots, states, or client-side behavior (avatar, breadcrumb, menu) — get one module each under `components/ui/`, in the `MercatoWeb.UI.*` namespace. They are **not** globally imported: the module that renders one imports it explicitly, so a module's UI dependencies are visible in its header.
+- **Single-consumer components** — used by exactly one owner — live next to that owner: with the layout under `components/layouts/` when the layout composes them, or in `live/<feature>/` when a feature does. They stay out of the global import, since rendering them anywhere else would be a mistake.
+- Stateful vs. not doesn't change where a module lives, only what it `use`s.
+
+The line between tiers is **scope and composition**, not statefulness:
+
+| Question | Home |
+|---|---|
+| A single element, needed everywhere? | `core_components.ex`, globally imported |
+| Composed of primitives, and a second consumer could legitimately render it? | `components/ui/<name>.ex`, imported by each consumer |
+| Only ever rendered by one owner? | Colocated with that owner |
+
+A component moves up a tier when a second consumer needs it as-is, and the import list of every module that renders it is updated in the same change. Only `core_components.ex` is imported in the shared template helpers; adding a composite there would make every LiveView compile-time dependent on it.
 
 ## Phoenix v1.8 guidelines
 
