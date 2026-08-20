@@ -12,7 +12,7 @@ Registry of `docs/` sections. Each section has its own `index.md` mapping its fi
 
 - [architecture/](architecture/index.md) — System shape and all backend/frontend/testing/CI/process standards.
 - [domain/](domain/index.md) — Entities, their business rules, and ER diagrams.
-- `features/` — Feature decisions, flows, and per-feature specs. Not yet populated.
+- [features/](features/index.md) — Feature decisions, flows, and per-feature specs.
 - [explore/](explore/index.md) — Research and decisions for capabilities not yet implemented (library choices, integration approaches). Check here before researching something from scratch; a file moves out to the section it belongs to once the thing is actually built.
 - [guides/](guides/index.md) — Step-by-step how-tos and runbooks (e.g. provisioning an environment, adding a new adapter to an existing port).
 
