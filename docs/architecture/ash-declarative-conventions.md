@@ -3,7 +3,7 @@ type: architecture
 title: Ash Declarative Conventions
 description: Principles for writing Ash resources as declarations, not programs.
 tags: [architecture, ash, conventions]
-timestamp: 2026-08-18T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 resource: https://ash.hexdocs.pm/design-principles.html
 ---
 
@@ -22,3 +22,7 @@ Where the DSL can derive a value from something already declared elsewhere on th
 ## Keep each concern in its own DSL section
 
 Authorization belongs in `policies`, expressed through checks — not as `if`/`case` branches inside a `change` or `validation`. Validity belongs in `validations`, not folded into a `change`. A resource's rules should each be findable by which section they live in, not buried inside another section's logic. See [principles.md → OCP](principles.md#ocp--openclosed) for the related rule on extending a resource by adding a section entry rather than branching inside an existing one.
+
+## Keep a data-layer quirk out of the resource
+
+Where a data layer needs a different expression than another would for the same meaning, that difference belongs in a custom expression with one clause per data layer — not spelled out in the filter of every action that needs it. The resource states the intent and the expression supplies each backend's spelling. See [data-layer-expressions.md](data-layer-expressions.md) for the divergences this project has hit and how to recognise a new one.
