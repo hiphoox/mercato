@@ -38,6 +38,7 @@ defmodule MercatoWeb.Router do
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
 
       live "/profile", ProfileLive
+      live "/admin/users", Admin.UsersLive
     end
   end
 
