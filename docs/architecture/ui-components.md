@@ -1,9 +1,9 @@
 ---
 type: architecture
 title: UI Components
-description: Specs for Mercato's core UI components — buttons, form fields, badges, chips, and the listing card.
+description: Specs for Mercato's core UI components — buttons, form fields, badges, chips, tables, and the listing card.
 tags: [ui, design, components]
-timestamp: 2026-08-04T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 ---
 
 See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here. These specs are the default implementation — Mercato's second level of customization is editing a component directly when a theme-token swap isn't enough (see [ui-guidelines.md](ui-guidelines.md#customization-model)).
@@ -43,6 +43,16 @@ Filter chips: white background, black border; selected state is solid black. The
 | Neutral (category, etc.) | ink-100 background, ink-700 text |
 
 Removable filter chips (applied filters): white background, thin black border, height 24.
+
+## Tables
+
+One table component serves every tabular listing. Column headers stick to the top so they stay readable while the body scrolls, and each row is separated by a top border rather than shading.
+
+A column can be marked as the row's header, so a screen reader announces which row a cell belongs to. A table carries a caption describing its contents, available to screen readers only.
+
+Rows and individual cells can be styled from their own data — a deactivated record dimmed, a column hidden below a given breakpoint, a value kept on one line.
+
+Below the table's breakpoint a listing renders as one card per record instead, with each column's label shown beside its value.
 
 ## Listing Card
 

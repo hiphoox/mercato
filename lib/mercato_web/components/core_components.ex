@@ -169,6 +169,111 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   @doc """
+  Renders a status badge.
+
+  Badges label a record's state; they never carry an action, which is why this
+  is a `<span>` and not a button.
+
+  | Kind | Use |
+  |---|---|
+  | `verified` | A confirmed or healthy state — an active account, a verified seller |
+  | `featured` | Sets a record apart — a promoted listing, an admin account |
+  | `neutral` | Anything with no state of its own — a category, a count |
+
+  ## Examples
+
+      <.badge kind="verified">Active</.badge>
+  """
+  attr :kind, :string, default: "neutral", values: ~w(verified featured neutral)
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    kinds = %{
+      "verified" => "bg-success-bg text-success-text",
+      "featured" => "bg-accent-100 text-accent-600",
+      "neutral" => "bg-ink-100 text-ink-700"
+    }
+
+    assigns = assign(assigns, :kind_class, Map.fetch!(kinds, assigns.kind))
+
+    ~H"""
+    <span
+      class={[
+        "inline-flex items-center h-[22px] px-2 rounded-full",
+        "text-caption-md font-semibold whitespace-nowrap",
+        @kind_class,
+        @class
+      ]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
+  Renders a filter chip.
+
+  Two shapes in one component, because they are the same object at two moments:
+  a *selectable* chip offers a filter, and a *removable* one shows a filter
+  that's already applied. Both stay black-and-white, since the primary color is
+  reserved for actions.
+
+  ## Examples
+
+      <.filter_chip label="Active (12)" selected phx-click="filter" />
+      <.filter_chip label="Status: Banned" removable phx-click="clear" />
+  """
+  attr :label, :string, required: true
+  attr :selected, :boolean, default: false
+  attr :removable, :boolean, default: false, doc: "renders as an applied-filter chip"
+  attr :class, :any, default: nil
+  attr :rest, :global, include: ~w(disabled name value)
+
+  def filter_chip(%{removable: true} = assigns) do
+    ~H"""
+    <span class={[
+      "inline-flex items-center gap-1 h-6 pl-2.5 pr-1 rounded-full",
+      "bg-white dark:bg-ink-900 border border-ink-900 dark:border-ink-100",
+      "text-caption-md font-semibold text-ink-900 dark:text-white whitespace-nowrap",
+      @class
+    ]}>
+      {@label}
+      <button
+        type="button"
+        aria-label={"Remove #{@label}"}
+        class="inline-flex items-center justify-center size-4 rounded-full hover:bg-ink-100 dark:hover:bg-ink-700"
+        {@rest}
+      >
+        <.icon name="hero-x-mark-micro" class="size-3" />
+      </button>
+    </span>
+    """
+  end
+
+  def filter_chip(assigns) do
+    ~H"""
+    <button
+      type="button"
+      aria-pressed={to_string(@selected)}
+      class={[
+        "inline-flex items-center h-8 px-3.5 rounded-full border transition-colors",
+        "text-caption-lg font-semibold whitespace-nowrap cursor-pointer",
+        @selected && "bg-ink-900 border-ink-900 text-white dark:bg-white dark:text-ink-900",
+        !@selected &&
+          "bg-white dark:bg-ink-900 border-ink-900 dark:border-ink-100 text-ink-900 dark:text-white hover:bg-bg-2 dark:hover:bg-ink-700",
+        @class
+      ]}
+      {@rest}
+    >
+      {@label}
+    </button>
+    """
+  end
+
+  @doc """
   Renders an input with label and error messages.
 
   A `Phoenix.HTML.FormField` may be passed as argument,
@@ -398,17 +503,30 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a table with generic styling.
+  Renders a table.
+
+  Columns are declared with `:col`. A column may be marked `row_header` to render
+  its cells as the row's header rather than a data cell, which is what lets a
+  screen reader announce which row a cell belongs to.
+
+  `row_class` and a column's `cell_class` each accept either a class or a
+  function of the row, so a row or cell can be styled from its own data.
 
   ## Examples
 
-      <.table id="users" rows={@users}>
-        <:col :let={user} label="id">{user.id}</:col>
-        <:col :let={user} label="username">{user.username}</:col>
+      <.table id="users" rows={@users} caption="Registered users">
+        <:col :let={user} label="User" row_header>{user.name}</:col>
+        <:col :let={user} label="Email" class="hidden xl:table-cell">{user.email}</:col>
       </.table>
   """
   attr :id, :string, required: true
   attr :rows, :list, required: true
+  attr :class, :any, default: nil
+
+  attr :caption, :string,
+    default: nil,
+    doc: "describes the table to a screen reader; not shown visually"
+
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
 
@@ -416,8 +534,18 @@ defmodule MercatoWeb.CoreComponents do
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
 
+  attr :row_class, :any,
+    default: nil,
+    doc: "a class for every row, or a function of the row returning one"
+
   slot :col, required: true do
     attr :label, :string
+    attr :class, :any, doc: "applied to this column's header cell and every one of its body cells"
+
+    attr :cell_class, :any,
+      doc: "applied to this column's body cells only; a class or a function of the row"
+
+    attr :row_header, :boolean, doc: "renders this column's cells as the row's header"
   end
 
   slot :action, doc: "the slot for showing user actions in the last table column"
@@ -429,11 +557,14 @@ defmodule MercatoWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="w-full text-left text-body-sm border-collapse">
+    <table class={["w-full border-collapse text-left text-body-sm", @class]}>
+      <caption :if={@caption} class="sr-only">{@caption}</caption>
       <thead>
-        <tr class="border-b border-ink-100">
-          <th :for={col <- @col} class="py-2 font-semibold text-ink-700">{col[:label]}</th>
-          <th :if={@action != []}>
+        <tr>
+          <th :for={col <- @col} scope="col" class={[table_head_class(), col[:class]]}>
+            {col[:label]}
+          </th>
+          <th :if={@action != []} scope="col" class={table_head_class()}>
             <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
@@ -442,16 +573,25 @@ defmodule MercatoWeb.CoreComponents do
         <tr
           :for={row <- @rows}
           id={@row_id && @row_id.(row)}
-          class="border-b border-ink-100 odd:bg-bg-2"
+          class={[
+            "border-t border-ink-100 dark:border-ink-700",
+            from_row(@row_class, @row_item.(row))
+          ]}
         >
-          <td
+          <.table_cell
             :for={col <- @col}
+            row_header={!!col[:row_header]}
             phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+            class={[
+              table_cell_class(),
+              @row_click && "hover:cursor-pointer",
+              col[:class],
+              from_row(col[:cell_class], @row_item.(row))
+            ]}
           >
             {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
+          </.table_cell>
+          <td :if={@action != []} class={[table_cell_class(), "w-0"]}>
             <div class="flex gap-4">
               <%= for action <- @action do %>
                 {render_slot(action, @row_item.(row))}
@@ -463,6 +603,37 @@ defmodule MercatoWeb.CoreComponents do
     </table>
     """
   end
+
+  attr :row_header, :boolean, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  defp table_cell(%{row_header: true} = assigns) do
+    ~H"""
+    <th scope="row" class={[@class, "font-normal"]} {@rest}>{render_slot(@inner_block)}</th>
+    """
+  end
+
+  defp table_cell(assigns) do
+    ~H"""
+    <td class={@class} {@rest}>{render_slot(@inner_block)}</td>
+    """
+  end
+
+  # The header sticks so it stays readable when the table body scrolls; it has no
+  # effect on a table that isn't inside a scroll container.
+  defp table_head_class do
+    [
+      "sticky top-0 z-[2] px-4 py-3 bg-white dark:bg-ink-900",
+      "text-caption-lg font-bold text-ink-500 shadow-[inset_0_-1px_0_var(--color-ink-100)]"
+    ]
+  end
+
+  defp table_cell_class, do: "px-4 py-3.5 align-top"
+
+  defp from_row(fun, row) when is_function(fun, 1), do: fun.(row)
+  defp from_row(class, _row), do: class
 
   @doc """
   Renders a data list.

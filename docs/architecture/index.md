@@ -29,7 +29,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [ui-guidelines.md](ui-guidelines.md) — Guiding principles for the design system. Read it when starting any UI/design work.
 - [design-tokens.md](design-tokens.md) — Color, typography, and spacing/radius tokens, with code mapping. Read it when styling a component or picking a color/type value.
 - [responsive-layout.md](responsive-layout.md) — Breakpoint regimes for the app layout, sidebar drawer/rail state, and header wrapping. Read it when building a layout that adapts across widths, or touching the sidebar's collapse state.
-- [ui-components.md](ui-components.md) — Specs for buttons, form fields, badges, chips, listing card, and nav bar. Read it when building or reviewing a UI component.
+- [ui-components.md](ui-components.md) — Specs for buttons, form fields, badges, chips, tables, listing card, and nav bar. Read it when building or reviewing a UI component.
 - [commerce-ux-patterns.md](commerce-ux-patterns.md) — Discovery, trust signals, cart/checkout, optional offer negotiation, order tracking, sell flow, and notification/feedback patterns. Read it when building browsing, purchase, offer, selling, order-status, or notification UI.
 - [accessibility-dark-mode.md](accessibility-dark-mode.md) — Accessibility rules and dark mode token overrides. Read it when checking contrast, focus states, or dark mode.
 - [testing.md](testing.md) — Backend and Ash test conventions. Read it when writing backend/Ash tests.
