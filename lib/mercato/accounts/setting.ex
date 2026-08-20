@@ -18,6 +18,12 @@ defmodule Mercato.Accounts.Setting do
   actions do
     defaults [:read]
 
+    read :current do
+      description "The single settings row, or nothing when none has been seeded."
+      get? true
+      prepare build(limit: 1)
+    end
+
     create :create do
       accept [:handle_change_cooldown_days]
     end
@@ -41,8 +47,8 @@ defmodule Mercato.Accounts.Setting do
 
   @doc "Days a user must wait between handle changes."
   def handle_change_cooldown_days do
-    case Ash.read(__MODULE__, authorize?: false) do
-      {:ok, [%__MODULE__{handle_change_cooldown_days: days} | _]} -> days
+    case Mercato.Accounts.current_settings(authorize?: false, not_found_error?: false) do
+      {:ok, %__MODULE__{handle_change_cooldown_days: days}} -> days
       _no_row -> @default_handle_change_cooldown_days
     end
   end

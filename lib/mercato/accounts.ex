@@ -32,7 +32,9 @@ defmodule Mercato.Accounts do
         args: [:email, :first_name, :password, :password_confirmation]
     end
 
-    resource Mercato.Accounts.Setting
+    resource Mercato.Accounts.Setting do
+      define :current_settings, action: :current
+    end
 
     resource Mercato.Accounts.Role do
       define :get_role_by_name, action: :get_by_name, args: [:name]
