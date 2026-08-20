@@ -285,6 +285,9 @@ defmodule MercatoWeb.Admin.UsersLive do
               <:col :let={account} label="Status">
                 <.badge kind={status_badge(account.status)}>{status_label(account.status)}</.badge>
               </:col>
+              <:col :let={account} label="Role" cell_class="whitespace-nowrap">
+                {role_label(account)}
+              </:col>
               <:col :let={account} label="Last active" cell_class="whitespace-nowrap text-ink-500">
                 {last_active(account)}
               </:col>
@@ -315,6 +318,10 @@ defmodule MercatoWeb.Admin.UsersLive do
                       {status_label(account.status)}
                     </.badge>
                   </dd>
+                </div>
+                <div class="flex gap-2.5">
+                  <dt class="min-w-[88px] text-ink-500">Role</dt>
+                  <dd>{role_label(account)}</dd>
                 </div>
                 <div class="flex gap-2.5">
                   <dt class="min-w-[88px] text-ink-500">Last active</dt>
@@ -416,6 +423,19 @@ defmodule MercatoWeb.Admin.UsersLive do
   defp status_badge(status) do
     Enum.find_value(@statuses, "neutral", &(&1.value == status && &1.badge))
   end
+
+  # Plain text rather than a badge: the status badge beside it is the row's one
+  # colour signal, and a second badge would compete with it for attention.
+  # v1 gives every user exactly one role, but the join allows more, so several
+  # are joined rather than silently dropping all but the first.
+  defp role_label(%{roles: roles}) when roles != [] do
+    roles
+    |> Enum.map(&String.capitalize(&1.name))
+    |> Enum.sort()
+    |> Enum.join(", ")
+  end
+
+  defp role_label(_account), do: "\u2014"
 
   defp filtered?(query, status), do: query not in [nil, ""] or not is_nil(status)
 

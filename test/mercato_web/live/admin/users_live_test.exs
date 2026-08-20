@@ -56,6 +56,21 @@ defmodule MercatoWeb.Admin.UsersLiveTest do
       %{view: view, html: html, admin: admin, marta: marta, banned: banned}
     end
 
+    test "shows each account's role in its row", ctx do
+      assert has_element?(ctx.view, "#user-#{ctx.marta.id}", "Trader")
+    end
+
+    test "lists every role an account holds, alphabetically", %{conn: conn} do
+      admin = admin_user()
+      multi = generate(user(first_name: "Nuno", last_name: "Costa"))
+      role = Ash.Seed.seed!(Mercato.Accounts.Role, %{name: "moderator"})
+      Ash.Seed.seed!(Mercato.Accounts.UserRole, %{user_id: multi.id, role_id: role.id})
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      assert has_element?(view, "#user-#{multi.id}", "Moderator, Trader")
+    end
+
     test "renders one row per real account", ctx do
       assert has_element?(ctx.view, "#user-#{ctx.marta.id}")
       assert has_element?(ctx.view, "#user-#{ctx.banned.id}")

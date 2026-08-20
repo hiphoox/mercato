@@ -111,7 +111,7 @@ defmodule Mercato.Accounts.User do
 
       # `id` breaks the tie so offset paging can't repeat or skip a row when
       # several accounts share a last_active_at (or are all nil).
-      prepare build(sort: [last_active_at: :desc_nils_last, id: :asc])
+      prepare build(sort: [last_active_at: :desc_nils_last, id: :asc], load: [:roles])
     end
 
     create :sign_in_with_magic_link do
@@ -374,14 +374,6 @@ defmodule Mercato.Accounts.User do
     end
   end
 
-  changes do
-    # Both create actions need these, so they're declared once here rather than
-    # repeated per action. `on: [:create]` covers `register_with_password` and
-    # `sign_in_with_magic_link` — the only creates on this resource.
-    change Mercato.Accounts.User.Changes.GenerateHandle, on: [:create]
-    change Mercato.Accounts.User.Changes.AssignDefaultRole, on: [:create]
-  end
-
   policies do
     bypass AshAuthentication.Checks.AshAuthenticationInteraction do
       authorize_if always()
@@ -408,6 +400,14 @@ defmodule Mercato.Accounts.User do
       access_type :strict
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "admin:access"}
     end
+  end
+
+  changes do
+    # Both create actions need these, so they're declared once here rather than
+    # repeated per action. `on: [:create]` covers `register_with_password` and
+    # `sign_in_with_magic_link` — the only creates on this resource.
+    change Mercato.Accounts.User.Changes.GenerateHandle, on: [:create]
+    change Mercato.Accounts.User.Changes.AssignDefaultRole, on: [:create]
   end
 
   attributes do
@@ -458,6 +458,12 @@ defmodule Mercato.Accounts.User do
 
   relationships do
     has_many :user_roles, Mercato.Accounts.UserRole
+
+    many_to_many :roles, Mercato.Accounts.Role do
+      through Mercato.Accounts.UserRole
+      source_attribute_on_join_resource :user_id
+      destination_attribute_on_join_resource :role_id
+    end
   end
 
   identities do

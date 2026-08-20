@@ -15,6 +15,19 @@ defmodule Mercato.Accounts.UserListAccountsTest do
 
   defp handles(page), do: Enum.map(page.results, & &1.handle)
 
+  describe "roles" do
+    test "loads each account's roles so the listing can show them" do
+      admin = admin_user()
+      generate(user())
+
+      {:ok, page} = Accounts.list_accounts(actor: admin)
+
+      for account <- page.results do
+        assert Enum.map(account.roles, & &1.name) != []
+      end
+    end
+  end
+
   describe "authorization" do
     test "an actor holding admin:access can list accounts" do
       admin = admin_user()

@@ -23,7 +23,10 @@ One row per account, covering every account regardless of status — including t
 | User | Avatar, display name, and `@handle` |
 | Email | The account's email address |
 | Status | `Active`, `Banned`, or `Deleted`, as a badge |
+| Role | Every role the account holds, capitalised and alphabetical, or `—` when it holds none |
 | Last active | Relative time since the account was last active, or `Never` |
+
+**Role is plain text, not a badge.** The status badge beside it is the row's one colour signal; a second badge would compete with it. Every account holds the `trader` role from registration, so the column is populated in practice — the `—` fallback covers a role removed after the fact.
 
 **Display name** falls back in three steps: a deleted account always reads `Deleted user`; an account with neither first nor last name reads `Name not provided`; otherwise the names are joined. Both fallbacks render in a muted italic, so a placeholder never reads as a real name.
 
