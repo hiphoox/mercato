@@ -9,9 +9,8 @@ defmodule MercatoWeb.CoreComponents do
   them in any way you want, based on your application growth and needs.
 
   The foundation for styling is Tailwind CSS, a utility-first CSS framework.
-  Components are hand-written directly with Tailwind utility classes (see
-  docs/architecture/liveview-css.md) rather than a component library like
-  daisyUI. Here are useful references:
+  Components are hand-written directly with Tailwind utility classes rather
+  than a component library like daisyUI. Here are useful references:
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
       we build on. You will use it for layout, sizing, flexbox, grid, and

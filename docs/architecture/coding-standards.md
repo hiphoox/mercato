@@ -3,7 +3,7 @@ type: architecture
 title: Coding Standards
 description: Mandated Elixir, Mix, and Phoenix (backend) conventions.
 tags: [elixir, mix, phoenix, backend]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 ---
 
 See also [liveview.md](liveview.md) and [testing.md](testing.md).
@@ -12,6 +12,7 @@ See also [liveview.md](liveview.md) and [testing.md](testing.md).
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+- A docstring states what a reader needs rather than pointing at a `docs/` file for it. A module or function that supports a fixed set of values lists them where they're defined, so the list can't drift from the code implementing it. `docs/` is read on demand by a reader who went looking for it; a docstring is read by someone already in the code
 
 ## Elixir guidelines
 

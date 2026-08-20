@@ -4,8 +4,7 @@ defmodule MercatoWeb.Live.Auth.ModeSwitcher do
   `MercatoWeb.Live.Auth.RegisterForm`, `SignInForm`, and `ResetForm`. Field,
   button, link, and card styling live directly on `MercatoWeb.CoreComponents`
   (`input/1`, `button/1`, `accent_link/1`, `card/1`) as Tailwind utility
-  classes, since they're shared across the app rather than auth-specific. See
-  docs/architecture/design-tokens.md and ui-components.md.
+  classes, since they're shared across the app rather than auth-specific.
   """
 
   use Phoenix.Component
