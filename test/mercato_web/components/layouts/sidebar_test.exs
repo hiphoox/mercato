@@ -30,6 +30,33 @@ defmodule MercatoWeb.Layouts.SidebarTest do
     end
   end
 
+  describe "admin section" do
+    test "is absent for a user without admin access" do
+      html = render_component(&Sidebar.sidebar/1, current_path: "/", admin?: false)
+
+      refute html =~ "/admin/users"
+    end
+
+    test "links to the admin pages that exist today" do
+      hrefs = [current_path: "/", admin?: true] |> query("nav a") |> LazyHTML.attribute("href")
+
+      assert "/admin/users" in hrefs
+    end
+
+    test "groups admin links under a labelled section" do
+      section =
+        [current_path: "/", admin?: true] |> query("#sidebar-section-admin") |> LazyHTML.text()
+
+      assert section =~ "Admin"
+    end
+
+    test "marks the admin entry active on its own page" do
+      current = [current_path: "/admin/users", admin?: true] |> query("[aria-current=page]")
+
+      assert LazyHTML.attribute(current, "href") == ["/admin/users"]
+    end
+  end
+
   describe "active item" do
     test "marks the item matching the current path" do
       current = [current_path: "/profile"] |> query("[aria-current=page]")

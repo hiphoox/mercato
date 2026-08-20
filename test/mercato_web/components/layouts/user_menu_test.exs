@@ -32,6 +32,18 @@ defmodule MercatoWeb.Layouts.UserMenuTest do
       assert [current_user: @user] |> document() |> LazyHTML.text() =~ "jane@mercato.app"
     end
 
+    test "marks an admin with a badge" do
+      assert [current_user: @user, admin?: true] |> document() |> LazyHTML.text() =~ "Admin"
+    end
+
+    test "does not mark a non-admin" do
+      refute [current_user: @user, admin?: false] |> document() |> LazyHTML.text() =~ "Admin"
+    end
+
+    test "does not mark a user when the caller says nothing about admin access" do
+      refute [current_user: @user] |> document() |> LazyHTML.text() =~ "Admin"
+    end
+
     test "renders an avatar in the trigger" do
       assert [current_user: @user]
              |> query("#user-menu-trigger [role=img]")

@@ -60,6 +60,17 @@ defmodule MercatoWeb.ProfileLiveTest do
       refute has_element?(view, "#app-sidebar a[href='/'][aria-current='page']")
     end
 
+    test "shows the admin section to an admin, on a page that isn't the admin area" do
+      admin = admin_user(first_name: "Rita")
+      {:ok, view, _html} = live(log_in(Phoenix.ConnTest.build_conn(), admin), ~p"/profile")
+
+      assert has_element?(view, "#app-sidebar a[href='/admin/users']")
+    end
+
+    test "hides the admin section from a non-admin", %{view: view} do
+      refute has_element?(view, "#app-sidebar a[href='/admin/users']")
+    end
+
     test "renders the sidebar toggle", %{view: view} do
       assert has_element?(view, "#sidebar-toggle")
     end

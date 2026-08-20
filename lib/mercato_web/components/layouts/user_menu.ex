@@ -15,8 +15,13 @@ defmodule MercatoWeb.Layouts.UserMenu do
 
   `current_user` is `nil` for a signed-out visitor, which swaps the account
   identity block and the row set rather than changing the menu's shape.
+
+  `admin?` is passed in rather than derived here: whether a user reaches the
+  admin area is an authorization question, answered once per request and shared
+  with the sidebar, so this menu can't disagree with it.
   """
   attr :current_user, :map, default: nil
+  attr :admin?, :boolean, default: false
 
   def user_menu(assigns) do
     assigns = assign(assigns, :display_name, display_name(assigns.current_user))
@@ -41,8 +46,11 @@ defmodule MercatoWeb.Layouts.UserMenu do
           size={38}
         />
         <div class="min-w-0">
-          <div class="text-body-sm font-semibold text-ink-900 dark:text-white truncate">
-            {@display_name}
+          <div class="flex items-center gap-1.5">
+            <div class="text-body-sm font-semibold text-ink-900 dark:text-white truncate">
+              {@display_name}
+            </div>
+            <.badge :if={@admin?} kind="featured" class="flex-none">Admin</.badge>
           </div>
           <div class="text-caption-md text-ink-500 truncate">{@current_user.email}</div>
         </div>

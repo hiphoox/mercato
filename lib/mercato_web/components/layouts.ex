@@ -37,6 +37,10 @@ defmodule MercatoWeb.Layouts do
   attr :current_user, :map, default: nil, doc: "drives the sidebar, cart and user menu"
   attr :current_path, :string, default: nil, doc: "used to mark the active sidebar entry"
 
+  attr :admin?, :boolean,
+    default: false,
+    doc: "reveals the sidebar's Admin section; assigned by `MercatoWeb.LiveUserAuth`"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -44,12 +48,12 @@ defmodule MercatoWeb.Layouts do
     <%!-- h-screen + overflow-hidden, so the page itself never scrolls: the sidebar
           and the main column each get their own scrollbar below. --%>
     <div class="h-screen overflow-hidden flex flex-col font-sans bg-bg-2 dark:bg-ink-900 text-ink-900 dark:text-white">
-      <.app_header current_user={@current_user} />
+      <.app_header current_user={@current_user} admin?={@admin?} />
 
       <%!-- The gap is lg-only: below that the sidebar is a fixed drawer and takes no
             space in this row, so a gap would just indent the main card against nothing. --%>
       <div class="flex-1 min-h-0 flex items-stretch lg:gap-3 px-3 pb-3 md:px-4 md:pb-4">
-        <.sidebar :if={@current_user} current_path={@current_path} />
+        <.sidebar :if={@current_user} current_path={@current_path} admin?={@admin?} />
 
         <main class={[
           "flex-1 min-w-0 overflow-y-auto rounded-md bg-bg dark:bg-ink-900 shadow-sm",

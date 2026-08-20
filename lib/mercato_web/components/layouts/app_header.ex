@@ -16,6 +16,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
   cart to open when nobody is signed in.
   """
   attr :current_user, :map, default: nil
+  attr :admin?, :boolean, default: false
 
   def app_header(assigns) do
     ~H"""
@@ -99,8 +100,16 @@ defmodule MercatoWeb.Layouts.AppHeader do
 
       <%!-- `ml-auto` on the wrapped layout pins the account control to the right of
             the first row, with the cart beside it and search on the row below. --%>
-      <div class="order-2 ml-auto md:order-none md:ml-0">
-        <.user_menu current_user={@current_user} />
+      <div class="order-2 ml-auto md:order-none md:ml-0 flex items-center gap-2">
+        <%!-- The span carries the responsive display, not the badge: `hidden` and the
+              badge's own `inline-flex` are both unprefixed display utilities, so which
+              one won would depend on Tailwind's output order rather than on intent.
+              Below md the header is already wrapping two rows, and the same badge sits
+              in the account menu, so the indicator is dropped rather than crowded in. --%>
+        <span class="hidden md:inline">
+          <.badge :if={@admin?} id="admin-indicator" kind="featured">Admin</.badge>
+        </span>
+        <.user_menu current_user={@current_user} admin?={@admin?} />
       </div>
     </header>
 

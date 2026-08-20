@@ -62,6 +62,7 @@ defmodule MercatoWeb.ProfileLive do
       flash={@flash}
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
+      admin?={@admin?}
       current_path={~p"/profile"}
     >
       <div class="flex flex-col gap-6">
