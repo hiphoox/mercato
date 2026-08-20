@@ -81,6 +81,39 @@ defmodule Mercato.Accounts.User do
       get_by :email
     end
 
+    read :list_accounts do
+      description "Admin listing of every account, searchable and filterable by status."
+
+      argument :query, :string do
+        description "Free-text search over name, handle, and email."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      argument :status, Mercato.Accounts.User.Status do
+        description "Restricts the listing to a single account status."
+        allow_nil? true
+      end
+
+      pagination offset?: true, default_limit: 20, countable: true
+
+      filter expr(is_nil(^arg(:status)) or status == ^arg(:status))
+
+      # Case-insensitive substring match; see the expression module for why
+      # SQLite can't use contains/2 here.
+      filter expr(
+               icontains(first_name, ^arg(:query)) or
+                 icontains(last_name, ^arg(:query)) or
+                 icontains(handle, ^arg(:query)) or
+                 icontains(type(email, :string), ^arg(:query))
+             )
+
+      # `id` breaks the tie so offset paging can't repeat or skip a row when
+      # several accounts share a last_active_at (or are all nil).
+      prepare build(sort: [last_active_at: :desc_nils_last, id: :asc])
+    end
+
     create :sign_in_with_magic_link do
       description "Sign in or register a user with magic link."
 
@@ -362,6 +395,15 @@ defmodule Mercato.Accounts.User do
 
     policy action(:change_status) do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
+    end
+
+    # Strict, not the default :filter — a caller without admin:access must be
+    # refused outright rather than handed an empty page, so that
+    # `Accounts.can_list_accounts?/1` is a usable admin gate for the route and
+    # the sidebar.
+    policy action(:list_accounts) do
+      access_type :strict
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "admin:access"}
     end
   end
 

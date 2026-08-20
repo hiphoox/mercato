@@ -23,6 +23,8 @@ Users sign in with email + password or a magic link sent to their email. An acco
 
 **v1:** every user holds exactly one role, seeded with `trader` (default — buy + sell) and `admin` (platform staff), enforced at the application layer rather than the schema. There is no in-session active-role switching in v1; a user's single role applies for the life of the session.
 
+**Admin area:** reaching any admin page requires the `admin:access` permission, seeded onto the `admin` role. The permission gates both the page and the data behind it, so a user without it is refused the listing itself, not merely redirected away from the URL.
+
 **Access rules on a user's own record:**
 - Anyone can read a user's public profile fields (name, handle, avatar, email, status) — e.g. a buyer viewing a seller's profile on a product page.
 - A user can update their own record; an `admin` can update any user's record.

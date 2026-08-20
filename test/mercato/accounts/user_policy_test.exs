@@ -4,18 +4,10 @@ defmodule Mercato.Accounts.UserPolicyTest do
   import Mercato.TestGenerators
 
   alias Mercato.Accounts
-  alias Mercato.Accounts.{Permission, Role, RolePermission, User, UserRole}
+  alias Mercato.Accounts.{Role, User, UserRole}
 
   defp assign_role(user, role_name) do
     role = Ash.Seed.seed!(Role, %{name: role_name})
-    Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
-    user
-  end
-
-  defp grant_permission(user, permission_name) do
-    role = Ash.Seed.seed!(Role, %{name: "role_#{System.unique_integer([:positive])}"})
-    permission = Ash.Seed.seed!(Permission, %{name: permission_name})
-    Ash.Seed.seed!(RolePermission, %{role_id: role.id, permission_id: permission.id})
     Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
     user
   end

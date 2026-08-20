@@ -27,9 +27,18 @@ user_update =
     authorize?: false
   )
 
-Ash.create!(RolePermission, %{role_id: admin.id, permission_id: user_update.id},
-  authorize?: false
-)
+admin_access =
+  Ash.create!(
+    Permission,
+    %{name: "admin:access", description: "Reach the admin area"},
+    authorize?: false
+  )
+
+for permission <- [user_update, admin_access] do
+  Ash.create!(RolePermission, %{role_id: admin.id, permission_id: permission.id},
+    authorize?: false
+  )
+end
 
 if Mix.env() == :dev do
   alias Mercato.Accounts
