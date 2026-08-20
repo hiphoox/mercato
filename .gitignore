@@ -52,3 +52,9 @@ npm-debug.log
 
 # Personal scratch todo list — not shared across the team.
 /todos.md
+
+# Personal prompt library — reusable prompt templates, not shared across the team.
+/prompts/
+
+# macOS finder metadata.
+.DS_Store
