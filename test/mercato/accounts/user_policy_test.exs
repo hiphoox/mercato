@@ -87,25 +87,6 @@ defmodule Mercato.Accounts.UserPolicyTest do
     end
   end
 
-  describe "visible_email calculation" do
-    test "resolves to the real email for the user's own record" do
-      user = generate(user())
-
-      loaded = Ash.load!(user, :visible_email, actor: user)
-
-      assert to_string(loaded.visible_email) == to_string(user.email)
-    end
-
-    test "resolves to nil for another user's record" do
-      user = generate(user())
-      other = generate(user())
-
-      loaded = Ash.load!(user, :visible_email, actor: other)
-
-      refute loaded.visible_email
-    end
-  end
-
   describe "public fields" do
     test "a user can read another user's public handle field" do
       user = generate(user())

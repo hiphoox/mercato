@@ -415,13 +415,6 @@ defmodule Mercato.Accounts.User do
     has_many :user_roles, Mercato.Accounts.UserRole
   end
 
-  calculations do
-    calculate :visible_email, :ci_string, expr(if ^actor(:id) == id, do: email, else: nil) do
-      public? true
-      description "The user's email, visible only to themselves. Hidden (nil) for anyone else."
-    end
-  end
-
   identities do
     identity :unique_email, [:email]
     identity :unique_handle, [:handle]

@@ -3,7 +3,7 @@ type: architecture
 title: Security
 description: Authentication and authorization model.
 tags: [architecture, security, auth, rbac]
-timestamp: 2026-08-17T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 ---
 
 Mercato is a single-tenant C2C marketplace with authentication and authorization on the `users` entity. See the [ER diagram](../domain/users/er-diagram.md) for `users`, `roles`, `permissions`, `role_permissions`, and `user_roles`; see [users/index.md](../domain/users/index.md) for the full set of users domain docs, including roles and account-status business rules.
@@ -24,8 +24,7 @@ Users sign in with email + password or a magic link sent to their email. An acco
 **v1:** every user holds exactly one role, seeded with `trader` (default — buy + sell) and `admin` (platform staff), enforced at the application layer rather than the schema. There is no in-session active-role switching in v1; a user's single role applies for the life of the session.
 
 **Access rules on a user's own record:**
-- Anyone can read a user's public profile fields (name, handle, avatar, status) — e.g. a buyer viewing a seller's profile on a product page.
-- A user's email is visible only to themselves; every other viewer sees it as absent.
+- Anyone can read a user's public profile fields (name, handle, avatar, email, status) — e.g. a buyer viewing a seller's profile on a product page.
 - A user can update their own record; an `admin` can update any user's record.
 - Changing a user's status (ban/reactivate) is `admin`-only — a user cannot change their own status, even though they can otherwise update their own record.
 

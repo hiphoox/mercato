@@ -3,7 +3,7 @@ type: domain
 title: Users
 description: Business rules for the User entity — identity, profile, self-service management, account status, and role membership.
 tags: [domain, users, rbac, profile, account-status]
-timestamp: 2026-08-18T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 ---
 
 ## Identity
@@ -12,7 +12,7 @@ A user's account is identified by a unique, case-insensitive email address. Not 
 
 ## Profile fields
 
-A user's first name, last name, handle, avatar, and account status are visible to anyone viewing their profile. Their email is visible only to themselves — every other viewer sees it as absent, even though the record itself always has one. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
+A user's first name, last name, handle, avatar, email, and account status are visible to anyone viewing their profile. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
 
 ## Handle
 
