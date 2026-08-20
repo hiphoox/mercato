@@ -144,8 +144,6 @@ defmodule Mercato.Accounts.User do
               strategy_name: :remember_me}
 
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
-      change Mercato.Accounts.User.Changes.GenerateHandle
-      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
       validate Mercato.Accounts.User.Validations.AccountActive
 
@@ -194,7 +192,6 @@ defmodule Mercato.Accounts.User do
     update :change_status do
       description "Admin action to change a user's status (ban/reactivate)."
       accept [:status]
-      require_atomic? false
     end
 
     update :update_profile_info do
@@ -317,8 +314,6 @@ defmodule Mercato.Accounts.User do
       end
 
       change set_attribute(:first_name, arg(:first_name))
-      change Mercato.Accounts.User.Changes.GenerateHandle
-      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
       # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
@@ -377,6 +372,14 @@ defmodule Mercato.Accounts.User do
       # Generates an authentication token for the user
       change AshAuthentication.GenerateTokenChange
     end
+  end
+
+  changes do
+    # Both create actions need these, so they're declared once here rather than
+    # repeated per action. `on: [:create]` covers `register_with_password` and
+    # `sign_in_with_magic_link` — the only creates on this resource.
+    change Mercato.Accounts.User.Changes.GenerateHandle, on: [:create]
+    change Mercato.Accounts.User.Changes.AssignDefaultRole, on: [:create]
   end
 
   policies do
