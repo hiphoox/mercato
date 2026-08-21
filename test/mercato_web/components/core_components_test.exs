@@ -26,9 +26,25 @@ defmodule MercatoWeb.CoreComponentsTest do
     end
 
     test "uses the accent palette for featured" do
-      html = render_badge(kind: "featured", inner_block: slot("Banned"))
+      html = render_badge(kind: "featured", inner_block: slot("Featured"))
 
       assert html =~ "bg-accent-100"
+    end
+
+    test "uses the warning palette for a state that limits a record" do
+      html = render_badge(kind: "warning", inner_block: slot("Restricted"))
+
+      assert html =~ "bg-warning-bg"
+      assert html =~ "text-warning-text"
+    end
+
+    test "uses the error palette for a state that stops a record" do
+      # Not the accent palette, which is reserved for featured records, and not
+      # the vibrant sale red, which means a discount.
+      html = render_badge(kind: "danger", inner_block: slot("Banned"))
+
+      assert html =~ "bg-error-bg"
+      assert html =~ "text-error-text"
     end
 
     test "uses the ink palette for neutral" do

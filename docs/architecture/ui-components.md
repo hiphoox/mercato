@@ -3,7 +3,7 @@ type: architecture
 title: UI Components
 description: Specs for Mercato's core UI components — buttons, form fields, badges, chips, tables, and the listing card.
 tags: [ui, design, components]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here. These specs are the default implementation — Mercato's second level of customization is editing a component directly when a theme-token swap isn't enough (see [ui-guidelines.md](ui-guidelines.md#customization-model)).
@@ -40,7 +40,11 @@ Filter chips: white background, black border; selected state is solid black. The
 | New | Primary tint background, primary-700 text |
 | Sale | Vibrant red (`#F5222D`) background, white text |
 | Verified | Success green background/text |
+| Warning | Warning amber background/text — a state that limits a record without ending it |
+| Danger | Error red background/text — a state that stops a record |
 | Neutral (category, etc.) | ink-100 background, ink-700 text |
+
+Warning and danger use the semantic alert tokens. Accent stays reserved for featured records and the vibrant sale red for discounts, so neither carries an "something is wrong" meaning.
 
 Removable filter chips (applied filters): white background, thin black border, height 24.
 

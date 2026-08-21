@@ -178,13 +178,20 @@ defmodule MercatoWeb.CoreComponents do
   |---|---|
   | `verified` | A confirmed or healthy state — an active account, a verified seller |
   | `featured` | Sets a record apart — a promoted listing, an admin account |
+  | `warning` | A state that limits the record without ending it — a restricted account |
+  | `danger` | A state that stops the record — a banned account, a failed payment |
   | `neutral` | Anything with no state of its own — a category, a count |
+
+  `warning` and `danger` are the semantic alert tokens, not `accent` and not
+  `sale`: `accent` is reserved for featured/highlighted records and `sale` for
+  discounts, so borrowing either to mean "something is wrong" would collide
+  with a meaning the design system already assigns it.
 
   ## Examples
 
       <.badge kind="verified">Active</.badge>
   """
-  attr :kind, :string, default: "neutral", values: ~w(verified featured neutral)
+  attr :kind, :string, default: "neutral", values: ~w(verified featured warning danger neutral)
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -193,6 +200,8 @@ defmodule MercatoWeb.CoreComponents do
     kinds = %{
       "verified" => "bg-success-bg text-success-text",
       "featured" => "bg-accent-100 text-accent-600",
+      "warning" => "bg-warning-bg text-warning-text",
+      "danger" => "bg-error-bg text-error-text",
       "neutral" => "bg-ink-100 text-ink-700"
     }
 
