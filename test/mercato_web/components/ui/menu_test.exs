@@ -201,7 +201,7 @@ defmodule MercatoWeb.UI.MenuTest do
       # which element to measure against.
       panel = user_menu("#user-menu-panel")
 
-      assert LazyHTML.attribute(panel, "phx-hook") == ["MercatoWeb.UI.Menu.AnchoredPanel"]
+      assert LazyHTML.attribute(panel, "phx-hook") == ["AnchoredPanel"]
       assert LazyHTML.attribute(panel, "data-anchor") == ["user-menu-trigger"]
     end
 
