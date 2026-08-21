@@ -249,7 +249,7 @@ defmodule Mercato.Accounts.User do
 
       # Not `status: :active` — a restricted account is limited inside the app,
       # not locked out of it. Only banned and deleted are refused a session.
-      prepare build(filter: expr(status in ^Status.can_sign_in()))
+      filter expr(status in ^Status.can_sign_in())
 
       # validates the provided email and password and generates a token
       prepare AshAuthentication.Strategy.Password.SignInPreparation
@@ -281,7 +281,7 @@ defmodule Mercato.Accounts.User do
 
       # Not `status: :active` — a restricted account is limited inside the app,
       # not locked out of it. Only banned and deleted are refused a session.
-      prepare build(filter: expr(status in ^Status.can_sign_in()))
+      filter expr(status in ^Status.can_sign_in())
 
       # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
