@@ -11,6 +11,8 @@ defmodule Mercato.Accounts.User do
     authorizers: [Ash.Policy.Authorizer],
     extensions: [AshAuthentication]
 
+  alias Mercato.Accounts.User.Status
+
   sqlite do
     table "users"
     repo Mercato.Repo
@@ -91,7 +93,7 @@ defmodule Mercato.Accounts.User do
         default ""
       end
 
-      argument :status, Mercato.Accounts.User.Status do
+      argument :status, Status do
         description "Restricts the listing to a single account status."
         allow_nil? true
       end
@@ -145,7 +147,7 @@ defmodule Mercato.Accounts.User do
 
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
 
-      validate Mercato.Accounts.User.Validations.AccountActive
+      validate Mercato.Accounts.User.Validations.AccountCanSignIn
 
       metadata :token, :string do
         allow_nil? false
@@ -190,7 +192,7 @@ defmodule Mercato.Accounts.User do
     end
 
     update :change_status do
-      description "Admin action to change a user's status (ban/reactivate)."
+      description "Admin action to move a user between account statuses."
       accept [:status]
     end
 
@@ -245,7 +247,9 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
-      prepare build(filter: [status: :active])
+      # Not `status: :active` — a restricted account is limited inside the app,
+      # not locked out of it. Only banned and deleted are refused a session.
+      prepare build(filter: expr(status in ^Status.can_sign_in()))
 
       # validates the provided email and password and generates a token
       prepare AshAuthentication.Strategy.Password.SignInPreparation
@@ -275,7 +279,9 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
-      prepare build(filter: [status: :active])
+      # Not `status: :active` — a restricted account is limited inside the app,
+      # not locked out of it. Only banned and deleted are refused a session.
+      prepare build(filter: expr(status in ^Status.can_sign_in()))
 
       # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation

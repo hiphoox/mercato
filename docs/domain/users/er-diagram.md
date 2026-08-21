@@ -3,7 +3,7 @@ type: domain
 title: ER Diagram — Users & Roles
 description: Entity-relationship diagram for the users, roles, and permissions entities.
 tags: [domain, er-diagram, users, roles, permissions, rbac]
-timestamp: 2026-08-17T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 ```mermaid
@@ -22,7 +22,7 @@ erDiagram
         ci_string email UK
         string hashed_password
         string avatar_url
-        enum status "active | banned | deleted"
+        enum status "active | restricted | banned | deleted"
         timestamp confirmed_at
         timestamp last_active_at
     }

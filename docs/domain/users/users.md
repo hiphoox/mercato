@@ -3,7 +3,7 @@ type: domain
 title: Users
 description: Business rules for the User entity — identity, profile, self-service management, account status, and role membership.
 tags: [domain, users, rbac, profile, account-status]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 ## Identity
@@ -35,9 +35,17 @@ A signed-in user manages their own account through four independent actions — 
 
 ## Account status
 
-Every account has a status of `active`, `banned`, or `deleted`, defaulting to `active` on creation. A banned or deleted account cannot sign in through any authentication method, even with valid credentials — the failure is indistinguishable from wrong credentials, so a banned or deleted account's existence is never revealed to an unauthenticated caller. Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
+Every account has a status of `active`, `restricted`, `banned`, or `deleted`, defaulting to `active` on creation.
 
-A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own.
+| Status       | Authentication | Meaning                                       |
+| ------------ | -------------- | --------------------------------------------- |
+| `active`     | Can sign in    | Full use of the platform                      |
+| `restricted` | Can sign in    | Blocked from some of what the platform offers |
+| `banned`     | Cannot sign in | Shut out of the platform                      |
+| `deleted`    | Cannot sign in | Shut out, with the account's details erased   |
+
+Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
+A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own. Deletion is terminal, so `deleted` is not a status an admin moves an account into by hand.
 
 ## Roles & permissions
 
