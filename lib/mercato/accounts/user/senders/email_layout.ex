@@ -1,8 +1,7 @@
 defmodule Mercato.Accounts.User.Senders.EmailLayout do
   @moduledoc """
   Shared HTML wrapper for transactional emails, styled to match Mercato's
-  design tokens (see docs/architecture/design-tokens.md) with inline styles
-  for email-client compatibility.
+  design tokens, with inline styles for email-client compatibility.
   """
 
   @doc """

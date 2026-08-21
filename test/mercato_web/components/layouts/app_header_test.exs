@@ -18,6 +18,26 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     |> LazyHTML.query(selector)
   end
 
+  describe "admin indicator" do
+    test "marks an admin in the header itself, not only inside the account menu" do
+      assert [current_user: @user, admin?: true]
+             |> query("#admin-indicator")
+             |> LazyHTML.text() =~ "Admin"
+    end
+
+    test "is absent for a non-admin" do
+      assert [current_user: @user, admin?: false] |> query("#admin-indicator") |> Enum.empty?()
+    end
+
+    test "is absent when the caller says nothing about admin access" do
+      assert [current_user: @user] |> query("#admin-indicator") |> Enum.empty?()
+    end
+
+    test "is absent for a signed-out visitor" do
+      assert [] |> query("#admin-indicator") |> Enum.empty?()
+    end
+  end
+
   describe "brand" do
     test "links the wordmark home" do
       assert [current_user: @user] |> query("#app-brand") |> LazyHTML.attribute("href") == ["/"]

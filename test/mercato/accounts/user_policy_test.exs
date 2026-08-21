@@ -4,18 +4,10 @@ defmodule Mercato.Accounts.UserPolicyTest do
   import Mercato.TestGenerators
 
   alias Mercato.Accounts
-  alias Mercato.Accounts.{Permission, Role, RolePermission, User, UserRole}
+  alias Mercato.Accounts.{Role, User, UserRole}
 
   defp assign_role(user, role_name) do
     role = Ash.Seed.seed!(Role, %{name: role_name})
-    Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
-    user
-  end
-
-  defp grant_permission(user, permission_name) do
-    role = Ash.Seed.seed!(Role, %{name: "role_#{System.unique_integer([:positive])}"})
-    permission = Ash.Seed.seed!(Permission, %{name: permission_name})
-    Ash.Seed.seed!(RolePermission, %{role_id: role.id, permission_id: permission.id})
     Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
     user
   end
@@ -84,25 +76,6 @@ defmodule Mercato.Accounts.UserPolicyTest do
       assert_raise Ash.Error.Forbidden, fn ->
         Accounts.change_status!(user, :banned, %{}, actor: user)
       end
-    end
-  end
-
-  describe "visible_email calculation" do
-    test "resolves to the real email for the user's own record" do
-      user = generate(user())
-
-      loaded = Ash.load!(user, :visible_email, actor: user)
-
-      assert to_string(loaded.visible_email) == to_string(user.email)
-    end
-
-    test "resolves to nil for another user's record" do
-      user = generate(user())
-      other = generate(user())
-
-      loaded = Ash.load!(user, :visible_email, actor: other)
-
-      refute loaded.visible_email
     end
   end
 

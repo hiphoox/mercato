@@ -3,53 +3,47 @@ type: architecture
 title: LiveView JS
 description: LiveView JavaScript interop — hooks and client/server events.
 tags: [liveview, javascript, hooks]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 See also [liveview.md](liveview.md) for LiveView module conventions and [liveview-css.md](liveview-css.md) for the Tailwind/CSS asset pipeline.
 
-- Remember anytime you use `phx-hook="MyHook"` and that JS hook manages its own DOM, you **must** also set the `phx-update="ignore"` attribute
-- **Always** provide an unique DOM id alongside `phx-hook` otherwise a compiler error will be raised
+## Where hooks live
 
-LiveView hooks come in two flavors, 1) colocated js hooks for "inline" scripts defined inside HEEx, and 2) external `phx-hook` annotations where JavaScript object literals are defined and passed to the `LiveSocket` constructor.
-
-### Inline colocated js hooks
-
-**Never** write raw embedded `<script>` tags in heex as they are incompatible with LiveView. Instead, **always use a colocated js hook script tag (`:type={Phoenix.LiveView.ColocatedHook}`) when writing scripts inside the template**:
-
-```heex
-<input type="text" name="user[phone_number]" id="user-phone-number" phx-hook=".PhoneNumber" />
-<script :type={Phoenix.LiveView.ColocatedHook} name=".PhoneNumber">
-  export default {
-    mounted() {
-      this.el.addEventListener("input", e => {
-        let match = this.el.value.replace(/\D/g, "").match(/^(\d{3})(\d{3})(\d{4})$/)
-        if(match) {
-          this.el.value = `${match[1]}-${match[2]}-${match[3]}`
-        }
-      })
-    }
-  }
-</script>
-```
-
-- colocated hooks are automatically integrated into the app.js bundle
-- colocated hooks names **MUST ALWAYS** start with a `.` prefix, i.e. `.PhoneNumber`
-
-### External phx-hook
-
-External JS hooks (`<div id="myhook" phx-hook="MyHook">`) must be placed in `assets/js/` and passed to the LiveSocket constructor:
+Every JS hook is its own file under `assets/js/hooks/`, named in snake_case after the hook it exports, with the hook object as the default export:
 
 ```javascript
-const MyHook = {
-  mounted() { ... }
+// assets/js/hooks/phone_number.js
+export default {
+  mounted() {
+    this.el.addEventListener("input", () => { ... })
+  }
 }
-let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: { MyHook }
-});
 ```
 
-### Pushing events between client and server
+`assets/js/hooks/index.js` is the single registry — it imports each hook file and exports them keyed by the name templates use:
+
+```javascript
+import PhoneNumber from "./phone_number"
+
+export default {PhoneNumber}
+```
+
+That object is handed to the `LiveSocket` constructor in `assets/js/app.js`, and the template refers to the hook by that key:
+
+```heex
+<input type="text" id="user-phone-number" phx-hook="PhoneNumber" />
+```
+
+Colocated hooks — a `<script :type={Phoenix.LiveView.ColocatedHook}>` block inside a template — are not used here: behavior belongs in a JS file where it can be read, diffed, and found by name. Raw `<script>` tags in HEEx are incompatible with LiveView and are never an option either.
+
+## Rules for every hook
+
+- A hook needs a unique DOM id on the same element, or the compiler raises.
+- A hook that manages its own DOM subtree must also set `phx-update="ignore"`, so a patch does not overwrite what the hook wrote. A hook that only reads the element or sets styles on it must not — the server keeps rendering the contents.
+- Each hook file opens with a comment saying what it does to the element it is attached to.
+
+## Pushing events between client and server
 
 Use LiveView's `push_event/3` when you need to push events/data to the client for a phx-hook to handle. **Always** return or rebind the socket on `push_event/3` when pushing events:
 

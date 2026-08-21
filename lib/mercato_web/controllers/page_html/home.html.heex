@@ -1,4 +1,9 @@
-<Layouts.app flash={@flash} current_user={assigns[:current_user]} current_path={~p"/"}>
+<Layouts.app
+  flash={@flash}
+  current_user={assigns[:current_user]}
+  admin?={assigns[:admin?] || false}
+  current_path={~p"/"}
+>
   <.header>
     Browse
     <:subtitle>Find something worth buying, or list something worth selling.</:subtitle>

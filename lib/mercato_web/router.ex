@@ -13,6 +13,7 @@ defmodule MercatoWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug MercatoWeb.AdminAccess
   end
 
   pipeline :api do
@@ -37,6 +38,7 @@ defmodule MercatoWeb.Router do
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
 
       live "/profile", ProfileLive
+      live "/admin/users", Admin.UsersLive
     end
   end
 

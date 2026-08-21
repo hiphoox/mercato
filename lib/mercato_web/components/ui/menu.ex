@@ -44,7 +44,9 @@ defmodule MercatoWeb.UI.Menu do
   attr :href, :string, default: nil
   attr :role, :string, default: nil, doc: "set to \"menuitem\" when inside a popup menu"
   attr :class, :any, default: nil
-  attr :rest, :global, include: ~w(method download target phx-click phx-value-id title)
+
+  attr :rest, :global,
+    include: ~w(method download target phx-click phx-value-id phx-value-status title)
 
   def menu_item(assigns) do
     assigns = assign(assigns, :classes, item_classes(assigns))
@@ -126,6 +128,16 @@ defmodule MercatoWeb.UI.Menu do
   """
   attr :id, :string, required: true, doc: "unique id; the trigger and panel derive theirs from it"
   attr :class, :any, default: nil, doc: "classes for the panel"
+
+  attr :trigger_class, :any,
+    default: "bg-bg dark:bg-ink-700 shadow-sm transition-[filter] hover:brightness-97",
+    doc: """
+    The trigger's chrome, replacing the default raised surface outright rather
+    than adding to it — a Tailwind utility passed alongside a conflicting one
+    resolves by stylesheet order, not attribute order, so the two cannot be
+    layered.
+    """
+
   attr :rest, :global
 
   slot :trigger, required: true, doc: "the button's contents"
@@ -145,18 +157,25 @@ defmodule MercatoWeb.UI.Menu do
         aria-controls={"#{@id}-panel"}
         phx-click={open_menu(@id)}
         class={[
-          "flex items-center gap-2 rounded-md bg-bg dark:bg-ink-700 shadow-sm cursor-pointer",
-          "transition-[filter] hover:brightness-97",
-          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100"
+          "flex items-center gap-2 rounded-md cursor-pointer",
+          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100",
+          @trigger_class
         ]}
       >
         {render_slot(@trigger)}
       </button>
 
+      <%!-- AnchoredPanel (assets/js/hooks/anchored_panel.js) only positions the
+            panel; it deliberately does not take the DOM over with
+            phx-update="ignore", because the rows inside are server-rendered and
+            change (a menu of statuses loses the one just applied). --%>
       <div
         id={"#{@id}-panel"}
         role="menu"
         aria-labelledby={"#{@id}-trigger"}
+        phx-hook="AnchoredPanel"
+        data-anchor={"#{@id}-trigger"}
+        data-close={close_menu(@id)}
         phx-window-keydown={close_menu(@id)}
         phx-key="escape"
         class={

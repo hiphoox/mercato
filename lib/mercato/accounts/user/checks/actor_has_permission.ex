@@ -17,18 +17,18 @@ defmodule Mercato.Accounts.User.Checks.ActorHasPermission do
   def match?(nil, _context, _opts), do: false
 
   def match?(actor, _context, opts) do
-    role_ids =
-      actor
-      |> Ash.load!(:user_roles, authorize?: false)
-      |> Map.fetch!(:user_roles)
-      |> Enum.map(& &1.role_id)
-
     permission_name = to_string(opts[:permission])
 
+    # One query, not a role lookup followed by a permission lookup: this runs on
+    # every authenticated LiveView mount (the sidebar asks whether to show the
+    # Admin section), so the round trip is worth collapsing.
     RolePermission
-    |> Ash.Query.filter(role_id in ^role_ids)
-    |> Ash.Query.load(:permission)
+    |> Ash.Query.filter(
+      permission.name == ^permission_name and
+        exists(role.user_roles, user_id == ^actor.id)
+    )
+    |> Ash.Query.limit(1)
     |> Ash.read!(authorize?: false)
-    |> Enum.any?(&(&1.permission.name == permission_name))
+    |> Enum.any?()
   end
 end

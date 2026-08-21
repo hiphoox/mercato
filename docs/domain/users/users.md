@@ -3,7 +3,7 @@ type: domain
 title: Users
 description: Business rules for the User entity — identity, profile, self-service management, account status, and role membership.
 tags: [domain, users, rbac, profile, account-status]
-timestamp: 2026-08-18T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 ## Identity
@@ -12,7 +12,7 @@ A user's account is identified by a unique, case-insensitive email address. Not 
 
 ## Profile fields
 
-A user's first name, last name, handle, avatar, and account status are visible to anyone viewing their profile. Their email is visible only to themselves — every other viewer sees it as absent, even though the record itself always has one. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
+A user's first name, last name, handle, avatar, email, and account status are visible to anyone viewing their profile. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
 
 ## Handle
 
@@ -32,12 +32,23 @@ A signed-in user manages their own account through four independent actions — 
 - **Handle** — subject to the handle rules above.
 - **Avatar** — uploading a new image replaces the old one immediately.
 - **Password** — requires the current password to confirm identity before a new one is set.
+- **Deletion** — terminal and irreversible, confirmed by typing the account's own handle. See [account-deletion.md](account-deletion.md).
 
 ## Account status
 
-Every account has a status of `active`, `banned`, or `deleted`, defaulting to `active` on creation. A banned or deleted account cannot sign in through any authentication method, even with valid credentials — the failure is indistinguishable from wrong credentials, so a banned or deleted account's existence is never revealed to an unauthenticated caller. Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
+Every account has a status of `active`, `restricted`, `banned`, or `deleted`, defaulting to `active` on creation.
 
-A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own.
+| Status       | Authentication | Meaning                                       |
+| ------------ | -------------- | --------------------------------------------- |
+| `active`     | Can sign in    | Full use of the platform                      |
+| `restricted` | Can sign in    | Blocked from some of what the platform offers |
+| `banned`     | Cannot sign in | Shut out of the platform                      |
+| `deleted`    | Cannot sign in | Shut out, with the account's details erased   |
+
+Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
+
+Every status change emails the account holder — told when they are restricted or suspended, and told again when the limits are lifted and the account returns to `active`. Setting an account to the status it already holds sends nothing. Delivery is best-effort: the status change stands even if the mail cannot be sent.
+A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own. Deletion is terminal, so `deleted` is not a status an admin moves an account into by hand — it is reached through its own flow, described in [account-deletion.md](account-deletion.md).
 
 ## Roles & permissions
 

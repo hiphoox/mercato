@@ -44,6 +44,11 @@ defmodule Mercato.Accounts.Role do
     end
   end
 
+  relationships do
+    has_many :user_roles, Mercato.Accounts.UserRole
+    has_many :role_permissions, Mercato.Accounts.RolePermission
+  end
+
   identities do
     identity :unique_name, [:name]
   end

@@ -3,7 +3,7 @@ type: index
 title: Architecture Docs
 description: Map of docs/architecture/.
 tags: [architecture, index]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-08-20T00:00:00Z
 ---
 
 Map of `docs/architecture/`. Open a file only when its concern is relevant — none of these are loaded by default.
@@ -15,6 +15,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [ash-declarative-conventions.md](ash-declarative-conventions.md) — When to reach for Ash's built-in DSL (`accept`, builtin changes/validations/checks) over custom modules. Read it when writing or reviewing an Ash action, change, validation, or policy.
 - [ports.md](ports.md) — The `Mercato.Ports` namespace: behaviour-plus-adapter pattern for swappable external-service boundaries (storage, and future payments/search). Read it when adding a new boundary module or a new adapter to an existing one.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
+- [data-layer-expressions.md](data-layer-expressions.md) — Where SQLite's filter expression support diverges from Postgres, and how that divergence is contained. Read it when writing a filter expression, or when a search returns wrong or no rows.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 
 ## Standards & process
@@ -28,7 +29,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [ui-guidelines.md](ui-guidelines.md) — Guiding principles for the design system. Read it when starting any UI/design work.
 - [design-tokens.md](design-tokens.md) — Color, typography, and spacing/radius tokens, with code mapping. Read it when styling a component or picking a color/type value.
 - [responsive-layout.md](responsive-layout.md) — Breakpoint regimes for the app layout, sidebar drawer/rail state, and header wrapping. Read it when building a layout that adapts across widths, or touching the sidebar's collapse state.
-- [ui-components.md](ui-components.md) — Specs for buttons, form fields, badges, chips, listing card, and nav bar. Read it when building or reviewing a UI component.
+- [ui-components.md](ui-components.md) — Specs for buttons, form fields, badges, chips, tables, listing card, and nav bar. Read it when building or reviewing a UI component.
 - [commerce-ux-patterns.md](commerce-ux-patterns.md) — Discovery, trust signals, cart/checkout, optional offer negotiation, order tracking, sell flow, and notification/feedback patterns. Read it when building browsing, purchase, offer, selling, order-status, or notification UI.
 - [accessibility-dark-mode.md](accessibility-dark-mode.md) — Accessibility rules and dark mode token overrides. Read it when checking contrast, focus states, or dark mode.
 - [testing.md](testing.md) — Backend and Ash test conventions. Read it when writing backend/Ash tests.

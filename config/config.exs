@@ -26,6 +26,8 @@ config :ash,
   redact_sensitive_values_in_errors?: true,
   many_to_many_destroy_destination_on_match?: true
 
+config :ash, :custom_expressions, [Mercato.Expressions.ContainsIgnoringCase]
+
 config :spark,
   formatter: [
     remove_parens?: true,

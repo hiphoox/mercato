@@ -16,6 +16,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
   cart to open when nobody is signed in.
   """
   attr :current_user, :map, default: nil
+  attr :admin?, :boolean, default: false
 
   def app_header(assigns) do
     ~H"""
@@ -33,7 +34,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
           :if={@current_user}
           type="button"
           id="sidebar-toggle"
-          phx-hook=".SidebarToggle"
+          phx-hook="SidebarToggle"
           aria-label="Toggle navigation"
           aria-controls="app-sidebar"
           class={[
@@ -99,44 +100,18 @@ defmodule MercatoWeb.Layouts.AppHeader do
 
       <%!-- `ml-auto` on the wrapped layout pins the account control to the right of
             the first row, with the cart beside it and search on the row below. --%>
-      <div class="order-2 ml-auto md:order-none md:ml-0">
-        <.user_menu current_user={@current_user} />
+      <div class="order-2 ml-auto md:order-none md:ml-0 flex items-center gap-2">
+        <%!-- The span carries the responsive display, not the badge: `hidden` and the
+              badge's own `inline-flex` are both unprefixed display utilities, so which
+              one won would depend on Tailwind's output order rather than on intent.
+              Below md the header is already wrapping two rows, and the same badge sits
+              in the account menu, so the indicator is dropped rather than crowded in. --%>
+        <span class="hidden md:inline">
+          <.badge :if={@admin?} id="admin-indicator" kind="featured">Admin</.badge>
+        </span>
+        <.user_menu current_user={@current_user} admin?={@admin?} />
       </div>
     </header>
-
-    <script :type={Phoenix.LiveView.ColocatedHook} name=".SidebarToggle">
-      export default {
-        mounted() {
-          const root = document.documentElement
-
-          // Asks CSS which regime is live instead of restating a breakpoint here. The
-          // values come from --sidebar-mode in app.css, which is driven by the theme's
-          // own --breakpoint-* tokens, so retuning the theme moves this too.
-          const mode = () =>
-            getComputedStyle(root).getPropertyValue("--sidebar-mode").trim()
-
-          this.el.addEventListener("click", () => {
-            const current = mode()
-
-            if (current === "drawer") {
-              const open = root.getAttribute("data-sidebar-drawer") !== "open"
-              root.setAttribute("data-sidebar-drawer", open ? "open" : "closed")
-              return
-            }
-
-            // The stored preference is deliberately tri-state. Absent means "whatever
-            // this width defaults to", so the toggle has to resolve that default before
-            // it can invert it — otherwise the first click on a small laptop, where the
-            // rail is already showing, would appear to do nothing.
-            const stored = root.getAttribute("data-sidebar-collapsed")
-            const collapsed = stored === null ? current === "rail" : stored === "true"
-
-            root.setAttribute("data-sidebar-collapsed", String(!collapsed))
-            localStorage.setItem("mercato:sidebar-collapsed", String(!collapsed))
-          })
-        }
-      }
-    </script>
     """
   end
 end

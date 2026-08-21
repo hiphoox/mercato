@@ -107,6 +107,44 @@ defmodule Mercato.Accounts.UserTest do
 
       assert {:error, _} = result
     end
+
+    # A restricted account is limited inside the app, not locked out of it —
+    # the whole point of the status is that the person can still sign in and
+    # see what they are restricted from doing.
+    test "allows password sign-in for a restricted account" do
+      created = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:status, :restricted)
+      |> Ash.update!()
+
+      assert {:ok, signed_in} =
+               Accounts.sign_in_with_password(to_string(created.email), "password1234", %{},
+                 authorize?: false
+               )
+
+      assert signed_in.id == created.id
+    end
+
+    test "allows sign-in-with-token for a restricted account" do
+      created = generate(user(password: "password1234", password_confirmation: "password1234"))
+
+      {:ok, %{__metadata__: %{token: sign_in_token}}} =
+        Accounts.sign_in_with_password(to_string(created.email), "password1234", %{},
+          authorize?: false,
+          context: %{token_type: :sign_in}
+        )
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:status, :restricted)
+      |> Ash.update!()
+
+      assert {:ok, signed_in} = Accounts.sign_in_with_token(sign_in_token, %{}, authorize?: false)
+
+      assert signed_in.id == created.id
+    end
   end
 
   describe "sign_in_with_magic_link registration" do
@@ -195,6 +233,23 @@ defmodule Mercato.Accounts.UserTest do
       result = Accounts.sign_in_with_magic_link(token, %{}, authorize?: false)
 
       assert {:error, _} = result
+    end
+
+    test "allows sign-in for a restricted account" do
+      created = generate(user())
+
+      created
+      |> Ash.Changeset.for_update(:bump_last_active_at, %{}, authorize?: false)
+      |> Ash.Changeset.force_change_attribute(:confirmed_at, DateTime.utc_now())
+      |> Ash.Changeset.force_change_attribute(:status, :restricted)
+      |> Ash.update!()
+
+      strategy = AshAuthentication.Info.strategy!(Mercato.Accounts.User, :magic_link)
+      {:ok, token} = MagicLink.request_token_for(strategy, created)
+
+      assert {:ok, signed_in} = Accounts.sign_in_with_magic_link(token, %{}, authorize?: false)
+
+      assert signed_in.id == created.id
     end
   end
 

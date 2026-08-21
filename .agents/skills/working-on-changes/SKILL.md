@@ -60,6 +60,21 @@ If debugging or investigating something isn't converging after a reasonable numb
 
 Never run a destructive or hard-to-reverse git operation (`reset --hard`, force-push, rewriting shared/pushed history, `checkout --`/`clean -f` that discards work) without asking first — this holds even mid-task, even if the user has approved other git actions earlier in the conversation.
 
+## Prefer Ash's Declarative DSL
+
+Ash's distinguishing feature is that behavior is *declared*, not programmed. Before writing a custom `Change`, `Validation`, `Preparation`, `Check`, or a plain function that queries a resource, check whether the DSL already expresses it:
+
+- **A builtin before a custom module.** `Ash.Resource.Change.Builtins`, `Ash.Resource.Validation.Builtins`, and `Ash.Policy.Check.Builtins` cover most cases, and they compose — `negate(attribute_in(:handle, @reserved))` replaces a hand-written validation module outright. A custom module earns its place only when the logic genuinely can't be expressed as one: a DB lookup, a third-party call, multi-step branching.
+- **Let the DSL derive rather than restating.** `accept [:field]` infers type, constraints, and `allow_nil?` from the attribute. Restate a value by hand only when it must truly diverge, and say why in a comment.
+- **Reach the data through declared relationships.** A `many_to_many` or `has_many` plus `exists/2` in an expression beats a hand-built `Ash.Query` inside a change or check.
+- **Go through the domain's code interface**, not `Ash.read/2`/`Ash.get/2` in a bare function. If a resource needs a lookup, that lookup is an action with a `define`.
+- **Hoist a change repeated across actions** into a top-level `changes do ... on: [:create] end` block, so the rule is declared once.
+- **Each concern in its own section.** Authorization goes in `policies`, validity in `validations` — not as `if`/`case` branches inside a `change`.
+
+**Check the data layer supports it before designing around it.** AshSqlite is not AshPostgres — `deps/ash_sqlite/lib/data_layer.ex`'s `can?/2` clauses are the authoritative list. Notably it has **no aggregate support at all** (`aggregates do` blocks, aggregate filter/sort/relationship), and no transactions, lateral joins, or `distinct`. Expression calculations, `exists/2`, filter expressions, and query-time counts *are* supported. A design that leans on an unsupported feature fails at compile or runtime, not review — verify against `can?/2` first. See [data-layer-expressions.md](../../../docs/architecture/data-layer-expressions.md).
+
+Full rationale in [ash-declarative-conventions.md](../../../docs/architecture/ash-declarative-conventions.md).
+
 ## Quality Gates
 
 After a change, run the project's lint/quality command and its test suite. Both should be clean — no open issues, not "no issues I introduced." If a pre-existing issue is discovered along the way, treat it as scope creep (see above): surface it and ask, don't leave it unmentioned.

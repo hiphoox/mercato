@@ -20,6 +20,10 @@ defmodule MercatoWeb.Layouts.Sidebar do
     %{label: "Profile", icon: "hero-user", navigate: "/profile"}
   ]
 
+  @admin [
+    %{label: "Users", icon: "hero-users", navigate: "/admin/users"}
+  ]
+
   @doc """
   Renders the sidebar.
 
@@ -28,11 +32,16 @@ defmodule MercatoWeb.Layouts.Sidebar do
   """
   attr :current_path, :string, default: nil, doc: "used to mark the active entry"
 
+  attr :admin?, :boolean,
+    default: false,
+    doc: "reveals the Admin section; the routes behind it are admin-gated in their own right"
+
   def sidebar(assigns) do
     assigns =
       assigns
       |> assign(:primary, @primary)
       |> assign(:account, @account)
+      |> assign(:admin, @admin)
 
     ~H"""
     <%!-- The scrim only exists below lg, where the sidebar overlays the content.
@@ -82,6 +91,23 @@ defmodule MercatoWeb.Layouts.Sidebar do
           You
         </div>
         <.nav_entry :for={entry <- @account} entry={entry} current_path={@current_path} />
+      </div>
+
+      <%!-- Hiding the section is presentation, not protection: each admin route
+            gates itself on `:live_admin_required`, so a non-admin who types the
+            URL is still turned away. --%>
+      <div :if={@admin?}>
+        <div class="h-px bg-ink-100 dark:bg-ink-700 mx-4"></div>
+
+        <div class="flex flex-col gap-0.5 p-3">
+          <div
+            id="sidebar-section-admin"
+            class="px-3.5 pb-2 text-caption-md font-bold text-ink-500 sidebar-collapsed:hidden"
+          >
+            Admin
+          </div>
+          <.nav_entry :for={entry <- @admin} entry={entry} current_path={@current_path} />
+        </div>
       </div>
     </nav>
     """

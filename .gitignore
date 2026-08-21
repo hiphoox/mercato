@@ -46,9 +46,16 @@ npm-debug.log
 /CLAUDE.md
 
 # Local - test - SQLite databases
+/db/
 /*.db
 /*.db-shm
 /*.db-wal
 
 # Personal scratch todo list — not shared across the team.
 /todos.md
+
+# Personal prompt library — reusable prompt templates, not shared across the team.
+/prompts/
+
+# macOS finder metadata.
+.DS_Store

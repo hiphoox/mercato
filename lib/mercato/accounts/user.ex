@@ -9,7 +9,9 @@ defmodule Mercato.Accounts.User do
     domain: Mercato.Accounts,
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication]
+    extensions: [AshAuthentication, AshArchival.Resource]
+
+  alias Mercato.Accounts.User.Status
 
   sqlite do
     table "users"
@@ -66,6 +68,14 @@ defmodule Mercato.Accounts.User do
     end
   end
 
+  archive do
+    # Every read filters archived accounts out on its own, so a read added later
+    # is excluded by default rather than by remembering to say so. Not a
+    # `base_filter`: that applies to every read with no per-action opt-out, and
+    # the admin listing has to keep showing a deleted account's row.
+    exclude_read_actions [:list_accounts]
+  end
+
   actions do
     defaults [:read]
 
@@ -73,12 +83,49 @@ defmodule Mercato.Accounts.User do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false
       get? true
+
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
     read :get_by_email do
       description "Looks up a user by their email"
       get_by :email
+    end
+
+    read :list_accounts do
+      description "Admin listing of every account, searchable and filterable by status."
+
+      argument :query, :string do
+        description "Free-text search over name, handle, and email."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      argument :status, Status do
+        description "Restricts the listing to a single account status."
+        allow_nil? true
+      end
+
+      pagination offset?: true, default_limit: 20, countable: true
+
+      filter expr(is_nil(^arg(:status)) or status == ^arg(:status))
+
+      # Case-insensitive substring match; see the expression module for why
+      # SQLite can't use contains/2 here.
+      filter expr(
+               icontains(first_name, ^arg(:query)) or
+                 icontains(last_name, ^arg(:query)) or
+                 icontains(handle, ^arg(:query)) or
+                 icontains(type(email, :string), ^arg(:query))
+             )
+
+      # `id` breaks the tie so offset paging can't repeat or skip a row when
+      # several accounts share a last_active_at (or are all nil).
+      prepare build(
+                sort: [last_active_at: :desc_nils_last, id: :asc],
+                load: [:roles, :admin?]
+              )
     end
 
     create :sign_in_with_magic_link do
@@ -111,10 +158,8 @@ defmodule Mercato.Accounts.User do
               strategy_name: :remember_me}
 
       change set_attribute(:last_active_at, &DateTime.utc_now/0)
-      change Mercato.Accounts.User.Changes.GenerateHandle
-      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
-      validate Mercato.Accounts.User.Validations.AccountActive
+      validate Mercato.Accounts.User.Validations.AccountCanSignIn
 
       metadata :token, :string do
         allow_nil? false
@@ -159,9 +204,33 @@ defmodule Mercato.Accounts.User do
     end
 
     update :change_status do
-      description "Admin action to change a user's status (ban/reactivate)."
+      description "Admin action to move a user between account statuses."
       accept [:status]
+
+      # Notifying hangs work off after_action, which an atomic update can't
+      # express.
       require_atomic? false
+
+      change Mercato.Accounts.User.Changes.NotifyStatusChange
+    end
+
+    destroy :delete_account do
+      description "Terminal account deletion: archives the row and erases its personal data."
+
+      # Anonymization hangs work off after_action (storage, tokens), which an
+      # atomic destroy can't express.
+      require_atomic? false
+
+      # Hard-deleted rather than archived: a role grant is a capability, not
+      # personal history, and a deleted admin must carry no permissions.
+      change cascade_destroy(:user_roles)
+
+      # Declared before anonymisation so the intent reads in order: tell them,
+      # then erase them. Both hooks read the address off the pre-action row, so
+      # neither depends on running first.
+      change Mercato.Accounts.User.Changes.NotifyAccountDeleted
+
+      change Mercato.Accounts.User.Changes.AnonymizeAccount
     end
 
     update :update_profile_info do
@@ -215,7 +284,9 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
-      prepare build(filter: [status: :active])
+      # Not `status: :active` — a restricted account is limited inside the app,
+      # not locked out of it. Only banned and deleted are refused a session.
+      filter expr(status in ^Status.can_sign_in())
 
       # validates the provided email and password and generates a token
       prepare AshAuthentication.Strategy.Password.SignInPreparation
@@ -245,7 +316,9 @@ defmodule Mercato.Accounts.User do
         sensitive? true
       end
 
-      prepare build(filter: [status: :active])
+      # Not `status: :active` — a restricted account is limited inside the app,
+      # not locked out of it. Only banned and deleted are refused a session.
+      filter expr(status in ^Status.can_sign_in())
 
       # validates the provided sign in token and generates a token
       prepare AshAuthentication.Strategy.Password.SignInWithTokenPreparation
@@ -284,8 +357,6 @@ defmodule Mercato.Accounts.User do
       end
 
       change set_attribute(:first_name, arg(:first_name))
-      change Mercato.Accounts.User.Changes.GenerateHandle
-      change Mercato.Accounts.User.Changes.AssignDefaultRole
 
       # Hashes the provided password
       change AshAuthentication.Strategy.Password.HashPasswordChange
@@ -360,9 +431,34 @@ defmodule Mercato.Accounts.User do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
 
+    # Self-service deletion from the profile page, or an admin deleting
+    # someone else's account from the users dashboard. Deletion is terminal, so
+    # it gets its own permission rather than riding on `user:update`.
+    policy action(:delete_account) do
+      authorize_if expr(id == ^actor(:id))
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:delete"}
+    end
+
     policy action(:change_status) do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
+
+    # Strict, not the default :filter — a caller without admin:access must be
+    # refused outright rather than handed an empty page, so that
+    # `Accounts.can_list_accounts?/1` is a usable admin gate for the route and
+    # the sidebar.
+    policy action(:list_accounts) do
+      access_type :strict
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "admin:access"}
+    end
+  end
+
+  changes do
+    # Both create actions need these, so they're declared once here rather than
+    # repeated per action. `on: [:create]` covers `register_with_password` and
+    # `sign_in_with_magic_link` — the only creates on this resource.
+    change Mercato.Accounts.User.Changes.GenerateHandle, on: [:create]
+    change Mercato.Accounts.User.Changes.AssignDefaultRole, on: [:create]
   end
 
   attributes do
@@ -396,6 +492,11 @@ defmodule Mercato.Accounts.User do
       public? true
     end
 
+    # The storage key behind avatar_url. Kept separately because a URL can't be
+    # turned back into a key without knowing the adapter that built it, and
+    # deleting the blob on account deletion needs the key.
+    attribute :avatar_key, :string
+
     attribute :hashed_password, :string do
       sensitive? true
     end
@@ -413,13 +514,21 @@ defmodule Mercato.Accounts.User do
 
   relationships do
     has_many :user_roles, Mercato.Accounts.UserRole
+
+    many_to_many :roles, Mercato.Accounts.Role do
+      through Mercato.Accounts.UserRole
+      source_attribute_on_join_resource :user_id
+      destination_attribute_on_join_resource :role_id
+    end
   end
 
   calculations do
-    calculate :visible_email, :ci_string, expr(if ^actor(:id) == id, do: email, else: nil) do
-      public? true
-      description "The user's email, visible only to themselves. Hidden (nil) for anyone else."
-    end
+    # Whether the account can reach the admin area. A calculation rather than a
+    # loaded role->permission chain, so the admin listing can ask the question
+    # per row inside the query it already runs.
+    calculate :admin?,
+              :boolean,
+              expr(exists(user_roles.role.role_permissions.permission, name == "admin:access"))
   end
 
   identities do

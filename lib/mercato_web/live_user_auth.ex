@@ -8,26 +8,52 @@ defmodule MercatoWeb.LiveUserAuth do
 
   alias AshAuthentication.Phoenix.LiveSession
 
-  # This is used for nested liveviews to fetch the current user.
-  # To use, place the following at the top of that liveview:
-  # on_mount {MercatoWeb.LiveUserAuth, :current_user}
+  @doc """
+  Mount hooks, selected by name:
+
+    * `:current_user` — assigns the current user, requiring none
+    * `:live_user_optional` — the same, plus `:admin?`
+    * `:live_user_required` — sends a signed-out visitor to sign-in
+    * `:live_admin_required` — the same, and sends a non-admin home
+    * `:live_no_user` — sends a signed-in user home
+
+      on_mount {MercatoWeb.LiveUserAuth, :live_admin_required}
+  """
+  def on_mount(hook, params, session, socket)
+
   def on_mount(:current_user, _params, session, socket) do
     {:cont, LiveSession.assign_new_resources(socket, session)}
   end
 
   def on_mount(:live_user_optional, _params, _session, socket) do
     if socket.assigns[:current_user] do
-      {:cont, socket}
+      {:cont, assign_admin(socket)}
     else
-      {:cont, assign(socket, :current_user, nil)}
+      {:cont, socket |> assign(:current_user, nil) |> assign(:admin?, false)}
     end
   end
 
   def on_mount(:live_user_required, _params, _session, socket) do
     if socket.assigns[:current_user] do
-      {:cont, socket}
+      {:cont, assign_admin(socket)}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/sign-in")}
+    end
+  end
+
+  # Home rather than sign-in for a non-admin: the page is not theirs to see,
+  # and bouncing them to a form they have already completed would be nonsense.
+  def on_mount(:live_admin_required, params, session, socket) do
+    case on_mount(:live_user_required, params, session, socket) do
+      {:halt, socket} ->
+        {:halt, socket}
+
+      {:cont, socket} ->
+        if socket.assigns.admin? do
+          {:cont, socket}
+        else
+          {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
+        end
     end
   end
 
@@ -35,7 +61,15 @@ defmodule MercatoWeb.LiveUserAuth do
     if socket.assigns[:current_user] do
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     else
-      {:cont, assign(socket, :current_user, nil)}
+      {:cont, socket |> assign(:current_user, nil) |> assign(:admin?, false)}
     end
+  end
+
+  # Assigned on every authenticated mount, not just under /admin: the sidebar
+  # shows the Admin section on every page, so every page needs the answer.
+  defp assign_admin(socket) do
+    assign_new(socket, :admin?, fn ->
+      MercatoWeb.AdminAccess.admin?(socket.assigns.current_user)
+    end)
   end
 end

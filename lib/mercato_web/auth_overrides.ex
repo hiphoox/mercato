@@ -1,8 +1,7 @@
 defmodule MercatoWeb.AuthOverrides do
   @moduledoc """
   UI overrides for the generated `ash_authentication_phoenix` components,
-  restyled to match Mercato's design system
-  (see docs/architecture/ui-components.md, design-tokens.md).
+  restyled to match Mercato's design system.
 
   `MercatoWeb.Live.Auth.RegisterForm`/`SignInForm`/`ResetForm` each embed a
   Password/Magic-link segmented control directly (see

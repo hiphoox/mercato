@@ -195,6 +195,47 @@ defmodule MercatoWeb.UI.MenuTest do
       assert LazyHTML.attribute(panel, "phx-key") == ["escape"]
     end
 
+    test "anchors the panel to its trigger, so it can be positioned outside a clipping ancestor" do
+      # An absolutely-positioned panel is clipped by any scrolling ancestor —
+      # the admin users table is one. The hook lifts it out; it needs to know
+      # which element to measure against.
+      panel = user_menu("#user-menu-panel")
+
+      assert LazyHTML.attribute(panel, "phx-hook") == ["AnchoredPanel"]
+      assert LazyHTML.attribute(panel, "data-anchor") == ["user-menu-trigger"]
+    end
+
+    test "carries the command that closes it once an item is chosen" do
+      # Only the closest phx-click binding fires, so a click on an item never
+      # reaches a handler on the panel — the panel publishes the close command
+      # instead and the hook runs it.
+      close = user_menu("#user-menu-panel") |> LazyHTML.attribute("data-close") |> hd()
+
+      assert close =~ ~s("hide")
+      assert close =~ "user-menu-panel"
+      assert close =~ ~s("aria-expanded","false")
+    end
+
+    test "gives the trigger a raised surface by default" do
+      trigger = user_menu("#user-menu-trigger") |> LazyHTML.attribute("class") |> hd()
+
+      assert trigger =~ "shadow-sm"
+    end
+
+    test "replaces the trigger's chrome outright when the caller supplies its own" do
+      # Two conflicting Tailwind utilities on one element resolve by stylesheet
+      # order, not attribute order, so the default cannot merely be appended to.
+      trigger =
+        [id: "user-menu", trigger_class: "hover:bg-bg-2"]
+        |> menu(slots())
+        |> LazyHTML.query("#user-menu-trigger")
+        |> LazyHTML.attribute("class")
+        |> hd()
+
+      assert trigger =~ "hover:bg-bg-2"
+      refute trigger =~ "shadow-sm"
+    end
+
     test "renders the trigger and panel slots" do
       html = [id: "user-menu"] |> menu(slots()) |> LazyHTML.text()
 
