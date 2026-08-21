@@ -3,8 +3,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   Admin listing of every account on the platform.
 
   Search, status filter, paging, and a per-row actions menu that moves an
-  account between statuses. Deleting an account is not offered here — deletion
-  is terminal and belongs to its own flow.
+  account between statuses or deletes it outright.
 
   Filter state lives in the query string rather than in socket assigns alone, so
   a filtered listing is a shareable URL and the browser's back button walks back
@@ -25,8 +24,8 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   # One row per status: how it reads as a badge, and — for the statuses an admin
   # may move an account *into* — how it reads as a menu item. `:deleted` carries
-  # no action because deletion is terminal and has its own flow; giving it one
-  # here would make "delete" look like just another status toggle.
+  # no action: deletion is terminal and erases the account, so it gets its own
+  # menu item rather than appearing as just another status toggle.
   @statuses [
     %{
       value: :active,
@@ -113,6 +112,22 @@ defmodule MercatoWeb.Admin.UsersLive do
     end
   end
 
+  # Asked of another account rather than the actor: the delete policy also
+  # authorises self-deletion, so checking the actor against themselves would
+  # answer "yes" for an admin who holds no `user:delete` at all. Every non-self
+  # row gives the same answer, so one of them settles the whole page.
+  defp assign_can_delete_accounts(socket) do
+    %{current_user: actor, accounts: accounts} = socket.assigns
+
+    can? =
+      case Enum.find(accounts, &(&1.id != actor.id)) do
+        nil -> false
+        account -> Accounts.can_delete_account?(actor, account)
+      end
+
+    assign(socket, :can_delete_accounts?, can?)
+  end
+
   defp load_accounts(socket) do
     %{query: query, status: status, page: page, current_user: actor} = socket.assigns
 
@@ -129,6 +144,7 @@ defmodule MercatoWeb.Admin.UsersLive do
     |> assign(:accounts, results.results)
     |> assign(:total, total)
     |> assign(:last_page, last_page)
+    |> assign_can_delete_accounts()
   end
 
   # Counted at mount and after a status change, never on a filter change: the
@@ -188,6 +204,42 @@ defmodule MercatoWeb.Admin.UsersLive do
     end
   end
 
+  def handle_event("delete_account", %{"id" => id}, socket) do
+    account = Enum.find(socket.assigns.accounts, &(&1.id == id))
+
+    case delete_account(socket, account) do
+      {:ok, name} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "#{name}'s account has been deleted.")
+         |> load_status_counts()
+         |> load_accounts()}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "That account could not be deleted.")}
+    end
+  end
+
+  # Same re-check as change_status below, for the same reason: the delete item
+  # is withheld from the admin's own row, from another admin, and from an
+  # account already deleted, and a hidden control is not an absent one.
+  defp delete_account(socket, account) when is_map(account) do
+    if deletable?(socket.assigns, account) do
+      # Captured first: after deletion the name is erased, and the flash should
+      # say whose account went.
+      name = display_name(account)
+
+      case Accounts.delete_account(account, actor: socket.assigns.current_user) do
+        :ok -> {:ok, name}
+        {:error, _} -> :error
+      end
+    else
+      :error
+    end
+  end
+
+  defp delete_account(_socket, _account), do: :error
+
   # The row that raised the event is re-checked here rather than trusted: the
   # menu is hidden for the admin's own row and for a deleted account, but a
   # hidden control is not an absent one, and a crafted event must not slip past
@@ -210,6 +262,16 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   defp actionable?(%{current_user: %{id: actor_id}}, account) do
     account.id != actor_id and not deleted?(account)
+  end
+
+  # Deletion is terminal and erases the account, so the dashboard only ever
+  # offers it for an ordinary account someone else holds. An admin leaving the
+  # platform deletes their own account from the profile page, where they are
+  # the one bearing the consequence.
+  defp deletable?(%{can_delete_accounts?: false}, _account), do: false
+
+  defp deletable?(assigns, account) do
+    actionable?(assigns, account) and not account.admin?
   end
 
   defp apply_filters(socket, overrides) do
@@ -384,7 +446,11 @@ defmodule MercatoWeb.Admin.UsersLive do
                 {last_active(account)}
               </:col>
               <:action :let={account}>
-                <.row_actions account={account} actionable={actionable?(assigns, account)} />
+                <.row_actions
+                  account={account}
+                  actionable={actionable?(assigns, account)}
+                  deletable={deletable?(assigns, account)}
+                />
               </:action>
             </.table>
           </div>
@@ -404,6 +470,7 @@ defmodule MercatoWeb.Admin.UsersLive do
                 <.row_actions
                   account={account}
                   actionable={actionable?(assigns, account)}
+                  deletable={deletable?(assigns, account)}
                   prefix="card-"
                 />
               </div>
@@ -456,12 +523,13 @@ defmodule MercatoWeb.Admin.UsersLive do
   # in the DOM at any width.
   attr :account, :map, required: true
   attr :actionable, :boolean, required: true
+  attr :deletable, :boolean, required: true
   attr :prefix, :string, default: ""
 
   defp row_actions(assigns) do
     ~H"""
     <.menu
-      :if={@actionable}
+      :if={@actionable or @deletable}
       id={"user-actions-#{@prefix}#{@account.id}"}
       trigger_class="hover:bg-bg-2 dark:hover:bg-ink-700"
     >
@@ -483,8 +551,30 @@ defmodule MercatoWeb.Admin.UsersLive do
         phx-value-status={status.value}
         data-confirm={status.confirm && confirm_text(@account, status)}
       />
+
+      <%!-- Separated from the status rows: everything above is reversible, this
+            is not. --%>
+      <div :if={@deletable and @actionable} class="my-1 border-t border-ink-100 dark:border-ink-700">
+      </div>
+
+      <.menu_item
+        :if={@deletable}
+        id={"delete-account-#{@prefix}#{@account.id}"}
+        role="menuitem"
+        icon="hero-trash"
+        label="Delete account"
+        variant={:danger}
+        phx-click="delete_account"
+        phx-value-id={@account.id}
+        data-confirm={delete_confirm_text(@account)}
+      />
     </.menu>
     """
+  end
+
+  defp delete_confirm_text(account) do
+    "#{display_name(account)} will be signed out for good, and the account's " <>
+      "details erased. This cannot be undone."
   end
 
   # Every status the account could be moved into — i.e. every actionable one it
@@ -514,7 +604,9 @@ defmodule MercatoWeb.Admin.UsersLive do
         ]}>
           {display_name(@account)}
         </div>
-        <div class="text-caption-lg text-ink-500">@{@account.handle}</div>
+        <%!-- Deletion clears the handle, so there is nothing to render but a
+              stray "@". --%>
+        <div :if={@account.handle} class="text-caption-lg text-ink-500">@{@account.handle}</div>
       </div>
     </div>
     """

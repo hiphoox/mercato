@@ -124,7 +124,7 @@ defmodule Mercato.Accounts.User do
       # several accounts share a last_active_at (or are all nil).
       prepare build(
                 sort: [last_active_at: :desc_nils_last, id: :asc],
-                load: [:roles]
+                load: [:roles, :admin?]
               )
     end
 
@@ -509,6 +509,15 @@ defmodule Mercato.Accounts.User do
       source_attribute_on_join_resource :user_id
       destination_attribute_on_join_resource :role_id
     end
+  end
+
+  calculations do
+    # Whether the account can reach the admin area. A calculation rather than a
+    # loaded role->permission chain, so the admin listing can ask the question
+    # per row inside the query it already runs.
+    calculate :admin?,
+              :boolean,
+              expr(exists(user_roles.role.role_permissions.permission, name == "admin:access"))
   end
 
   identities do

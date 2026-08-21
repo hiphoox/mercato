@@ -314,6 +314,84 @@ defmodule MercatoWeb.Admin.UsersLiveTest do
     end
   end
 
+  describe "deleting an account" do
+    setup %{conn: conn} do
+      admin =
+        admin_user(first_name: "Rita")
+        |> grant_permission("user:update")
+        |> grant_permission("user:delete")
+
+      marta = generate(user(first_name: "Marta"))
+      deleted = generate(user(first_name: "Dora")) |> set_status(:deleted)
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      %{view: view, admin: admin, marta: marta, deleted: deleted}
+    end
+
+    test "offers deletion in the row's actions menu", ctx do
+      assert has_element?(ctx.view, "#delete-account-#{ctx.marta.id}")
+    end
+
+    test "confirms before deleting, naming the account", ctx do
+      assert has_element?(ctx.view, "#delete-account-#{ctx.marta.id}[data-confirm]")
+    end
+
+    test "repeats the item on the card rendering of a row", ctx do
+      assert has_element?(ctx.view, "#delete-account-card-#{ctx.marta.id}")
+    end
+
+    test "never offers deletion on the admin's own row", ctx do
+      refute has_element?(ctx.view, "#delete-account-#{ctx.admin.id}")
+    end
+
+    test "never offers deletion for an already-deleted account", ctx do
+      refute has_element?(ctx.view, "#delete-account-#{ctx.deleted.id}")
+    end
+
+    test "never offers deletion for another admin", %{conn: conn} do
+      admin =
+        admin_user(first_name: "Rita")
+        |> grant_permission("user:update")
+        |> grant_permission("user:delete")
+
+      other_admin = admin_user(first_name: "Ana")
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      assert has_element?(view, "#user-#{other_admin.id}")
+      refute has_element?(view, "#delete-account-#{other_admin.id}")
+    end
+
+    test "anonymises the row and re-counts the chips", ctx do
+      ctx.view |> element("#delete-account-#{ctx.marta.id}") |> render_click()
+
+      assert has_element?(ctx.view, "#user-#{ctx.marta.id}", "Deleted user")
+      assert has_element?(ctx.view, "#user-#{ctx.marta.id}", "Erased on deletion")
+      refute has_element?(ctx.view, "#user-#{ctx.marta.id}", "Marta")
+      assert has_element?(ctx.view, "#status-chip-deleted", "Deleted (2)")
+      assert has_element?(ctx.view, "#status-chip-active", "Active (1)")
+    end
+
+    test "leaves the deleted row with no actions menu", ctx do
+      ctx.view |> element("#delete-account-#{ctx.marta.id}") |> render_click()
+
+      refute has_element?(ctx.view, "#user-actions-#{ctx.marta.id}-trigger")
+    end
+  end
+
+  describe "deleting without the user:delete permission" do
+    test "an admin who can change status still cannot delete", %{conn: conn} do
+      admin = admin_user(first_name: "Rita") |> grant_permission("user:update")
+      marta = generate(user(first_name: "Marta"))
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      assert has_element?(view, "#user-actions-#{marta.id}-trigger")
+      refute has_element?(view, "#delete-account-#{marta.id}")
+    end
+  end
+
   describe "row actions without the user:update permission" do
     test "an admin who can only read the listing gets no actions menu", %{conn: conn} do
       admin = admin_user(first_name: "Rita")
