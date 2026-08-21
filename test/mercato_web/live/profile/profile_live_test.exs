@@ -226,4 +226,55 @@ defmodule MercatoWeb.ProfileLiveTest do
       assert html =~ "incorrect"
     end
   end
+
+  describe "delete account section" do
+    setup %{conn: conn} do
+      user = generate(user(first_name: "Jane", last_name: "Doe"))
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      %{view: view, user: user}
+    end
+
+    test "offers deletion behind a typed-handle confirmation", %{view: view, user: user} do
+      assert has_element?(view, "#delete-account-form")
+      assert render(view) =~ "Delete account"
+      assert render(view) =~ user.handle
+    end
+
+    test "keeps the button disabled until the handle is typed exactly", %{view: view} do
+      assert has_element?(view, "#delete-account-button[disabled]")
+
+      view
+      |> form("#delete-account-form", %{"delete" => %{"handle" => "not-my-handle"}})
+      |> render_change()
+
+      assert has_element?(view, "#delete-account-button[disabled]")
+    end
+
+    test "enables the button once the handle matches", %{view: view, user: user} do
+      view
+      |> form("#delete-account-form", %{"delete" => %{"handle" => user.handle}})
+      |> render_change()
+
+      refute has_element?(view, "#delete-account-button[disabled]")
+    end
+
+    test "deletes the account and signs the user out", %{view: view, user: user} do
+      assert {:error, {:redirect, %{to: "/sign-out"}}} =
+               view
+               |> form("#delete-account-form", %{"delete" => %{"handle" => user.handle}})
+               |> render_submit()
+
+      refute Enum.any?(Ash.read!(Mercato.Accounts.User, authorize?: false), &(&1.id == user.id))
+    end
+
+    test "refuses a submit whose handle does not match", %{view: view, user: user} do
+      html =
+        view
+        |> form("#delete-account-form", %{"delete" => %{"handle" => "nope"}})
+        |> render_submit()
+
+      assert html =~ "does not match"
+      assert Enum.any?(Ash.read!(Mercato.Accounts.User, authorize?: false), &(&1.id == user.id))
+    end
+  end
 end

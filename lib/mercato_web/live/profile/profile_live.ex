@@ -1,7 +1,8 @@
 defmodule MercatoWeb.ProfileLive do
   @moduledoc """
-  Account settings page: name, handle, avatar, and password — each its own
-  independent form/submit, so a failure in one section never blocks another.
+  Account settings page: name, handle, avatar, password, and account deletion —
+  each its own independent form/submit, so a failure in one section never
+  blocks another.
   """
 
   use MercatoWeb, :live_view
@@ -23,6 +24,9 @@ defmodule MercatoWeb.ProfileLive do
       |> assign(:name_form, name_form(user))
       |> assign(:handle_form, handle_form(user))
       |> assign(:security_form, security_form(user))
+      |> assign(:delete_form, delete_form())
+      |> assign(:delete_confirmed?, false)
+      |> assign(:delete_error, nil)
       |> allow_upload(:avatar,
         accept: ~w(.jpg .jpeg .png),
         max_entries: 1,
@@ -54,6 +58,11 @@ defmodule MercatoWeb.ProfileLive do
     |> AshPhoenix.Form.for_update(:change_password, domain: Accounts, as: "security", actor: user)
     |> to_form()
   end
+
+  # A plain form, not an AshPhoenix one: nothing here is submitted to the
+  # action. The typed handle exists only to make the user spell out which
+  # account they are erasing.
+  defp delete_form(params \\ %{"handle" => ""}), do: to_form(params, as: "delete")
 
   @impl true
   def render(assigns) do
@@ -196,6 +205,43 @@ defmodule MercatoWeb.ProfileLive do
           </.form>
         </.card>
 
+        <.card class="w-full flex flex-col gap-5 border-[1.5px] border-error/40 shadow-md">
+          <div class="flex items-center gap-2.5">
+            <.icon name="hero-exclamation-triangle" class="size-5 text-error-text" />
+            <h2 class="text-title-lg font-bold text-error-text flex-1">Delete account</h2>
+          </div>
+          <p class="text-caption-lg text-ink-500 -mt-3">
+            Deleting your account signs you out for good and erases your name, handle, email,
+            and photo. Your past orders stay on record, without your details attached. This
+            cannot be undone.
+          </p>
+          <.form
+            :let={form}
+            id="delete-account-form"
+            for={@delete_form}
+            phx-change="validate_delete"
+            phx-submit="delete_account"
+            class="flex flex-col gap-4"
+          >
+            <.input
+              field={form[:handle]}
+              label={"Type @#{@user.handle} to confirm"}
+              autocomplete="off"
+            />
+            <p :if={@delete_error} class="text-caption-md text-error-text">{@delete_error}</p>
+            <.button
+              id="delete-account-button"
+              type="submit"
+              variant="primary"
+              disabled={!@delete_confirmed?}
+              phx-disable-with="Deleting…"
+              class="bg-error text-white hover:brightness-95"
+            >
+              Delete my account
+            </.button>
+          </.form>
+        </.card>
+
         <.link
           id="sign-out-link"
           href={~p"/sign-out"}
@@ -271,7 +317,45 @@ defmodule MercatoWeb.ProfileLive do
     end
   end
 
+  def handle_event("validate_delete", %{"delete" => params}, socket) do
+    {:noreply,
+     socket
+     |> assign(:delete_form, delete_form(params))
+     |> assign(:delete_confirmed?, confirms_handle?(socket.assigns.user, params))
+     |> assign(:delete_error, nil)}
+  end
+
+  # The typed handle is re-checked on submit rather than trusted from the
+  # disabled button: the button is a hint to the user, not a gate on the event.
+  def handle_event("delete_account", %{"delete" => params}, socket) do
+    user = socket.assigns.user
+
+    if confirms_handle?(user, params) do
+      case Accounts.delete_account(user, actor: user) do
+        :ok ->
+          {:noreply, redirect(socket, to: ~p"/sign-out")}
+
+        {:error, _} ->
+          {:noreply, assign(socket, :delete_error, "Your account could not be deleted.")}
+      end
+    else
+      {:noreply,
+       socket
+       |> assign(:delete_form, delete_form(params))
+       |> assign(:delete_confirmed?, false)
+       |> assign(:delete_error, "That does not match your handle.")}
+    end
+  end
+
   def handle_event("noop", _params, socket), do: {:noreply, socket}
+
+  # A leading @ is accepted because the label shows one; it is a prompt, not
+  # part of the handle.
+  defp confirms_handle?(user, params) do
+    typed = params |> Map.get("handle", "") |> to_string() |> String.trim_leading("@")
+
+    typed != "" and typed == user.handle
+  end
 
   defp handle_avatar_progress(:avatar, entry, socket) do
     if entry.done? do
