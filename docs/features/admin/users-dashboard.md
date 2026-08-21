@@ -6,7 +6,7 @@ tags: [feature, admin, users, listing]
 timestamp: 2026-08-21T00:00:00Z
 ---
 
-The users dashboard is the admin's view of every account on the platform, at `/admin/users`. It surfaces accounts for review and lets an admin move one between account statuses.
+The users dashboard is the admin's view of every account on the platform, at `/admin/users`. It surfaces accounts for review, lets an admin move one between account statuses, and lets an admin delete one.
 
 ## Access
 
@@ -25,7 +25,7 @@ One row per account, covering every account regardless of status — including t
 | Status | `Active`, `Restricted`, `Banned`, or `Deleted`, as a badge |
 | Role | Every role the account holds, capitalised and alphabetical, or `—` when it holds none |
 | Last active | Relative time since the account was last active, or `Never` |
-| Actions | A menu of the statuses the account can be moved into |
+| Actions | A menu of the statuses the account can be moved into, and deletion where it is offered |
 
 The status badge colours track what the status means for the account: green for active, amber for restricted, red for banned, grey for deleted.
 
@@ -33,7 +33,7 @@ The status badge colours track what the status means for the account: green for 
 
 **Display name** falls back in three steps: a deleted account always reads `Deleted user`; an account with neither first nor last name reads `Name not provided`; otherwise the names are joined. Both fallbacks render in a muted italic, so a placeholder never reads as a real name.
 
-**A deleted account is anonymised in the listing** — no avatar image, no name, and `Erased on deletion` in place of the email — and the whole row is dimmed. The row exists to show that an account was there, not to keep its former owner findable.
+**A deleted account is anonymised in the listing** — no avatar image, no name, no handle, and `Erased on deletion` in place of the email — and the whole row is dimmed. The row exists to show that an account was there, not to keep its former owner findable. The listing is the only place on the platform that still shows a deleted account; see [account-deletion.md](../../domain/users/account-deletion.md).
 
 ## Account statuses
 
@@ -50,11 +50,19 @@ Each row carries an actions menu, opened from a three-dot button. It offers ever
 
 Moving an account to `Restricted` or `Banned` asks for confirmation first, naming the account and what the change costs the person. Reactivating applies straight away, since it takes nothing away.
 
-`Deleted` is never offered. Deletion is terminal and belongs to its own flow.
+`Deleted` is never offered as a status. Deletion erases the account rather than relabelling it, so it is a separate item rather than another entry in the same list.
 
-Two rows carry no menu at all: the admin's own, so an admin cannot lock themselves out, and a deleted account, whose row is a record that an account was there rather than one still being managed. The menu is also absent for an admin who can read the listing but holds no permission to update an account.
+Two rows carry no status menu at all: the admin's own, so an admin cannot lock themselves out, and a deleted account, whose row is a record that an account was there rather than one still being managed. The menu is also absent for an admin who can read the listing but holds no permission to update an account.
 
 A status change re-counts the filter chips and re-applies the current search and status filter, so an account that no longer matches the applied filter drops out of the listing.
+
+## Deleting an account
+
+The same actions menu carries a `Delete account` item, set apart from the status items above it — everything above is reversible, this is not. Choosing it confirms first, naming the account and saying that it will be signed out for good and its details erased.
+
+Deletion is offered only for an ordinary account someone else holds. It is withheld from the admin's own row, from another admin's row, from an account already deleted, and from an admin holding no permission to delete. An admin leaving the platform deletes their own account from their profile page.
+
+A deleted account stays in the listing as an anonymised, dimmed row with no menu, and the status chip counts are re-counted so the account moves from its old chip to `Deleted`. What deletion actually erases is covered in [account-deletion.md](../../domain/users/account-deletion.md).
 
 ## Search, filter, and paging
 

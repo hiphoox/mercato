@@ -32,6 +32,7 @@ A signed-in user manages their own account through four independent actions — 
 - **Handle** — subject to the handle rules above.
 - **Avatar** — uploading a new image replaces the old one immediately.
 - **Password** — requires the current password to confirm identity before a new one is set.
+- **Deletion** — terminal and irreversible, confirmed by typing the account's own handle. See [account-deletion.md](account-deletion.md).
 
 ## Account status
 
@@ -45,7 +46,7 @@ Every account has a status of `active`, `restricted`, `banned`, or `deleted`, de
 | `deleted`    | Cannot sign in | Shut out, with the account's details erased   |
 
 Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
-A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own. Deletion is terminal, so `deleted` is not a status an admin moves an account into by hand.
+A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own. Deletion is terminal, so `deleted` is not a status an admin moves an account into by hand — it is reached through its own flow, described in [account-deletion.md](account-deletion.md).
 
 ## Roles & permissions
 

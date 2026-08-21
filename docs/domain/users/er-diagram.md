@@ -22,9 +22,11 @@ erDiagram
         ci_string email UK
         string hashed_password
         string avatar_url
+        string avatar_key
         enum status "active | restricted | banned | deleted"
         timestamp confirmed_at
         timestamp last_active_at
+        timestamp archived_at
     }
     settings {
         uuid id PK
@@ -56,4 +58,6 @@ erDiagram
 
 `handle` is silently generated on create — slugified `first_name`+`last_name`, falling back to the email's local part, then the literal `"user"`, suffixed `_1`, `_2`, ... on collision — never a sign-up form field. It's user-editable afterward, subject to a reserved-word blocklist, a `[a-z0-9_]{3,30}` format constraint, and a cooldown since `handle_changed_at` (`nil` until the first manual edit, so that edit is never rate-limited). The cooldown's length is read from the single `settings` row (`handle_change_cooldown_days`, default 30 if no row exists yet) rather than hardcoded, so it's editable without a deploy.
 
-`avatar_url` is set by uploading a new avatar image, which is stored through the object storage port (see [ports.md](../../architecture/ports.md)) and its returned URL is stamped onto the record.
+`avatar_url` is set by uploading a new avatar image, which is stored through the object storage port (see [ports.md](../../architecture/ports.md)) and its returned URL is stamped onto the record. `avatar_key` holds the storage key behind that URL, so the stored image can be removed when the account is deleted.
+
+`archived_at` carries the time the account was deleted, and is empty for every live account. An account with it set is filtered out of every read except the admin users dashboard — see [account-deletion.md](account-deletion.md).

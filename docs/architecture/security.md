@@ -29,7 +29,8 @@ Users sign in with email + password or a magic link sent to their email. An acco
 - Anyone can read a user's public profile fields (name, handle, avatar, email, status) — e.g. a buyer viewing a seller's profile on a product page.
 - A user can update their own record; an `admin` can update any user's record.
 - Changing a user's status is `admin`-only — a user cannot change their own status, even though they can otherwise update their own record.
+- Deleting an account requires either that it is the actor's own account or that the actor holds the `user:delete` permission, seeded onto the `admin` role. Deletion is terminal and erases the account, so it carries its own permission rather than riding on the one that governs ordinary updates — see [account-deletion.md](../domain/users/account-deletion.md).
 
 ## Account Status
 
-`status` (`active | restricted | banned | deleted`) gates authentication independent of role. A banned or deleted user cannot sign in through any authentication method (password, short-lived token exchange, or magic link), even with valid credentials. An active or restricted user can — a restriction limits what the person may do once inside, not whether they hold a session.
+`status` (`active | restricted | banned | deleted`) gates authentication independent of role. A banned or deleted user cannot sign in through any authentication method (password, short-lived token exchange, or magic link), even with valid credentials. A deleted account is refused twice over: it is archived, and an archived account is filtered out of every authenticating read, so a session held from before deletion stops resolving to a user. An active or restricted user can — a restriction limits what the person may do once inside, not whether they hold a session.
