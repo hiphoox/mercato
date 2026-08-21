@@ -235,6 +235,97 @@ defmodule MercatoWeb.Admin.UsersLiveTest do
     end
   end
 
+  describe "row actions" do
+    setup %{conn: conn} do
+      admin = admin_user(first_name: "Rita") |> grant_permission("user:update")
+      marta = generate(user(first_name: "Marta"))
+      banned = generate(user(first_name: "Bruno")) |> set_status(:banned)
+      deleted = generate(user(first_name: "Dora")) |> set_status(:deleted)
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      %{view: view, admin: admin, marta: marta, banned: banned, deleted: deleted}
+    end
+
+    test "offers an active account every status it is not currently in", ctx do
+      assert has_element?(ctx.view, "#user-actions-#{ctx.marta.id}-trigger")
+      assert has_element?(ctx.view, "#set-status-#{ctx.marta.id}-restricted")
+      assert has_element?(ctx.view, "#set-status-#{ctx.marta.id}-banned")
+      refute has_element?(ctx.view, "#set-status-#{ctx.marta.id}-active")
+    end
+
+    test "offers a banned account the way back to active or restricted", ctx do
+      assert has_element?(ctx.view, "#set-status-#{ctx.banned.id}-active")
+      assert has_element?(ctx.view, "#set-status-#{ctx.banned.id}-restricted")
+      refute has_element?(ctx.view, "#set-status-#{ctx.banned.id}-banned")
+    end
+
+    test "repeats the menu on the card rendering of a row", ctx do
+      assert has_element?(ctx.view, "#user-actions-card-#{ctx.marta.id}-trigger")
+      assert has_element?(ctx.view, "#set-status-card-#{ctx.marta.id}-banned")
+    end
+
+    test "confirms the statuses that take something away, but not the one that gives it back",
+         ctx do
+      assert has_element?(ctx.view, "#set-status-#{ctx.marta.id}-banned[data-confirm]")
+      assert has_element?(ctx.view, "#set-status-#{ctx.marta.id}-restricted[data-confirm]")
+      refute has_element?(ctx.view, "#set-status-#{ctx.banned.id}-active[data-confirm]")
+    end
+
+    test "gives the admin no menu on their own row", ctx do
+      refute has_element?(ctx.view, "#user-actions-#{ctx.admin.id}-trigger")
+    end
+
+    test "gives a deleted account no menu", ctx do
+      refute has_element?(ctx.view, "#user-actions-#{ctx.deleted.id}-trigger")
+    end
+
+    test "banning an account updates its badge and re-counts the status chips", ctx do
+      ctx.view |> element("#set-status-#{ctx.marta.id}-banned") |> render_click()
+
+      assert has_element?(ctx.view, "#user-#{ctx.marta.id}", "Banned")
+      assert has_element?(ctx.view, "#status-chip-banned", "Banned (2)")
+      assert has_element?(ctx.view, "#status-chip-active", "Active (1)")
+    end
+
+    test "restricting an account persists the new status", ctx do
+      ctx.view |> element("#set-status-#{ctx.marta.id}-restricted") |> render_click()
+
+      assert has_element?(ctx.view, "#user-#{ctx.marta.id}", "Restricted")
+      assert has_element?(ctx.view, "#status-chip-restricted", "Restricted (1)")
+    end
+
+    test "reactivating a banned account persists the new status", ctx do
+      ctx.view |> element("#set-status-#{ctx.banned.id}-active") |> render_click()
+
+      assert has_element?(ctx.view, "#user-#{ctx.banned.id}", "Active")
+      assert has_element?(ctx.view, "#status-chip-banned", "Banned (0)")
+    end
+
+    test "narrows the listing to the new status when that filter is applied", ctx do
+      {:ok, view, _html} =
+        live(log_in(build_conn(), ctx.admin), ~p"/admin/users?status=active")
+
+      assert has_element?(view, "#user-#{ctx.marta.id}")
+
+      view |> element("#set-status-#{ctx.marta.id}-banned") |> render_click()
+
+      refute has_element?(view, "#user-#{ctx.marta.id}")
+    end
+  end
+
+  describe "row actions without the user:update permission" do
+    test "an admin who can only read the listing gets no actions menu", %{conn: conn} do
+      admin = admin_user(first_name: "Rita")
+      marta = generate(user(first_name: "Marta"))
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users")
+
+      assert has_element?(view, "#user-#{marta.id}")
+      refute has_element?(view, "#user-actions-#{marta.id}-trigger")
+    end
+  end
+
   defp row_ids(view) do
     view
     |> render()

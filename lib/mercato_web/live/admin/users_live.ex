@@ -2,9 +2,9 @@ defmodule MercatoWeb.Admin.UsersLive do
   @moduledoc """
   Admin listing of every account on the platform.
 
-  Read-only for now: search, status filter, and paging. The per-row actions the
-  design calls for (change status, delete) land in a later change, so nothing
-  here mutates a user.
+  Search, status filter, paging, and a per-row actions menu that moves an
+  account between statuses. Deleting an account is not offered here — deletion
+  is terminal and belongs to its own flow.
 
   Filter state lives in the query string rather than in socket assigns alone, so
   a filtered listing is a shareable URL and the browser's back button walks back
@@ -15,6 +15,7 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   import MercatoWeb.UI.Avatar
   import MercatoWeb.UI.Breadcrumb
+  import MercatoWeb.UI.Menu
 
   alias Mercato.Accounts
 
@@ -22,15 +23,66 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   @page_size 20
 
+  # One row per status: how it reads as a badge, and — for the statuses an admin
+  # may move an account *into* — how it reads as a menu item. `:deleted` carries
+  # no action because deletion is terminal and has its own flow; giving it one
+  # here would make "delete" look like just another status toggle.
   @statuses [
-    %{value: :active, label: "Active", badge: "verified"},
-    %{value: :banned, label: "Banned", badge: "featured"},
-    %{value: :deleted, label: "Deleted", badge: "neutral"}
+    %{
+      value: :active,
+      label: "Active",
+      badge: "verified",
+      action: "Reactivate account",
+      icon: "hero-check-circle",
+      variant: :default,
+      confirm: nil
+    },
+    %{
+      value: :restricted,
+      label: "Restricted",
+      badge: "warning",
+      action: "Restrict access",
+      icon: "hero-exclamation-triangle",
+      variant: :default,
+      confirm: "will keep their sign-in but lose the actions a restriction blocks."
+    },
+    %{
+      value: :banned,
+      label: "Banned",
+      badge: "danger",
+      action: "Ban account",
+      icon: "hero-no-symbol",
+      variant: :danger,
+      confirm: "will be signed out of the platform and unable to sign back in."
+    },
+    %{
+      value: :deleted,
+      label: "Deleted",
+      badge: "neutral",
+      action: nil,
+      icon: nil,
+      variant: :default,
+      confirm: nil
+    }
   ]
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:page_size, @page_size) |> load_status_counts()}
+    {:ok,
+     socket
+     |> assign(:page_size, @page_size)
+     |> assign_can_change_status()
+     |> load_status_counts()}
+  end
+
+  # Answered once, not per row: both policies guarding `change_status` come down
+  # to whether the actor holds `user:update` — the self-update clause on the
+  # `:update` policy can only widen the first of the two — so the answer is the
+  # same for every account on the page, and the check costs a query each time.
+  defp assign_can_change_status(socket) do
+    actor = socket.assigns.current_user
+
+    assign(socket, :can_change_status?, Accounts.can_change_status?(actor, actor, :active))
   end
 
   @impl true
@@ -47,10 +99,12 @@ defmodule MercatoWeb.Admin.UsersLive do
      |> load_accounts()}
   end
 
-  defp parse_status(value) when value in ["active", "banned", "deleted"],
-    do: String.to_existing_atom(value)
+  # Derived from the status list rather than a literal list of strings, so a new
+  # status is recognised in the URL and in an action event without a second
+  # place to update.
+  @status_strings Map.new(@statuses, &{to_string(&1.value), &1.value})
 
-  defp parse_status(_), do: nil
+  defp parse_status(value), do: Map.get(@status_strings, to_string(value))
 
   defp parse_page(value) do
     case Integer.parse(to_string(value)) do
@@ -77,11 +131,9 @@ defmodule MercatoWeb.Admin.UsersLive do
     |> assign(:last_page, last_page)
   end
 
-  # Counted once at mount, not per filter change: the chips describe the
-  # platform, not the current search, and this page can't change anyone's
-  # status yet. Once it can, the mutation handler is what re-counts — a chip
-  # shifting while the user types would make it useless as a starting point for
-  # narrowing down.
+  # Counted at mount and after a status change, never on a filter change: the
+  # chips describe the platform, not the current search. A chip shifting while
+  # the user types would make it useless as a starting point for narrowing down.
   defp load_status_counts(socket) do
     actor = socket.assigns.current_user
 
@@ -118,6 +170,46 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   def handle_event("page", %{"to" => to}, socket) do
     {:noreply, apply_filters(socket, page: parse_page(to))}
+  end
+
+  def handle_event("change_status", %{"id" => id, "status" => status}, socket) do
+    account = Enum.find(socket.assigns.accounts, &(&1.id == id))
+
+    case change_status(socket, account, parse_status(status)) do
+      {:ok, updated} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "#{display_name(updated)} is now #{status_label(updated.status)}.")
+         |> load_status_counts()
+         |> load_accounts()}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "That account's status could not be changed.")}
+    end
+  end
+
+  # The row that raised the event is re-checked here rather than trusted: the
+  # menu is hidden for the admin's own row and for a deleted account, but a
+  # hidden control is not an absent one, and a crafted event must not slip past
+  # a rule the markup enforces.
+  defp change_status(socket, account, status)
+       when is_map(account) and status not in [nil, :deleted] do
+    if actionable?(socket.assigns, account) do
+      case Accounts.change_status(account, status, %{}, actor: socket.assigns.current_user) do
+        {:ok, updated} -> {:ok, updated}
+        {:error, _} -> :error
+      end
+    else
+      :error
+    end
+  end
+
+  defp change_status(_socket, _account, _status), do: :error
+
+  defp actionable?(%{can_change_status?: false}, _account), do: false
+
+  defp actionable?(%{current_user: %{id: actor_id}}, account) do
+    account.id != actor_id and not deleted?(account)
   end
 
   defp apply_filters(socket, overrides) do
@@ -291,6 +383,9 @@ defmodule MercatoWeb.Admin.UsersLive do
               <:col :let={account} label="Last active" cell_class="whitespace-nowrap text-ink-500">
                 {last_active(account)}
               </:col>
+              <:action :let={account}>
+                <.row_actions account={account} actionable={actionable?(assigns, account)} />
+              </:action>
             </.table>
           </div>
 
@@ -304,7 +399,14 @@ defmodule MercatoWeb.Admin.UsersLive do
                 dimmed(account)
               ]}
             >
-              <.identity account={account} size={44} />
+              <div class="flex items-start justify-between gap-2">
+                <.identity account={account} size={44} />
+                <.row_actions
+                  account={account}
+                  actionable={actionable?(assigns, account)}
+                  prefix="card-"
+                />
+              </div>
 
               <dl class="flex flex-col gap-2 text-body-sm text-ink-700 dark:text-ink-100">
                 <div class="flex gap-2.5">
@@ -345,6 +447,56 @@ defmodule MercatoWeb.Admin.UsersLive do
       </div>
     </Layouts.app>
     """
+  end
+
+  # The per-row actions menu.
+  #
+  # Rendered twice per account — once in the table, once in the card list — so the
+  # ids are prefixed to keep them unique across the two renderings that are both
+  # in the DOM at any width.
+  attr :account, :map, required: true
+  attr :actionable, :boolean, required: true
+  attr :prefix, :string, default: ""
+
+  defp row_actions(assigns) do
+    ~H"""
+    <.menu
+      :if={@actionable}
+      id={"user-actions-#{@prefix}#{@account.id}"}
+      trigger_class="hover:bg-bg-2 dark:hover:bg-ink-700"
+    >
+      <:trigger>
+        <span class="flex items-center justify-center size-9">
+          <.icon name="hero-ellipsis-vertical" class="size-5 text-ink-700 dark:text-ink-100" />
+          <span class="sr-only">Actions for {display_name(@account)}</span>
+        </span>
+      </:trigger>
+      <.menu_item
+        :for={status <- assignable_statuses(@account)}
+        id={"set-status-#{@prefix}#{@account.id}-#{status.value}"}
+        role="menuitem"
+        icon={status.icon}
+        label={status.action}
+        variant={status.variant}
+        phx-click="change_status"
+        phx-value-id={@account.id}
+        phx-value-status={status.value}
+        data-confirm={status.confirm && confirm_text(@account, status)}
+      />
+    </.menu>
+    """
+  end
+
+  # Every status the account could be moved into — i.e. every actionable one it
+  # is not already in. Deriving the items from the status list rather than
+  # hard-coding a ban/reactivate pair means a new status shows up here on its
+  # own, with no second place to remember.
+  defp assignable_statuses(account) do
+    Enum.filter(@statuses, &(&1.action && &1.value != account.status))
+  end
+
+  defp confirm_text(account, status) do
+    "#{display_name(account)} #{status.confirm}"
   end
 
   attr :account, :map, required: true

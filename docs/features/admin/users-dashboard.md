@@ -3,10 +3,10 @@ type: feature
 title: Admin Users Dashboard
 description: The admin-only listing of every account on the platform, with search, status filter, and paging.
 tags: [feature, admin, users, listing]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
-The users dashboard is the admin's view of every account on the platform, at `/admin/users`. It is read-only: it surfaces accounts for review and does not change them.
+The users dashboard is the admin's view of every account on the platform, at `/admin/users`. It surfaces accounts for review and lets an admin move one between account statuses.
 
 ## Access
 
@@ -22,15 +22,39 @@ One row per account, covering every account regardless of status — including t
 |---|---|
 | User | Avatar, display name, and `@handle` |
 | Email | The account's email address |
-| Status | `Active`, `Banned`, or `Deleted`, as a badge |
+| Status | `Active`, `Restricted`, `Banned`, or `Deleted`, as a badge |
 | Role | Every role the account holds, capitalised and alphabetical, or `—` when it holds none |
 | Last active | Relative time since the account was last active, or `Never` |
+| Actions | A menu of the statuses the account can be moved into |
+
+The status badge colours track what the status means for the account: green for active, amber for restricted, red for banned, grey for deleted.
 
 **Role is plain text, not a badge.** The status badge beside it is the row's one colour signal; a second badge would compete with it. Every account holds the `trader` role from registration, so the column is populated in practice — the `—` fallback covers a role removed after the fact.
 
 **Display name** falls back in three steps: a deleted account always reads `Deleted user`; an account with neither first nor last name reads `Name not provided`; otherwise the names are joined. Both fallbacks render in a muted italic, so a placeholder never reads as a real name.
 
 **A deleted account is anonymised in the listing** — no avatar image, no name, and `Erased on deletion` in place of the email — and the whole row is dimmed. The row exists to show that an account was there, not to keep its former owner findable.
+
+## Account statuses
+
+| Status | What it means |
+|---|---|
+| Active | Full use of the platform |
+| Restricted | Can sign in, but is blocked from some of what the platform offers |
+| Banned | Cannot sign in |
+| Deleted | Cannot sign in; the account's details are erased |
+
+## Changing an account's status
+
+Each row carries an actions menu, opened from a three-dot button. It offers every status the account is not currently in — reactivating, restricting, or banning — and applies the change in place, without leaving the listing.
+
+Moving an account to `Restricted` or `Banned` asks for confirmation first, naming the account and what the change costs the person. Reactivating applies straight away, since it takes nothing away.
+
+`Deleted` is never offered. Deletion is terminal and belongs to its own flow.
+
+Two rows carry no menu at all: the admin's own, so an admin cannot lock themselves out, and a deleted account, whose row is a record that an account was there rather than one still being managed. The menu is also absent for an admin who can read the listing but holds no permission to update an account.
+
+A status change re-counts the filter chips and re-applies the current search and status filter, so an account that no longer matches the applied filter drops out of the listing.
 
 ## Search, filter, and paging
 
