@@ -3,7 +3,7 @@ type: architecture
 title: Coding Standards
 description: Mandated Elixir, Mix, and Phoenix (backend) conventions.
 tags: [elixir, mix, phoenix, backend]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 See also [liveview.md](liveview.md) and [testing.md](testing.md).
@@ -12,7 +12,14 @@ See also [liveview.md](liveview.md) and [testing.md](testing.md).
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
-- A docstring states what a reader needs rather than pointing at a `docs/` file for it. A module or function that supports a fixed set of values lists them where they're defined, so the list can't drift from the code implementing it. `docs/` is read on demand by a reader who went looking for it; a docstring is read by someone already in the code
+
+## Documentation in code
+
+- A module's purpose goes in `@moduledoc` and a public function's in `@doc`, never in a `#` comment above the definition. A `#` comment is for a note that is not documentation: why a line reads the way it does, or a caveat about the code directly below it
+- `@doc` is discarded on a `defp`, so a private function's explanation is a `#` comment
+- One `@doc` per function, on the first clause or on a bodyless function head. A second `@doc` on a later clause silently replaces the first and fails the build under `--warnings-as-errors`
+- A docstring says what the thing is for and how to call it. Mechanism, trade-offs, and the history of a decision go in `#` comments beside the code they explain
+- Keep both short. A docstring is read by someone already in the code, so it states what that reader needs rather than pointing at a `docs/` file for it. A module or function supporting a fixed set of values lists them where they are defined, so the list cannot drift from the code implementing it
 
 ## Elixir guidelines
 
