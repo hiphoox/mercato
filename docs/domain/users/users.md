@@ -46,6 +46,8 @@ Every account has a status of `active`, `restricted`, `banned`, or `deleted`, de
 | `deleted`    | Cannot sign in | Shut out, with the account's details erased   |
 
 Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
+
+Every status change emails the account holder — told when they are restricted or suspended, and told again when the limits are lifted and the account returns to `active`. Setting an account to the status it already holds sends nothing. Delivery is best-effort: the status change stands even if the mail cannot be sent.
 A user's own record can always be updated by that user, and an admin can update any user's record — except status: only an admin can change another account's status, and no account can change its own. Deletion is terminal, so `deleted` is not a status an admin moves an account into by hand — it is reached through its own flow, described in [account-deletion.md](account-deletion.md).
 
 ## Roles & permissions

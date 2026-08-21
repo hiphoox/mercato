@@ -37,6 +37,14 @@ A deleted account is hidden from every part of the platform except the admin use
 
 An admin cannot delete their own account from the dashboard, and cannot delete another admin's. An admin leaving the platform deletes their own account from their profile page, the same way anyone else does.
 
+## Notifying the account holder
+
+The account is emailed that it was deleted, in both flows — the person who deleted their own account gets a receipt, and someone whose account an admin deleted finds out that it happened.
+
+The notice goes to the **original address**, sent before anonymisation replaces it, since the placeholder that takes its place can never receive mail. It says what was erased, that past orders stay on record without their details attached, and that the same email may be used to sign up again.
+
+Delivery is best-effort: an account is still deleted if the mail cannot be sent.
+
 ## Confirmation
 
 Both flows confirm before anything happens, and both name the account and say what deletion costs.

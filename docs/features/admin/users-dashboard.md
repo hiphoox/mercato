@@ -64,6 +64,8 @@ Deletion is offered only for an ordinary account someone else holds. It is withh
 
 A deleted account stays in the listing as an anonymised, dimmed row with no menu, and the status chip counts are re-counted so the account moves from its old chip to `Deleted`. What deletion actually erases is covered in [account-deletion.md](../../domain/users/account-deletion.md).
 
+Both kinds of change are visible to the account holder, not just to the admin: moving an account to a new status emails them, and so does deleting it. Nothing an admin does here happens silently.
+
 ## Search, filter, and paging
 
 Search matches, case-insensitively, on any part of a first name, last name, handle, or email. An empty search matches everything.
