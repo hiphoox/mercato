@@ -46,6 +46,7 @@ npm-debug.log
 /CLAUDE.md
 
 # Local - test - SQLite databases
+/db/
 /*.db
 /*.db-shm
 /*.db-wal

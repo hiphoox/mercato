@@ -3,7 +3,7 @@ config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 config :mercato, Mercato.Repo,
-  database: Path.join(__DIR__, "../mercato_dev.db"),
+  database: Path.join(__DIR__, "../db/mercato_dev.db"),
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
