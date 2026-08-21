@@ -76,6 +76,30 @@ defmodule MercatoWeb.PageControllerTest do
     assert conn |> html_response(200) |> query("#admin-indicator") |> Enum.empty?()
   end
 
+  test "GET / labels the tab Admin for an admin", %{conn: conn} do
+    admin = admin_user(first_name: "Rita")
+
+    conn =
+      conn
+      |> Plug.Test.init_test_session(%{})
+      |> Helpers.store_in_session(admin)
+      |> get(~p"/")
+
+    assert conn |> html_response(200) |> query("title") |> LazyHTML.text() == "Admin · Mercato"
+  end
+
+  test "GET / leaves the tab unlabelled for a non-admin", %{conn: conn} do
+    user = generate(user(first_name: "Jordan"))
+
+    conn =
+      conn
+      |> Plug.Test.init_test_session(%{})
+      |> Helpers.store_in_session(user)
+      |> get(~p"/")
+
+    assert conn |> html_response(200) |> query("title") |> LazyHTML.text() == "Mercato"
+  end
+
   defp query(html, selector) do
     html |> LazyHTML.from_document() |> LazyHTML.query(selector)
   end

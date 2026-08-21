@@ -3,7 +3,7 @@ type: index
 title: Architecture Docs
 description: Map of docs/architecture/.
 tags: [architecture, index]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-21T00:00:00Z
 ---
 
 Map of `docs/architecture/`. Open a file only when its concern is relevant — none of these are loaded by default.
@@ -15,6 +15,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [ash-declarative-conventions.md](ash-declarative-conventions.md) — When to reach for Ash's built-in DSL (`accept`, builtin changes/validations/checks) over custom modules. Read it when writing or reviewing an Ash action, change, validation, or policy.
 - [ports.md](ports.md) — The `Mercato.Ports` namespace: behaviour-plus-adapter pattern for swappable external-service boundaries (storage, and future payments/search). Read it when adding a new boundary module or a new adapter to an existing one.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
+- [seeds.md](seeds.md) — How seed data is organised across `priv/repo/seeds/` and what belongs in it. Read it when adding or changing seed data.
 - [data-layer-expressions.md](data-layer-expressions.md) — Where SQLite's filter expression support diverges from Postgres, and how that divergence is contained. Read it when writing a filter expression, or when a search returns wrong or no rows.
 - [security.md](security.md) — Authentication and authorization model. Read it when working on auth, sessions, tokens, or permissions.
 
