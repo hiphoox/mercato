@@ -44,7 +44,9 @@ defmodule MercatoWeb.UI.Menu do
   attr :href, :string, default: nil
   attr :role, :string, default: nil, doc: "set to \"menuitem\" when inside a popup menu"
   attr :class, :any, default: nil
-  attr :rest, :global, include: ~w(method download target phx-click phx-value-id title)
+
+  attr :rest, :global,
+    include: ~w(method download target phx-click phx-value-id phx-value-status title)
 
   def menu_item(assigns) do
     assigns = assign(assigns, :classes, item_classes(assigns))
@@ -126,6 +128,16 @@ defmodule MercatoWeb.UI.Menu do
   """
   attr :id, :string, required: true, doc: "unique id; the trigger and panel derive theirs from it"
   attr :class, :any, default: nil, doc: "classes for the panel"
+
+  attr :trigger_class, :any,
+    default: "bg-bg dark:bg-ink-700 shadow-sm transition-[filter] hover:brightness-97",
+    doc: """
+    The trigger's chrome, replacing the default raised surface outright rather
+    than adding to it — a Tailwind utility passed alongside a conflicting one
+    resolves by stylesheet order, not attribute order, so the two cannot be
+    layered.
+    """
+
   attr :rest, :global
 
   slot :trigger, required: true, doc: "the button's contents"
@@ -145,18 +157,25 @@ defmodule MercatoWeb.UI.Menu do
         aria-controls={"#{@id}-panel"}
         phx-click={open_menu(@id)}
         class={[
-          "flex items-center gap-2 rounded-md bg-bg dark:bg-ink-700 shadow-sm cursor-pointer",
-          "transition-[filter] hover:brightness-97",
-          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100"
+          "flex items-center gap-2 rounded-md cursor-pointer",
+          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100",
+          @trigger_class
         ]}
       >
         {render_slot(@trigger)}
       </button>
 
+      <%!-- The hook only positions the panel; it deliberately does not take the
+            DOM over with phx-update="ignore", because the rows inside are
+            server-rendered and change (a menu of statuses loses the one just
+            applied). --%>
       <div
         id={"#{@id}-panel"}
         role="menu"
         aria-labelledby={"#{@id}-trigger"}
+        phx-hook=".AnchoredPanel"
+        data-anchor={"#{@id}-trigger"}
+        data-close={close_menu(@id)}
         phx-window-keydown={close_menu(@id)}
         phx-key="escape"
         class={
@@ -175,6 +194,89 @@ defmodule MercatoWeb.UI.Menu do
         {render_slot(@inner_block)}
       </div>
     </div>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".AnchoredPanel">
+      export default {
+        mounted() {
+          this.anchor = document.getElementById(this.el.dataset.anchor)
+          this.reposition = () => this.position()
+          this.open = false
+          this.el.addEventListener("click", (event) => {
+            if (event.target.closest("a, button")) {
+              this.js().exec(this.el.dataset.close)
+            }
+          })
+
+          // The panel is opened by a JS.toggle on the trigger, which flips the
+          // inline display and emits no event — the style attribute changing is
+          // the only signal that it became visible.
+          this.observer = new MutationObserver(() => this.sync())
+          this.observer.observe(this.el, {attributes: true, attributeFilter: ["style"]})
+          this.sync()
+        },
+
+        updated() {
+          this.sync()
+          if (this.open) { this.position() }
+        },
+
+        destroyed() {
+          this.observer.disconnect()
+          this.unbind()
+        },
+
+        sync() {
+          const display = this.el.style.display
+          const open = display !== "" && display !== "none"
+          if (open === this.open) { return }
+
+          this.open = open
+          if (open) {
+            this.bind()
+            this.position()
+          } else {
+            this.unbind()
+          }
+        },
+
+        bind() {
+          window.addEventListener("scroll", this.reposition, true)
+          window.addEventListener("resize", this.reposition)
+        },
+
+        unbind() {
+          window.removeEventListener("scroll", this.reposition, true)
+          window.removeEventListener("resize", this.reposition)
+        },
+
+        position() {
+          if (!this.anchor) { return }
+
+          const gap = 8
+          const rect = this.anchor.getBoundingClientRect()
+          const width = this.el.offsetWidth
+          const height = this.el.offsetHeight
+
+          // Open upward only when there is room up there; a panel taller than the
+          // viewport has nowhere better to go than its natural place below.
+          const below = rect.bottom + gap
+          const flip = below + height > window.innerHeight && rect.top - gap - height > 0
+
+          // Right-aligned to the trigger, then held inside the viewport so a
+          // trigger near either edge cannot push the panel off-screen.
+          const right = rect.right - width
+          const left = Math.max(gap, Math.min(right, window.innerWidth - width - gap))
+
+          Object.assign(this.el.style, {
+            position: "fixed",
+            top: `${flip ? rect.top - gap - height : below}px`,
+            left: `${left}px`,
+            right: "auto",
+            bottom: "auto",
+          })
+        },
+      }
+    </script>
     """
   end
 
