@@ -9,7 +9,7 @@ defmodule Mercato.Accounts.User do
     domain: Mercato.Accounts,
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication]
+    extensions: [AshAuthentication, AshArchival.Resource]
 
   alias Mercato.Accounts.User.Status
 
@@ -68,6 +68,14 @@ defmodule Mercato.Accounts.User do
     end
   end
 
+  archive do
+    # Every read filters archived accounts out on its own, so a read added later
+    # is excluded by default rather than by remembering to say so. Not a
+    # `base_filter`: that applies to every read with no per-action opt-out, and
+    # the admin listing has to keep showing a deleted account's row.
+    exclude_read_actions [:list_accounts]
+  end
+
   actions do
     defaults [:read]
 
@@ -75,6 +83,7 @@ defmodule Mercato.Accounts.User do
       description "Get a user by the subject claim in a JWT"
       argument :subject, :string, allow_nil?: false
       get? true
+
       prepare AshAuthentication.Preparations.FilterBySubject
     end
 
@@ -113,7 +122,10 @@ defmodule Mercato.Accounts.User do
 
       # `id` breaks the tie so offset paging can't repeat or skip a row when
       # several accounts share a last_active_at (or are all nil).
-      prepare build(sort: [last_active_at: :desc_nils_last, id: :asc], load: [:roles])
+      prepare build(
+                sort: [last_active_at: :desc_nils_last, id: :asc],
+                load: [:roles]
+              )
     end
 
     create :sign_in_with_magic_link do
@@ -194,6 +206,20 @@ defmodule Mercato.Accounts.User do
     update :change_status do
       description "Admin action to move a user between account statuses."
       accept [:status]
+    end
+
+    destroy :delete_account do
+      description "Terminal account deletion: archives the row and erases its personal data."
+
+      # Anonymization hangs work off after_action (storage, tokens), which an
+      # atomic destroy can't express.
+      require_atomic? false
+
+      # Hard-deleted rather than archived: a role grant is a capability, not
+      # personal history, and a deleted admin must carry no permissions.
+      change cascade_destroy(:user_roles)
+
+      change Mercato.Accounts.User.Changes.AnonymizeAccount
     end
 
     update :update_profile_info do
@@ -394,6 +420,14 @@ defmodule Mercato.Accounts.User do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
 
+    # Self-service deletion from the profile page, or an admin deleting
+    # someone else's account from the users dashboard. Deletion is terminal, so
+    # it gets its own permission rather than riding on `user:update`.
+    policy action(:delete_account) do
+      authorize_if expr(id == ^actor(:id))
+      authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:delete"}
+    end
+
     policy action(:change_status) do
       authorize_if {Mercato.Accounts.User.Checks.ActorHasPermission, permission: "user:update"}
     end
@@ -446,6 +480,11 @@ defmodule Mercato.Accounts.User do
     attribute :avatar_url, :string do
       public? true
     end
+
+    # The storage key behind avatar_url. Kept separately because a URL can't be
+    # turned back into a key without knowing the adapter that built it, and
+    # deleting the blob on account deletion needs the key.
+    attribute :avatar_key, :string
 
     attribute :hashed_password, :string do
       sensitive? true

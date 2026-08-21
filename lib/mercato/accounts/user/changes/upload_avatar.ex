@@ -1,7 +1,8 @@
 defmodule Mercato.Accounts.User.Changes.UploadAvatar do
   @moduledoc """
   Stores the uploaded avatar via the configured `Mercato.Ports.Storage`
-  adapter and sets `avatar_url` to its public URL.
+  adapter, setting `avatar_url` to its public URL and `avatar_key` to the
+  storage key behind it.
   """
 
   use Ash.Resource.Change
@@ -17,7 +18,13 @@ defmodule Mercato.Accounts.User.Changes.UploadAvatar do
 
       case storage.put(key, avatar) do
         {:ok, stored_key} ->
-          Ash.Changeset.force_change_attribute(changeset, :avatar_url, storage.url(stored_key))
+          # The key is kept alongside the URL because a URL can't be turned
+          # back into one without knowing the adapter that built it, and
+          # deleting the blob later needs the key.
+          Ash.Changeset.force_change_attributes(changeset, %{
+            avatar_url: storage.url(stored_key),
+            avatar_key: stored_key
+          })
 
         {:error, reason} ->
           Ash.Changeset.add_error(changeset,

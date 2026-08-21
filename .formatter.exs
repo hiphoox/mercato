@@ -8,7 +8,8 @@
     :ecto,
     :ecto_sql,
     :phoenix,
-    :ash_sqlite
+    :ash_sqlite,
+    :ash_archival
   ],
   subdirectories: ["priv/*/migrations"],
   plugins: [Spark.Formatter, Phoenix.LiveView.HTMLFormatter],

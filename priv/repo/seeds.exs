@@ -27,6 +27,13 @@ user_update =
     authorize?: false
   )
 
+user_delete =
+  Ash.create!(
+    Permission,
+    %{name: "user:delete", description: "Delete any user's account"},
+    authorize?: false
+  )
+
 admin_access =
   Ash.create!(
     Permission,
@@ -34,7 +41,7 @@ admin_access =
     authorize?: false
   )
 
-for permission <- [user_update, admin_access] do
+for permission <- [user_update, user_delete, admin_access] do
   Ash.create!(RolePermission, %{role_id: admin.id, permission_id: permission.id},
     authorize?: false
   )
