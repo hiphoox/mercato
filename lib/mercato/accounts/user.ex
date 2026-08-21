@@ -206,6 +206,12 @@ defmodule Mercato.Accounts.User do
     update :change_status do
       description "Admin action to move a user between account statuses."
       accept [:status]
+
+      # Notifying hangs work off after_action, which an atomic update can't
+      # express.
+      require_atomic? false
+
+      change Mercato.Accounts.User.Changes.NotifyStatusChange
     end
 
     destroy :delete_account do
@@ -218,6 +224,11 @@ defmodule Mercato.Accounts.User do
       # Hard-deleted rather than archived: a role grant is a capability, not
       # personal history, and a deleted admin must carry no permissions.
       change cascade_destroy(:user_roles)
+
+      # Declared before anonymisation so the intent reads in order: tell them,
+      # then erase them. Both hooks read the address off the pre-action row, so
+      # neither depends on running first.
+      change Mercato.Accounts.User.Changes.NotifyAccountDeleted
 
       change Mercato.Accounts.User.Changes.AnonymizeAccount
     end
