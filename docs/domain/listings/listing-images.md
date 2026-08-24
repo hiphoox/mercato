@@ -18,6 +18,14 @@ The type is judged from the file's own opening bytes rather than from the name i
 
 Each upload is stored under its own key, so two files of the same name never displace one another, and the key always falls within the listing's own area of storage whatever the file was named.
 
+## How many a gallery holds
+
+The marketplace sets how few and how many images a listing may have. A gallery that is already full refuses another image.
+
+The minimum applies from the moment a listing goes on offer: a listing showing fewer images than required cannot be published, and an image cannot be removed if doing so would drop a listing already on offer below the requirement. A draft is exempt while it is still being composed. Setting the minimum to none drops the requirement altogether, which is what a marketplace selling services or digital goods wants.
+
+How many images a listing has is a fact about the listing rather than about who is asking, so these limits are counted the same way for everyone.
+
 ## Order
 
 The gallery is ordered, and every image holds a distinct place in it. Two images of the same listing never share a place, so the order a buyer sees is always definite.

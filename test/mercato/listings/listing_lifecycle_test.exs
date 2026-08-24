@@ -25,6 +25,8 @@ defmodule Mercato.Listings.ListingLifecycleTest do
 
   describe "publish" do
     test "offers the draft to buyers", %{seller: seller, listing: listing} do
+      generate(listing_image(listing: listing))
+
       assert {:ok, listing} = Listings.publish_listing(listing, actor: seller)
 
       assert listing.status == :active
@@ -197,6 +199,10 @@ defmodule Mercato.Listings.ListingLifecycleTest do
     test "only the seller may publish", %{listing: listing} do
       other = generate(user())
 
+      # Ready to go on offer, so it is ownership being refused rather than the
+      # listing having nothing to show.
+      generate(listing_image(listing: listing))
+
       assert {:error, %Ash.Error.Forbidden{}} = Listings.publish_listing(listing, actor: other)
     end
 
@@ -209,7 +215,11 @@ defmodule Mercato.Listings.ListingLifecycleTest do
 
   defp publish!(seller, %Listing{} = listing), do: publish!(listing, seller)
 
+  # A listing needs something to show before it can go on offer, and every test
+  # here is about the state it moves to rather than about the gallery.
   defp publish!(%Listing{} = listing, seller) do
+    generate(listing_image(listing: listing))
+
     {:ok, listing} = Listings.publish_listing(listing, actor: seller)
 
     listing

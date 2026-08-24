@@ -68,6 +68,11 @@ config :mercato, :listing_conditions, ["new", "like_new", "good", "fair"]
 config :mercato, :listing_image_types, ["image/jpeg", "image/png", "image/webp"]
 config :mercato, :listing_image_max_bytes, 5_242_880
 
+# How many images a gallery holds. A marketplace selling services sets the
+# minimum to 0, which drops the requirement to show anything.
+config :mercato, :listing_min_images, 1
+config :mercato, :listing_max_images, 10
+
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],

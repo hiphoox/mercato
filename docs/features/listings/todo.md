@@ -34,7 +34,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 9. [x] `ListingImage` with `listing_id`, `storage_key`, `position`, `is_cover`
 10. [x] Upload through the existing storage port so the local-disk adapter is the default and Tigris stays opt-in — see [ports.md](../../architecture/ports.md)
-11. [ ] Configurable minimum and maximum image count, defaulting to a minimum of one so a listing without photos is possible where the marketplace allows it
+11. [x] Configurable minimum and maximum image count, defaulting to a minimum of one so a listing without photos is possible where the marketplace allows it
 12. [x] Exactly one cover per listing, enforced at the data layer
 13. [x] Server-side type and size validation on upload
 14. [x] Deleting a listing deletes its stored objects

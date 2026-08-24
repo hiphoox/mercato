@@ -8,7 +8,10 @@ defmodule Mercato.Listings.ListingImage do
   listing gets becomes its cover.
   """
 
-  use Ash.Resource, otp_app: :mercato, domain: Mercato.Listings, data_layer: AshSqlite.DataLayer
+  use Ash.Resource,
+    otp_app: :mercato,
+    domain: Mercato.Listings,
+    data_layer: AshSqlite.DataLayer
 
   alias Mercato.Listings.ListingImage.{Changes, Validations}
 
@@ -45,6 +48,7 @@ defmodule Mercato.Listings.ListingImage do
 
       validate Validations.ImageWithinSizeLimit
       validate Validations.ImageOfAllowedType
+      validate Validations.GalleryHasRoom
 
       # Position and cover are the gallery's business, not the caller's: both
       # are decided from what the listing already holds.
@@ -84,7 +88,18 @@ defmodule Mercato.Listings.ListingImage do
       primary? true
       require_atomic? false
 
+      validate Validations.GalleryKeepsMinimum
+
       change Changes.PromoteNextCover
+      change Changes.DeleteStoredImage
+    end
+
+    # Used when the listing itself is going. The minimum has nothing left to
+    # protect and there is no gallery left to hand the cover on to, so neither
+    # applies — but the file still has to go.
+    destroy :remove do
+      require_atomic? false
+
       change Changes.DeleteStoredImage
     end
   end

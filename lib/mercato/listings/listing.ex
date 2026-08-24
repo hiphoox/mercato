@@ -68,7 +68,11 @@ defmodule Mercato.Listings.Listing do
       description "Offers a draft listing to buyers."
       accept []
 
+      # Counting the gallery is a query, so this cannot be one atomic statement.
+      require_atomic? false
+
       validate data_one_of(:status, [:draft])
+      validate Mercato.Listings.Listing.Validations.GalleryMeetsMinimum
 
       # The database has the last word on the state moved from. The validation
       # above reads the copy the caller passed in, which may have been fetched
@@ -139,7 +143,7 @@ defmodule Mercato.Listings.Listing do
       # database, so the file behind it is freed rather than left orphaned.
       # Before the listing, not after: the gallery's rows point at it, and the
       # database refuses to leave them dangling.
-      change cascade_destroy(:images, after_action?: false)
+      change cascade_destroy(:images, after_action?: false, action: :remove)
     end
 
     destroy :moderate_delete do

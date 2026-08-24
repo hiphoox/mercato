@@ -71,4 +71,19 @@ defmodule Mercato.Listings do
   def image_max_bytes do
     Application.get_env(:mercato, :listing_image_max_bytes, @default_image_max_bytes)
   end
+
+  @default_min_images 1
+
+  @doc """
+  How few images a listing may go on offer with.
+
+  Zero drops the requirement, which is what a marketplace selling services or
+  digital goods wants.
+  """
+  def min_images, do: Application.get_env(:mercato, :listing_min_images, @default_min_images)
+
+  @default_max_images 10
+
+  @doc "How many images a listing's gallery holds at most."
+  def max_images, do: Application.get_env(:mercato, :listing_max_images, @default_max_images)
 end

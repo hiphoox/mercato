@@ -120,7 +120,10 @@ defmodule Mercato.Listings.ListingDeletionTest do
     end
   end
 
+  # A listing needs something to show before it can go on offer.
   defp publish(listing, seller) do
+    generate(listing_image(listing: listing))
+
     {:ok, listing} = Listings.publish_listing(listing, actor: seller)
 
     listing
