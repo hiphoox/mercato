@@ -21,12 +21,12 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Entity & attributes
 
-1. [ ] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `created_at`, `updated_at`
-2. [ ] `Listing` belongs to a seller; a seller has many listings
-3. [ ] Price stored as a minor-unit integer, never a float
-4. [ ] Single currency for the whole instance, set by config
-5. [ ] Quantity defaults to 1; a completed purchase decrements it
-6. [ ] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
+1. [x] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `created_at`, `updated_at`
+2. [x] `Listing` belongs to a seller; a seller has many listings
+3. [x] Price stored as a minor-unit integer, never a float
+4. [x] Single currency for the whole instance, set by config
+5. [x] Quantity defaults to 1
+6. [x] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
 7. [ ] `Category` as a flat, seeded catalog with a listing belonging to one category
 8. [ ] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
 
