@@ -36,6 +36,14 @@ defmodule Mercato.Listings.Listing.Condition do
   def dump_to_native(nil, _constraints), do: {:ok, nil}
   def dump_to_native(value, _constraints), do: Ash.Type.dump_to_native(:string, value, [])
 
+  @impl true
+  def generator(_constraints) do
+    case Mercato.Listings.conditions() do
+      [] -> StreamData.constant(nil)
+      conditions -> StreamData.member_of([nil | conditions])
+    end
+  end
+
   # Read per cast rather than baked into the type, so config/runtime.exs can
   # change the list without a recompile.
   defp cast_configured(string) do
