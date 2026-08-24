@@ -8,7 +8,7 @@ timestamp: 2026-08-24T00:00:00Z
 
 Working backlog for admin-only capabilities. Account administration has its own backlog in [users/todo.md](../users/todo.md); this file covers moderation of content sellers and buyers create.
 
-Nothing here is required for the Phase 1 MVP, though the soft-delete behaviour a moderation delete relies on is already specified — see [data-architecture.md](../../architecture/data-architecture.md).
+Nothing here is required for the Phase 1 MVP. The listing side of a moderation delete is already built — taking a listing down, keeping it and its images as a backup, and a moderation-only view of what has been taken down — so several items below are an admin screen over behaviour that already exists rather than new behaviour. See [data-architecture.md](../../architecture/data-architecture.md) for the soft-delete rules and [listings/todo.md](../listings/todo.md) for what landed.
 
 ## NICE TO HAVE — Phase 2
 
@@ -16,7 +16,9 @@ Nothing here is required for the Phase 1 MVP, though the soft-delete behaviour a
 
 - [ ] Buyer report action on a listing, feeding an admin moderation queue
 - [ ] Queue triage: dismiss a report, or moderate the reported listing
-- [ ] Moderation delete is a soft delete keeping an internal backup, distinct from a seller's own delete — see [listings/todo.md](../listings/todo.md)
+- [ ] Admin trigger for taking a listing down — the soft delete itself, distinct from a seller's own delete, is already built and gated on the `listing:delete` permission
+- [ ] Moderation view of listings that have been taken down, which is the only place the retained backup can be seen
+- [ ] Restore a listing taken down in error, putting it back in the state it was in — without this a moderation delete is irreversible in practice, which is the one thing keeping the record was meant to avoid
 - [ ] Automated moderation pattern matching on new listings, routing a match to the same queue
 
 ### Marketplace settings

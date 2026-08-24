@@ -8,9 +8,9 @@ timestamp: 2026-08-24T00:00:00Z
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
 
-This file covers the listing entity itself — its fields, media, lifecycle, authoring, and ownership rules. A capability that introduces a *different* entity pointing at a listing belongs to that entity's area: browsing and search in [discovery/](../discovery/todo.md), favorites and comments in [social/](../social/todo.md), negotiation in [offers/](../offers/todo.md), discounts in [promotions/](../promotions/todo.md), performance metrics in [analytics/](../analytics/todo.md), and reports and moderation in [admin/](../admin/todo.md).
+This file covers the listing entity itself — its fields, media, lifecycle, authoring, and ownership rules. A capability that introduces a *different* entity pointing at a listing belongs to that entity's area: browsing and search in [discovery/](../discovery/todo.md), favorites and comments in [social/](../social/todo.md), negotiation in [offers/](../offers/todo.md), the purchase itself in [orders/](../orders/todo.md), discounts in [promotions/](../promotions/todo.md), performance metrics in [analytics/](../analytics/todo.md), and reports and moderation in [admin/](../admin/todo.md).
 
-The Phase 1 MVP is "list an item, find it, buy it". *List it* is this file; *find it* is the discovery backlog. Neither area's Phase 1 is shippable alone.
+The Phase 1 MVP is "list an item, find it, buy it". *List it* is this file; *find it* is the [discovery](../discovery/todo.md) backlog; *buy it* is the [orders](../orders/todo.md) backlog. No area's Phase 1 is shippable alone.
 
 Flows referenced here are already specified in [commerce-ux-patterns.md](../../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen. Per the minimal-core rule in [AGENTS.md](../../../AGENTS.md), a field lands in MUST only when Phase 1 cannot ship without it.
 
@@ -50,7 +50,6 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 20. [x] A listing that reached `sold` cannot be deleted; it is retained as transaction history
 21. [x] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
 22. [x] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
-23. [ ] Deleting a listing with a purchase in flight is refused or requires explicit confirmation
 
 ### Create & edit
 
