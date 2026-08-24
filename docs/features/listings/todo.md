@@ -38,7 +38,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 12. [x] Exactly one cover per listing, enforced at the data layer
 13. [x] Server-side type and size validation on upload
 14. [x] Deleting a listing deletes its stored objects
-59. [ ] Gallery authorization: only a listing's own seller may add, reorder, promote or remove its images — the listing itself is guarded, its images are not
+59. [x] Gallery authorization: only a listing's own seller may add, reorder, promote or remove its images — the listing itself is guarded, its images are not
 
 ### Lifecycle
 

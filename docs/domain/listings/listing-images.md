@@ -40,6 +40,12 @@ The cover is decided rather than chosen: the first image a listing receives beco
 
 Removing the cover hands the slot to whichever image is now at the front of the gallery. Removing any other image leaves the cover as it was, and removing the last image leaves the listing with no images and no cover.
 
+## Who sees and changes a gallery
+
+A gallery is as visible as the listing it belongs to: public once the listing is on offer, and the seller's alone before that.
+
+Only the seller who owns the listing may add an image to it, promote one to cover, or remove one. Everyone else is refused, whether or not they can see the gallery.
+
 ## Removal
 
 Removing an image also removes the file behind it, so a gallery never leaves stored bytes behind that nothing can reach.

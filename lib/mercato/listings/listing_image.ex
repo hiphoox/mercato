@@ -11,9 +11,10 @@ defmodule Mercato.Listings.ListingImage do
   use Ash.Resource,
     otp_app: :mercato,
     domain: Mercato.Listings,
-    data_layer: AshSqlite.DataLayer
+    data_layer: AshSqlite.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
-  alias Mercato.Listings.ListingImage.{Changes, Validations}
+  alias Mercato.Listings.ListingImage.{Changes, Checks, Validations}
 
   sqlite do
     table "listing_images"
@@ -101,6 +102,23 @@ defmodule Mercato.Listings.ListingImage do
       require_atomic? false
 
       change Changes.DeleteStoredImage
+    end
+  end
+
+  policies do
+    # A gallery is as visible as the listing it belongs to: public once the
+    # listing is on offer, the seller's alone before that.
+    policy action_type(:read) do
+      authorize_if expr(exists(listing, status == :active))
+      authorize_if expr(exists(listing, seller_id == ^actor(:id)))
+    end
+
+    policy action_type(:create) do
+      authorize_if Checks.ActorOwnsListing
+    end
+
+    policy action_type([:update, :destroy]) do
+      authorize_if expr(exists(listing, seller_id == ^actor(:id)))
     end
   end
 
