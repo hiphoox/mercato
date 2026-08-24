@@ -30,6 +30,74 @@ defmodule Mercato.TestGenerators do
     generate(user(opts)) |> grant_permission("admin:access")
   end
 
+  def category(opts \\ []) do
+    changeset_generator(
+      Mercato.Listings.Category,
+      :create,
+      authorize?: false,
+      defaults: [
+        name: sequence(:category_name, &"Category #{&1}"),
+        slug: sequence(:category_slug, &"category-#{&1}")
+      ],
+      overrides: opts
+    )
+  end
+
+  @doc """
+  A listing owned by `opts[:actor]`, or by a seller generated for the purpose.
+
+  The seller is an option rather than an attribute: a listing takes its owner
+  from whoever is acting, never from supplied content.
+  """
+  def listing(opts \\ []) do
+    {seller, opts} = Keyword.pop_lazy(opts, :actor, fn -> generate(user()) end)
+
+    changeset_generator(
+      Mercato.Listings.Listing,
+      :create,
+      actor: seller,
+      authorize?: false,
+      defaults: [
+        title: sequence(:listing_title, &"Listing #{&1}"),
+        price: 1000,
+        # One category per test process rather than one per listing: every
+        # listing needs a category, but few tests care which.
+        category_id: once(:listing_category, fn -> generate(category()).id end)
+      ],
+      overrides: opts
+    )
+  end
+
+  @doc """
+  An image in `opts[:listing]`'s gallery, or in one generated for the purpose.
+
+  The listing is an option rather than an attribute so a caller can add several
+  images to the same gallery and watch them order themselves.
+  """
+  def listing_image(opts \\ []) do
+    {listing, opts} = Keyword.pop_lazy(opts, :listing, fn -> generate(listing()) end)
+
+    changeset_generator(
+      Mercato.Listings.ListingImage,
+      :create,
+      authorize?: false,
+      defaults: [
+        listing_id: listing.id,
+        image: png_bytes(),
+        filename: sequence(:listing_image_filename, &"image-#{&1}.png")
+      ],
+      overrides: opts
+    )
+  end
+
+  @doc """
+  The smallest bytes that a type check will accept as a PNG.
+
+  A real signature rather than arbitrary content, because an upload is
+  identified by the bytes it starts with.
+  """
+  def png_bytes, do: <<0x89, "PNG\r\n", 0x1A, 0x0A, "test image">>
+
   def user(opts \\ []) do
     changeset_generator(
       Mercato.Accounts.User,

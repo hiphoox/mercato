@@ -32,7 +32,14 @@ admin_access =
     authorize?: false
   )
 
-for permission <- [user_update, user_delete, admin_access] do
+listing_delete =
+  Ash.create!(
+    Permission,
+    %{name: "listing:delete", description: "Take any listing down, keeping it as a backup"},
+    authorize?: false
+  )
+
+for permission <- [user_update, user_delete, admin_access, listing_delete] do
   Ash.create!(RolePermission, %{role_id: admin.id, permission_id: permission.id},
     authorize?: false
   )

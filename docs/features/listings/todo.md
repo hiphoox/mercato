@@ -3,10 +3,14 @@ type: feature
 title: Listings Todo
 description: Backlog of listing capabilities split into Phase 1 MVP musts and Phase 2 extension nice-to-haves.
 tags: [listings, todo, backlog, mvp]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-08-24T00:00:00Z
 ---
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
+
+This file covers the listing entity itself — its fields, media, lifecycle, authoring, and ownership rules. A capability that introduces a *different* entity pointing at a listing belongs to that entity's area: browsing and search in [discovery/](../discovery/todo.md), favorites and comments in [social/](../social/todo.md), negotiation in [offers/](../offers/todo.md), the purchase itself in [orders/](../orders/todo.md), discounts in [promotions/](../promotions/todo.md), performance metrics in [analytics/](../analytics/todo.md), and reports and moderation in [admin/](../admin/todo.md).
+
+The Phase 1 MVP is "list an item, find it, buy it". *List it* is this file; *find it* is the [discovery](../discovery/todo.md) backlog; *buy it* is the [orders](../orders/todo.md) backlog. No area's Phase 1 is shippable alone.
 
 Flows referenced here are already specified in [commerce-ux-patterns.md](../../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen. Per the minimal-core rule in [AGENTS.md](../../../AGENTS.md), a field lands in MUST only when Phase 1 cannot ship without it.
 
@@ -17,125 +21,98 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Entity & attributes
 
-- [ ] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `created_at`, `updated_at`
-- [ ] `Listing` belongs to a seller; a seller has many listings
-- [ ] Price stored as a minor-unit integer, never a float
-- [ ] Single currency for the whole instance, set by config
-- [ ] Quantity defaults to 1; a completed purchase decrements it
-- [ ] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
-- [ ] `Category` as a flat, seeded catalog with a listing belonging to one category
-- [ ] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
+1. [x] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `created_at`, `updated_at`
+2. [x] `Listing` belongs to a seller; a seller has many listings
+3. [x] Price stored as a minor-unit integer, never a float
+4. [x] Single currency for the whole instance, set by config
+5. [x] Quantity defaults to 1
+6. [x] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
+7. [x] `Category` as a flat, seeded catalog with a listing belonging to one category
+8. [x] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
 
 ### Media
 
-- [ ] `ListingImage` with `listing_id`, `storage_key`, `position`, `is_cover`
-- [ ] Upload through the existing storage port so the local-disk adapter is the default and Tigris stays opt-in — see [ports.md](../../architecture/ports.md)
-- [ ] At least one image required to publish; a configurable maximum count
-- [ ] Exactly one cover per listing, enforced at the data layer
-- [ ] Server-side type and size validation on upload
-- [ ] Deleting a listing deletes its stored objects
+9. [x] `ListingImage` with `listing_id`, `storage_key`, `position`, `is_cover`
+10. [x] Upload through the existing storage port so the local-disk adapter is the default and Tigris stays opt-in — see [ports.md](../../architecture/ports.md)
+11. [x] Configurable minimum and maximum image count, defaulting to a minimum of one so a listing without photos is possible where the marketplace allows it
+12. [x] Exactly one cover per listing, enforced at the data layer
+13. [x] Server-side type and size validation on upload
+14. [x] Deleting a listing deletes its stored objects
+59. [x] Gallery authorization: only a listing's own seller may add, reorder, promote or remove its images — the listing itself is guarded, its images are not
 
 ### Lifecycle
 
-- [ ] States: `draft`, `active`, `unavailable`, `sold`, `deleted`
-- [ ] `draft` is seller-only and becomes `active` on publish
-- [ ] `active` is the only state visible in public browse and search
-- [ ] `unavailable` is a reversible seller-initiated pause, visible only on the seller's own profile
-- [ ] `sold` is set by the system when a purchase completes and is terminal
-- [ ] A listing that reached `sold` cannot be deleted; it is retained as transaction history
-- [ ] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
-- [ ] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
-- [ ] Deleting a listing with a purchase in flight is refused or requires explicit confirmation
+15. [x] States: `draft`, `active`, `unavailable`, `sold`, `deleted`
+16. [x] `draft` is seller-only and becomes `active` on publish
+17. [x] `active` is the only state visible in public browse and search
+18. [x] `unavailable` is a reversible seller-initiated pause, visible only on the seller's own profile
+19. [x] `sold` is set by the system when a purchase completes and is terminal
+20. [x] A listing that reached `sold` cannot be deleted; it is retained as transaction history
+21. [x] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
+22. [x] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
 
 ### Create & edit
 
-- [ ] Single-form create; no multi-step stepper in Phase 1
-- [ ] Draft auto-save so leaving the form does not lose work
-- [ ] Edit any field while `draft` or `active`
-- [ ] Publish and unpublish actions
-- [ ] Publish blocked until the seller has a shipping-origin address on file
+24. [ ] Single-form create; no multi-step stepper in Phase 1
+25. [ ] Draft auto-save so leaving the form does not lose work
+26. [ ] Edit any field while `draft` or `active`
+27. [ ] Publish and unpublish actions
+28. [ ] Publish blocked until the seller satisfies the configured fulfillment prerequisites; the shipped-goods default requires a shipping-origin address, and a marketplace of services or digital goods configures none
 
-### Discovery
+### Public presentation
 
-- [ ] Public browse grid of `active` listings, newest first
-- [ ] Keyword search over title and description
-- [ ] Filter by category, price range, and condition
-- [ ] Sort by newest and by price ascending/descending
-- [ ] Pagination or infinite scroll on the grid
-- [ ] Listing detail page: image gallery, title, price, description, condition, seller card, buy action
-- [ ] Public listing URLs use a slug or short id, stable across edits
-- [ ] Seller's public profile lists their `active` listings first, `sold` and `unavailable` below
+29. [ ] Listing detail page: image gallery, title, price, description, seller card, buy action, and condition where configured
+30. [ ] Public listing URLs use a slug or short id, stable across edits
+31. [ ] Seller's public profile lists their `active` listings first, `sold` and `unavailable` below
+
+Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/todo.md).
 
 ### Seller management
 
-- [ ] "My Listings" view grouped by state with edit, pause, and delete actions
-- [ ] Draft listings reachable from the same view
+32. [ ] "My Listings" view grouped by state with edit, pause, and delete actions
+33. [ ] Draft listings reachable from the same view
 
 ### Authorization
 
-- [ ] Only the owning seller may edit, pause, or delete a listing
-- [ ] Only `active` listings are readable by anonymous visitors
-- [ ] Admins may moderate any listing
-- [ ] A suspended or deleted seller's listings leave the public catalog
+34. [ ] Only the owning seller may edit, pause, or delete a listing
+35. [ ] Only `active` listings are readable by anonymous visitors
+36. [ ] Admins may moderate any listing
+37. [ ] A suspended or deleted seller's listings leave the public catalog
 
 ## NICE TO HAVE — Phase 2
 
 ### Extension surface
 
-- [ ] Category-scoped attribute sets, so a fashion marketplace adds size/brand/color and a rentals marketplace adds duration/deposit without a schema change
-- [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
-- [ ] Search port with a SQLite FTS5 default adapter and an external engine as an opt-in adapter — see [full-text-search.md](../../explore/full-text-search.md)
-- [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
-- [ ] Listing-created and listing-sold events other features can subscribe to
+38. [ ] Category-scoped attribute sets, so a fashion marketplace adds size/brand/color and a rentals marketplace adds duration/deposit without a schema change
+39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
+40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
+41. [ ] Listing-created and listing-sold events other features can subscribe to
+58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin/todo.md](../admin/todo.md)
 
 ### Taxonomy
 
-- [ ] Nested categories with breadcrumbs
-- [ ] Brand, size, style, and color catalogs as optional seeded taxonomies
-- [ ] Size charts scoped to a category
-- [ ] Admin CRUD for every taxonomy
+42. [ ] Nested categories with breadcrumbs
+43. [ ] Optional seeded catalogs for whatever attributes a marketplace's categories need — brand, size, style, and color for fashion; make and model for vehicles
+44. [ ] Category-scoped reference tables an attribute can be read against, such as a size chart
+45. [ ] Admin CRUD for every taxonomy
 
-### Pricing & promotion
+### Pricing
 
-- [ ] Original-price field with strikethrough display
-- [ ] "Lower price" action that notifies users who saved the listing
-- [ ] Suggested-price hint from comparable sold listings
-- [ ] Net-payout estimate shown before publish
-- [ ] Seller-level and platform-level discount campaigns
-- [ ] Curated collections placed into home and explore sections
-- [ ] Offer and counter-offer negotiation on a listing
+46. [ ] Original-price field with strikethrough display
+47. [ ] Net-payout estimate shown before publish — moves to a payments area once one exists
 
 ### Inventory & variants
 
-- [ ] Variants — one listing, several purchasable options with their own price and stock
-- [ ] Low-stock and out-of-stock handling distinct from `sold`
-- [ ] Listing expiry with renew and relist
-- [ ] Duplicate a listing to relist a similar item
+48. [ ] Variants — one listing, several purchasable options with their own price and stock
+49. [ ] Low-stock and out-of-stock handling distinct from `sold`
+50. [ ] Listing expiry with renew and relist
+51. [ ] Duplicate a listing to relist a similar item
 
 ### Media & authoring
 
-- [ ] Drag-to-reorder images
-- [ ] Server-side thumbnail generation and responsive image variants
-- [ ] Video attachments
-- [ ] Bulk upload — many images at once, grouped into per-listing drafts
-- [ ] Field pre-fill from image analysis
-- [ ] CSV import and export for sellers migrating a catalog
-
-### Engagement & trust
-
-- [ ] Save/favorite with a public favorite count on the card
-- [ ] Recently viewed listings
-- [ ] Similar listings and more-from-this-seller carousels
-- [ ] Public comments on a listing
-- [ ] Buyer report action with an admin moderation queue
-- [ ] Automated moderation pattern matching on new listings
-- [ ] Seller activity indicator on the card, derived from last-active time
-- [ ] Per-listing view and conversion analytics for the seller — see [analytics-duckdb.md](../../explore/analytics-duckdb.md)
-
-### Discovery depth
-
-- [ ] Saved searches with new-match alerts
-- [ ] Location-based filtering and local pickup
-- [ ] Facet result counts on every filter option
-- [ ] Sold-only filter with sold listings ranked last in general results
-- [ ] Personalized ranking on home and explore
+52. [ ] Drag-to-reorder images
+53. [ ] Server-side thumbnail generation and responsive image variants
+54. [ ] Video attachments
+55. [ ] Bulk upload — many images at once, grouped into per-listing drafts
+56. [ ] Field pre-fill from image analysis
+57. [ ] CSV import and export for sellers migrating a catalog

@@ -55,10 +55,28 @@ config :spark,
     "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
   ]
 
+# The single currency every price on this instance is denominated in, as an
+# ISO 4217 code. Prices are stored in this currency's minor units.
+config :mercato, :currency, "USD"
+
+# The conditions a seller may pick from. Replace the list to suit what this
+# marketplace sells, or set it to [] to drop the field entirely.
+config :mercato, :listing_conditions, ["new", "like_new", "good", "fair"]
+
+# What a listing's gallery accepts. Types are matched against the file's own
+# leading bytes, not against the name it arrives under.
+config :mercato, :listing_image_types, ["image/jpeg", "image/png", "image/webp"]
+config :mercato, :listing_image_max_bytes, 5_242_880
+
+# How many images a gallery holds. A marketplace selling services sets the
+# minimum to 0, which drops the requirement to show anything.
+config :mercato, :listing_min_images, 1
+config :mercato, :listing_max_images, 10
+
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Mercato.Accounts],
+  ash_domains: [Mercato.Listings, Mercato.Accounts],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint

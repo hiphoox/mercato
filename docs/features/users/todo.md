@@ -3,7 +3,7 @@ type: feature
 title: Users Todo
 description: Backlog of user-account capabilities, split into MUST and NICE TO HAVE.
 tags: [users, todo, backlog, auth, roles]
-timestamp: 2026-08-21T00:00:00Z
+timestamp: 2026-08-24T00:00:00Z
 ---
 
 Working backlog for user accounts — signup, login, logout, roles and permissions. Domain rules for what already exists live in [docs/domain/users/](../../domain/users/index.md); this file tracks what is left to build.
@@ -21,7 +21,7 @@ Working backlog for user accounts — signup, login, logout, roles and permissio
 ### Account status, future extensions
 
 38. [x] `restricted` status (blocks messaging/commenting, still allows buy/sell) — add once a messaging/comments feature exists to gate
-39. [ ] Soft-delete + anonymization on account deletion (clear PII, keep `id`/history) — split out of the Domain model MUST list; design and build as its own todo
+39. [x] Soft-delete + anonymization on account deletion (clear PII, keep `id`/history) — split out of the Domain model MUST list; design and build as its own todo
 
 ---
 
@@ -52,6 +52,10 @@ Working backlog for user accounts — signup, login, logout, roles and permissio
 
 40. [ ] Session-active-role switching (a user holding multiple roles at once, switchable per session, Gloset-style) — only if a real multi-role use case shows up
 41. [ ] "Business/trader-tier" upgrade concept (bulk tools, different commission) — separate role/attribute layered on top of `trader`, not a replacement for it
+
+### Public profile
+
+43. [ ] Seller activity indicator derived from `last_active_at`, shown on the seller's card and profile
 
 ### Out of scope for this feature (belongs to future features)
 

@@ -515,6 +515,10 @@ defmodule Mercato.Accounts.User do
   relationships do
     has_many :user_roles, Mercato.Accounts.UserRole
 
+    has_many :listings, Mercato.Listings.Listing do
+      destination_attribute :seller_id
+    end
+
     many_to_many :roles, Mercato.Accounts.Role do
       through Mercato.Accounts.UserRole
       source_attribute_on_join_resource :user_id
