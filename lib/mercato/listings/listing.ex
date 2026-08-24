@@ -38,10 +38,12 @@ defmodule Mercato.Listings.Listing do
 
     attribute :title, :string do
       allow_nil? false
+      constraints min_length: 3, max_length: 140
       public? true
     end
 
     attribute :description, :string do
+      constraints max_length: 5_000
       public? true
     end
 
@@ -50,6 +52,9 @@ defmodule Mercato.Listings.Listing do
     # cent. Integer arithmetic is exact, and payment providers take this form.
     attribute :price, :integer do
       allow_nil? false
+      # At least one minor unit: a giveaway is not a sale, and a zero price
+      # divides through the fee and payout arithmetic downstream.
+      constraints min: 1
       public? true
     end
 
@@ -63,6 +68,9 @@ defmodule Mercato.Listings.Listing do
 
     attribute :quantity, :integer do
       allow_nil? false
+      # Zero is a real state — the seller has none left — so only negatives
+      # are refused.
+      constraints min: 0
       default 1
       public? true
     end

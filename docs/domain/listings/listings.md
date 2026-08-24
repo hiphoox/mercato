@@ -14,17 +14,17 @@ Every listing belongs to exactly one seller, and a seller may hold any number of
 
 ## Description
 
-A listing carries a title and an optional longer description. The title is required; a listing always has something to identify it by.
+A listing carries a title and an optional longer description. The title is required; a listing always has something to identify it by. It runs from 3 to 140 characters, long enough to say what is on offer and short enough to read in a list of results. A description runs to 5,000 characters.
 
 ## Price and currency
 
-A price is required and is held as a whole number of the currency's minor units — cents for a currency with hundredths, whole units for one without. Prices are never held as fractional amounts, so sums, fees, and payout splits stay exact rather than drifting by fractions of a unit.
+A price is required and is at least one minor unit, so nothing is listed for free. It is held as a whole number of the currency's minor units — cents for a currency with hundredths, whole units for one without. Prices are never held as fractional amounts, so sums, fees, and payout splits stay exact rather than drifting by fractions of a unit.
 
 The marketplace runs on a single currency. It is set for the whole instance and is not a per-listing choice; a seller has no say in it. Each listing records the currency in force when it was created, so a stored price stays unambiguous even if the instance is later reconfigured.
 
 ## Quantity
 
-Quantity is how many units the listing offers. A listing offers one unit unless the seller says otherwise.
+Quantity is how many units the listing offers and is never negative. A listing offers one unit unless the seller says otherwise; a quantity of none means the seller has run out.
 
 ## Category
 

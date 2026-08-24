@@ -28,7 +28,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 5. [x] Quantity defaults to 1
 6. [x] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
 7. [x] `Category` as a flat, seeded catalog with a listing belonging to one category
-8. [ ] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
+8. [x] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
 
 ### Media
 
@@ -87,6 +87,7 @@ Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/t
 39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
 40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
 41. [ ] Listing-created and listing-sold events other features can subscribe to
+58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change
 
 ### Taxonomy
 

@@ -144,6 +144,44 @@ defmodule Mercato.Listings.ListingTest do
     end
   end
 
+  describe "validation" do
+    test "refuses a title too short to identify anything", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} = create_listing(seller, title: "ab")
+    end
+
+    test "accepts a title at the length limit", %{seller: seller} do
+      title = String.duplicate("a", 140)
+
+      assert create_listing!(seller, title: title).title == title
+    end
+
+    test "refuses a title past the length limit", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               create_listing(seller, title: String.duplicate("a", 141))
+    end
+
+    test "refuses a description past the length limit", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               create_listing(seller, description: String.duplicate("a", 5001))
+    end
+
+    test "refuses a free listing", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} = create_listing(seller, price: 0)
+    end
+
+    test "refuses a negative price", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} = create_listing(seller, price: -100)
+    end
+
+    test "accepts a quantity of none left", %{seller: seller} do
+      assert create_listing!(seller, quantity: 0).quantity == 0
+    end
+
+    test "refuses a negative quantity", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} = create_listing(seller, quantity: -1)
+    end
+  end
+
   describe "category" do
     test "a listing belongs to the category it was filed under", %{seller: seller} do
       category = generate(category())
@@ -183,11 +221,17 @@ defmodule Mercato.Listings.ListingTest do
     end
   end
 
-  defp create_listing!(seller, attrs \\ []) do
+  defp create_listing(seller, attrs \\ []) do
     attrs =
       Enum.into(attrs, %{title: "A listing", price: 1000, category_id: default_category_id()})
 
-    Listings.create_listing!(attrs, actor: seller, authorize?: false)
+    Listings.create_listing(attrs, actor: seller, authorize?: false)
+  end
+
+  defp create_listing!(seller, attrs \\ []) do
+    {:ok, listing} = create_listing(seller, attrs)
+
+    listing
   end
 
   # One category for the whole test, since only the category describe block
