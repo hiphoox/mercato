@@ -221,7 +221,7 @@ defmodule Mercato.Listings.ListingTest do
     end
   end
 
-  defp create_listing(seller, attrs \\ []) do
+  defp create_listing(seller, attrs) do
     attrs =
       Enum.into(attrs, %{title: "A listing", price: 1000, category_id: default_category_id()})
 

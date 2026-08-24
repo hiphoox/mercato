@@ -68,6 +68,27 @@ defmodule Mercato.TestGenerators do
     )
   end
 
+  @doc """
+  An image in `opts[:listing]`'s gallery, or in one generated for the purpose.
+
+  The listing is an option rather than an attribute so a caller can add several
+  images to the same gallery and watch them order themselves.
+  """
+  def listing_image(opts \\ []) do
+    {listing, opts} = Keyword.pop_lazy(opts, :listing, fn -> generate(listing()) end)
+
+    changeset_generator(
+      Mercato.Listings.ListingImage,
+      :create,
+      authorize?: false,
+      defaults: [
+        listing_id: listing.id,
+        storage_key: sequence(:listing_image_key, &"listings/image-#{&1}.jpg")
+      ],
+      overrides: opts
+    )
+  end
+
   def user(opts \\ []) do
     changeset_generator(
       Mercato.Accounts.User,

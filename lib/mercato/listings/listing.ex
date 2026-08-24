@@ -107,5 +107,10 @@ defmodule Mercato.Listings.Listing do
       allow_nil? false
       public? true
     end
+
+    has_many :images, Mercato.Listings.ListingImage do
+      sort position: :asc
+      public? true
+    end
   end
 end

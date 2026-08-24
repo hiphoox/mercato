@@ -17,6 +17,13 @@ defmodule Mercato.Listings do
       define :create_category, action: :create
       define :list_categories, action: :read
     end
+
+    resource Mercato.Listings.ListingImage do
+      define :add_listing_image, action: :create
+      define :list_listing_images, action: :by_listing, args: [:listing_id]
+      define :set_listing_image_cover, action: :set_cover
+      define :delete_listing_image, action: :destroy
+    end
   end
 
   @default_currency "USD"
