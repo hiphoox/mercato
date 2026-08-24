@@ -16,10 +16,11 @@ defmodule Mercato.Accounts.UserDeleteAccountTest do
     tmp_dir =
       Path.join(System.tmp_dir!(), "#{@tmp_dir_prefix}-#{System.unique_integer([:positive])}")
 
+    original = Application.fetch_env!(:mercato, Mercato.Ports.Storage.Local)
     Application.put_env(:mercato, Mercato.Ports.Storage.Local, storage_path: tmp_dir)
 
     on_exit(fn ->
-      Application.delete_env(:mercato, Mercato.Ports.Storage.Local)
+      Application.put_env(:mercato, Mercato.Ports.Storage.Local, original)
       File.rm_rf!(tmp_dir)
     end)
 

@@ -422,21 +422,6 @@ defmodule Mercato.Accounts.UserTest do
   end
 
   describe "update_avatar" do
-    setup do
-      tmp_dir =
-        Path.join(System.tmp_dir!(), "mercato_avatar_test_#{System.unique_integer([:positive])}")
-
-      File.mkdir_p!(tmp_dir)
-      Application.put_env(:mercato, Mercato.Ports.Storage.Local, storage_path: tmp_dir)
-
-      on_exit(fn ->
-        Application.delete_env(:mercato, Mercato.Ports.Storage.Local)
-        File.rm_rf!(tmp_dir)
-      end)
-
-      :ok
-    end
-
     test "uploads the image via the storage port and sets avatar_url" do
       user = generate(user())
       refute user.avatar_url

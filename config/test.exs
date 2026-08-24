@@ -22,6 +22,11 @@ config :mercato, MercatoWeb.Endpoint,
   secret_key_base: "vFLDFmRbVhMbDNRi/Cl87qpYVJmzggwJE0PEXXKZs6aSoVpTUU5uLyw5v9ba55Yj",
   server: false
 
+# Uploads land in a scratch directory the suite owns, so a test never writes
+# into the checkout's static assets.
+config :mercato, Mercato.Ports.Storage.Local,
+  storage_path: Path.join(__DIR__, "../tmp/test_uploads")
+
 # In test we don't send emails
 config :mercato, Mercato.Mailer, adapter: Swoosh.Adapters.Test
 

@@ -160,10 +160,11 @@ defmodule MercatoWeb.ProfileLiveTest do
         )
 
       File.mkdir_p!(tmp_dir)
+      original = Application.fetch_env!(:mercato, Mercato.Ports.Storage.Local)
       Application.put_env(:mercato, Mercato.Ports.Storage.Local, storage_path: tmp_dir)
 
       on_exit(fn ->
-        Application.delete_env(:mercato, Mercato.Ports.Storage.Local)
+        Application.put_env(:mercato, Mercato.Ports.Storage.Local, original)
         File.rm_rf!(tmp_dir)
       end)
 

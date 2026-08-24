@@ -8,10 +8,11 @@ defmodule Mercato.Ports.Storage.LocalTest do
       Path.join(System.tmp_dir!(), "mercato_storage_test_#{System.unique_integer([:positive])}")
 
     File.mkdir_p!(tmp_dir)
+    original = Application.fetch_env!(:mercato, Local)
     Application.put_env(:mercato, Local, storage_path: tmp_dir)
 
     on_exit(fn ->
-      Application.delete_env(:mercato, Local)
+      Application.put_env(:mercato, Local, original)
       File.rm_rf!(tmp_dir)
     end)
 
