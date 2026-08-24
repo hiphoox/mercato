@@ -31,6 +31,18 @@ defmodule Mercato.Listings.Listing do
     update :update do
       accept [:title, :description, :price, :quantity, :condition, :category_id]
     end
+
+    destroy :destroy do
+      description "Removes the listing along with the gallery it owns."
+      primary? true
+      require_atomic? false
+
+      # Each image is destroyed through its own action rather than by the
+      # database, so the file behind it is freed rather than left orphaned.
+      # Before the listing, not after: the gallery's rows point at it, and the
+      # database refuses to leave them dangling.
+      change cascade_destroy(:images, after_action?: false)
+    end
   end
 
   attributes do

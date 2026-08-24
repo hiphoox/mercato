@@ -11,6 +11,7 @@ defmodule Mercato.Listings do
     resource Mercato.Listings.Listing do
       define :create_listing, action: :create
       define :update_listing, action: :update
+      define :delete_listing, action: :destroy
     end
 
     resource Mercato.Listings.Category do
@@ -46,4 +47,21 @@ defmodule Mercato.Listings do
   sets it to `[]`, which leaves every listing's condition blank.
   """
   def conditions, do: Application.get_env(:mercato, :listing_conditions, @default_conditions)
+
+  @default_image_types ["image/jpeg", "image/png", "image/webp"]
+
+  @doc """
+  The image types a listing's gallery accepts.
+
+  Matched against the file's own leading bytes rather than the name it arrives
+  under, so renaming a file does not get it past the check.
+  """
+  def image_types, do: Application.get_env(:mercato, :listing_image_types, @default_image_types)
+
+  @default_image_max_bytes 5_242_880
+
+  @doc "The largest image a listing's gallery accepts, in bytes."
+  def image_max_bytes do
+    Application.get_env(:mercato, :listing_image_max_bytes, @default_image_max_bytes)
+  end
 end

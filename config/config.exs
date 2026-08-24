@@ -63,6 +63,11 @@ config :mercato, :currency, "USD"
 # marketplace sells, or set it to [] to drop the field entirely.
 config :mercato, :listing_conditions, ["new", "like_new", "good", "fair"]
 
+# What a listing's gallery accepts. Types are matched against the file's own
+# leading bytes, not against the name it arrives under.
+config :mercato, :listing_image_types, ["image/jpeg", "image/png", "image/webp"]
+config :mercato, :listing_image_max_bytes, 5_242_880
+
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],

@@ -83,11 +83,20 @@ defmodule Mercato.TestGenerators do
       authorize?: false,
       defaults: [
         listing_id: listing.id,
-        storage_key: sequence(:listing_image_key, &"listings/image-#{&1}.jpg")
+        image: png_bytes(),
+        filename: sequence(:listing_image_filename, &"image-#{&1}.png")
       ],
       overrides: opts
     )
   end
+
+  @doc """
+  The smallest bytes that a type check will accept as a PNG.
+
+  A real signature rather than arbitrary content, because an upload is
+  identified by the bytes it starts with.
+  """
+  def png_bytes, do: <<0x89, "PNG\r\n", 0x1A, 0x0A, "test image">>
 
   def user(opts \\ []) do
     changeset_generator(

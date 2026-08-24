@@ -1,5 +1,5 @@
 defmodule Mercato.Listings.ListingImageTest do
-  use Mercato.DataCase, async: true
+  use Mercato.DataCase, async: false
 
   import Mercato.TestGenerators
 
@@ -10,25 +10,134 @@ defmodule Mercato.Listings.ListingImageTest do
   end
 
   describe "add_listing_image/2" do
-    test "stores the key the image was uploaded under", %{listing: listing} do
-      assert {:ok, image} = add_image(listing, "listings/abc/photo.jpg")
+    test "puts the file in storage and records the key it went to", %{listing: listing} do
+      assert {:ok, image} = add_image(listing, filename: "photo.png")
 
-      assert image.storage_key == "listings/abc/photo.jpg"
       assert image.listing_id == listing.id
+      assert image.storage_key =~ "photo.png"
+      assert {:ok, bytes} = storage().get(image.storage_key)
+      assert bytes == png_bytes()
     end
 
-    test "requires a storage key", %{listing: listing} do
+    test "requires a name to store the file under", %{listing: listing} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.add_listing_image(%{listing_id: listing.id}, authorize?: false)
+               Listings.add_listing_image(%{listing_id: listing.id, image: png_bytes()},
+                 authorize?: false
+               )
+    end
+
+    test "keeps each upload under its own key", %{listing: listing} do
+      first = add_image!(listing, filename: "photo.png")
+      second = add_image!(listing, filename: "photo.png")
+
+      refute first.storage_key == second.storage_key
+    end
+
+    test "cannot be aimed out of the listing's own folder", %{listing: listing} do
+      image = add_image!(listing, filename: "../../escape.png")
+
+      refute image.storage_key =~ ".."
+      assert {:ok, _bytes} = storage().get(image.storage_key)
+    end
+
+    test "requires the file itself", %{listing: listing} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.add_listing_image(%{listing_id: listing.id, filename: "photo.png"},
+                 authorize?: false
+               )
     end
 
     test "requires a listing" do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.add_listing_image(%{storage_key: "orphan.jpg"}, authorize?: false)
+               Listings.add_listing_image(%{image: png_bytes(), filename: "orphan.png"},
+                 authorize?: false
+               )
     end
 
     test "stamps the created timestamp", %{listing: listing} do
       assert %DateTime{} = add_image!(listing).created_at
+    end
+  end
+
+  describe "accepted files" do
+    test "accepts each type the marketplace allows", %{listing: listing} do
+      for {bytes, name} <- [
+            {png_bytes(), "a.png"},
+            {jpeg_bytes(), "a.jpg"},
+            {webp_bytes(), "a.webp"}
+          ] do
+        assert {:ok, _image} = add_image(listing, image: bytes, filename: name)
+      end
+    end
+
+    test "refuses a file that is not an image at all", %{listing: listing} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               add_image(listing, image: "just some text", filename: "notes.png")
+    end
+
+    test "refuses an image type the marketplace does not allow", %{listing: listing} do
+      # A GIF is recognisable, but not in the configured list.
+      assert {:error, %Ash.Error.Invalid{}} =
+               add_image(listing, image: <<"GIF89a", 0, 0>>, filename: "animation.gif")
+    end
+
+    test "judges the file by its bytes, not by the name it arrives under",
+         %{listing: listing} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               add_image(listing, image: "MZ not really an image", filename: "trojan.png")
+    end
+
+    test "accepts a file at the size limit", %{listing: listing} do
+      assert {:ok, _image} = add_image(listing, image: png_of_size(max_bytes()))
+    end
+
+    test "refuses a file past the size limit", %{listing: listing} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               add_image(listing, image: png_of_size(max_bytes() + 1))
+    end
+
+    test "stores nothing when the file is refused", %{listing: listing} do
+      {:error, _} = add_image(listing, image: "just some text", filename: "notes.png")
+
+      assert Listings.list_listing_images!(listing.id, authorize?: false) == []
+    end
+  end
+
+  describe "stored files" do
+    test "deleting an image deletes the file behind it", %{listing: listing} do
+      image = add_image!(listing)
+      assert {:ok, _bytes} = storage().get(image.storage_key)
+
+      :ok = Listings.delete_listing_image(image, authorize?: false)
+
+      assert {:error, _} = storage().get(image.storage_key)
+    end
+
+    test "deleting a listing deletes every file in its gallery", %{listing: listing} do
+      images = for _ <- 1..3, do: add_image!(listing)
+
+      :ok = Listings.delete_listing(listing, authorize?: false)
+
+      for image <- images do
+        assert {:error, _} = storage().get(image.storage_key)
+      end
+    end
+
+    test "deleting a listing takes its image records with it", %{listing: listing} do
+      add_image!(listing)
+
+      :ok = Listings.delete_listing(listing, authorize?: false)
+
+      assert Listings.list_listing_images!(listing.id, authorize?: false) == []
+    end
+
+    test "deleting a listing leaves another listing's files alone", %{listing: listing} do
+      keeper = add_image!(generate(listing()))
+      add_image!(listing)
+
+      :ok = Listings.delete_listing(listing, authorize?: false)
+
+      assert {:ok, _bytes} = storage().get(keeper.storage_key)
     end
   end
 
@@ -188,18 +297,35 @@ defmodule Mercato.Listings.ListingImageTest do
     end
   end
 
-  defp add_image(listing, storage_key) do
-    storage_key = storage_key || "listings/#{listing.id}/#{Ash.UUID.generate()}.jpg"
+  defp add_image(listing, opts) do
+    attrs = %{
+      listing_id: listing.id,
+      image: Keyword.get(opts, :image, png_bytes()),
+      filename: Keyword.get(opts, :filename, "photo.png")
+    }
 
-    Listings.add_listing_image(%{listing_id: listing.id, storage_key: storage_key},
-      authorize?: false
-    )
+    Listings.add_listing_image(attrs, authorize?: false)
   end
 
-  defp add_image!(listing, storage_key \\ nil) do
-    {:ok, image} = add_image(listing, storage_key)
+  defp add_image!(listing, opts \\ []) do
+    {:ok, image} = add_image(listing, opts)
 
     image
+  end
+
+  defp storage, do: Application.fetch_env!(:mercato, :storage_adapter)
+
+  defp max_bytes, do: Listings.image_max_bytes()
+
+  defp jpeg_bytes, do: <<0xFF, 0xD8, 0xFF, 0xE0, "jfif">>
+
+  defp webp_bytes, do: <<"RIFF", 0, 0, 0, 0, "WEBP", "vp8">>
+
+  # A real PNG signature padded out to exactly `size` bytes.
+  defp png_of_size(size) do
+    signature = <<0x89, "PNG\r\n", 0x1A, 0x0A>>
+
+    signature <> String.duplicate("x", size - byte_size(signature))
   end
 
   defp reload(image), do: Ash.reload!(image, authorize?: false)

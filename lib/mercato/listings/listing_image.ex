@@ -10,7 +10,7 @@ defmodule Mercato.Listings.ListingImage do
 
   use Ash.Resource, otp_app: :mercato, domain: Mercato.Listings, data_layer: AshSqlite.DataLayer
 
-  alias Mercato.Listings.ListingImage.Changes
+  alias Mercato.Listings.ListingImage.{Changes, Validations}
 
   sqlite do
     table "listing_images"
@@ -28,13 +28,28 @@ defmodule Mercato.Listings.ListingImage do
     defaults [:read]
 
     create :create do
-      description "Adds an image to the end of a listing's gallery."
+      description "Uploads a file and adds it to the end of a listing's gallery."
+
+      # The key is not accepted either: it names a place in storage that only
+      # the upload itself can know, so a caller supplying one would be pointing
+      # the record at a file it never wrote.
+      accept [:listing_id]
+
+      argument :image, :binary do
+        allow_nil? false
+      end
+
+      argument :filename, :string do
+        allow_nil? false
+      end
+
+      validate Validations.ImageWithinSizeLimit
+      validate Validations.ImageOfAllowedType
 
       # Position and cover are the gallery's business, not the caller's: both
       # are decided from what the listing already holds.
-      accept [:listing_id, :storage_key]
-
       change Changes.PlaceInGallery
+      change Changes.StoreImage
     end
 
     read :by_listing do
@@ -70,6 +85,7 @@ defmodule Mercato.Listings.ListingImage do
       require_atomic? false
 
       change Changes.PromoteNextCover
+      change Changes.DeleteStoredImage
     end
   end
 
