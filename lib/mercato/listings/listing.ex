@@ -10,15 +10,37 @@ defmodule Mercato.Listings.Listing do
     otp_app: :mercato,
     domain: Mercato.Listings,
     data_layer: AshSqlite.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    extensions: [AshArchival.Resource]
+
+  alias Mercato.Accounts.User.Checks.ActorHasPermission
 
   sqlite do
     table "listings"
     repo Mercato.Repo
   end
 
+  archive do
+    # A seller's delete is a real one, so it opts out: nothing is kept of a
+    # listing that never sold. Moderation's is the archiving one.
+    exclude_destroy_actions [:destroy]
+
+    # Every read hides archived listings on its own, so a read added later is
+    # hidden by default rather than by remembering to say so. The moderation
+    # view is the one place the backup can be seen.
+    exclude_read_actions [:list_for_moderation]
+
+    # Images are deliberately left alone: they are most of what a report about a
+    # listing is actually about, and a restored listing needs them back.
+    archive_related []
+  end
+
   actions do
     defaults [:read]
+
+    read :list_for_moderation do
+      description "Every listing including those moderation has taken down."
+    end
 
     create :create do
       description "Publishes nothing yet — a new listing starts as the seller's draft."
@@ -107,20 +129,43 @@ defmodule Mercato.Listings.Listing do
       primary? true
       require_atomic? false
 
+      # A sold listing is the record of a sale, so it outlives the seller's
+      # wish to be rid of it. Checked against the row as well as the copy the
+      # caller passed in, which may have been fetched before the sale.
+      validate attribute_does_not_equal(:status, :sold)
+      change filter(expr(status != :sold))
+
       # Each image is destroyed through its own action rather than by the
       # database, so the file behind it is freed rather than left orphaned.
       # Before the listing, not after: the gallery's rows point at it, and the
       # database refuses to leave them dangling.
       change cascade_destroy(:images, after_action?: false)
     end
+
+    destroy :moderate_delete do
+      description "Takes a listing down while keeping it as an internal backup."
+      require_atomic? false
+
+      # Archived rather than destroyed, so the row and its gallery survive for a
+      # dispute or for restoring a listing taken down in error. Sold is allowed
+      # here precisely because nothing is lost.
+      change set_attribute(:status, :deleted)
+    end
   end
 
   policies do
     # Filtering rather than refusing, so a public browse gets the listings on
     # offer instead of an error. A seller sees their own whatever state it is in.
-    policy action_type(:read) do
+    policy action(:read) do
       authorize_if expr(status == :active)
       authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Strict, not the default :filter — someone outside the admin area must be
+    # refused outright rather than handed an empty page.
+    policy action(:list_for_moderation) do
+      access_type :strict
+      authorize_if {ActorHasPermission, permission: "admin:access"}
     end
 
     # The creator becomes the seller, so there has to be one.
@@ -132,8 +177,14 @@ defmodule Mercato.Listings.Listing do
       authorize_if expr(seller_id == ^actor(:id))
     end
 
-    policy action_type(:destroy) do
+    policy action(:destroy) do
       authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Taking down someone else's listing is moderation, not ownership, so it
+    # rides on a permission rather than on who the seller is.
+    policy action(:moderate_delete) do
+      authorize_if {ActorHasPermission, permission: "listing:delete"}
     end
 
     # Named on its own so the seller rule above does not also cover it: a

@@ -47,9 +47,9 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 17. [x] `active` is the only state visible in public browse and search
 18. [x] `unavailable` is a reversible seller-initiated pause, visible only on the seller's own profile
 19. [x] `sold` is set by the system when a purchase completes and is terminal
-20. [ ] A listing that reached `sold` cannot be deleted; it is retained as transaction history
-21. [ ] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
-22. [ ] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
+20. [x] A listing that reached `sold` cannot be deleted; it is retained as transaction history
+21. [x] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
+22. [x] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
 23. [ ] Deleting a listing with a purchase in flight is refused or requires explicit confirmation
 
 ### Create & edit

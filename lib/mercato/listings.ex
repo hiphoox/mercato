@@ -13,6 +13,8 @@ defmodule Mercato.Listings do
       define :update_listing, action: :update
       define :delete_listing, action: :destroy
       define :list_listings, action: :read
+      define :list_listings_for_moderation, action: :list_for_moderation
+      define :moderate_delete_listing, action: :moderate_delete
       define :publish_listing, action: :publish
       define :pause_listing, action: :pause
       define :resume_listing, action: :resume

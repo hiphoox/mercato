@@ -77,6 +77,16 @@ A listing on offer is visible to everyone. A listing in any other state is visib
 
 Only the seller who owns a listing may edit it, publish it, pause it, resume it, or delete it. Creating a listing requires an account, and the account creating it becomes its seller — ownership is never something the request supplies.
 
+## Deletion
+
+A listing is removed in one of two ways, and they are not the same thing.
+
+A seller removing their own listing removes it outright — the listing and its gallery are gone, and the storage its images occupied is freed. This is only available for a listing that never sold: once a purchase has completed, the listing is the record of that sale and is kept for accounting and for settling disputes, whatever the seller would prefer.
+
+Moderation removing a listing keeps it. The listing stops being visible to anyone — its seller included — but the record and its images survive as an internal backup, so a listing taken down in error can be restored and a report about one can still be investigated. Because nothing is lost this way, moderation may take down a listing that has sold.
+
+Taking a listing down is a moderation power rather than an ownership one: it is held by platform staff, and a seller has no way to use it on their own listing or anyone else's.
+
 ## Timestamps
 
 Every listing records when it was created and when it was last changed.
