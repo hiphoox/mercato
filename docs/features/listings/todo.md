@@ -87,7 +87,7 @@ Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/t
 39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
 40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
 41. [ ] Listing-created and listing-sold events other features can subscribe to
-58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change
+58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin/todo.md](../admin/todo.md)
 
 ### Taxonomy
 
