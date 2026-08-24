@@ -32,6 +32,66 @@ defmodule Mercato.Listings.Listing do
       accept [:title, :description, :price, :quantity, :condition, :category_id]
     end
 
+    update :publish do
+      description "Offers a draft listing to buyers."
+      accept []
+
+      validate data_one_of(:status, [:draft])
+
+      # The database has the last word on the state moved from. The validation
+      # above reads the copy the caller passed in, which may have been fetched
+      # before someone else moved the listing on.
+      change filter(expr(status == :draft))
+
+      change set_attribute(:status, :active)
+
+      # Stamped here and nowhere else. Publish is reachable only from a draft,
+      # so this records first publication and a later pause leaves it standing.
+      change set_attribute(:published_at, &DateTime.utc_now/0)
+    end
+
+    update :pause do
+      description "Takes a listing off offer without giving it up."
+      accept []
+
+      validate data_one_of(:status, [:active])
+
+      # The database has the last word on the state moved from. The validation
+      # above reads the copy the caller passed in, which may have been fetched
+      # before someone else moved the listing on.
+      change filter(expr(status == :active))
+
+      change set_attribute(:status, :unavailable)
+    end
+
+    update :resume do
+      description "Puts a paused listing back on offer."
+      accept []
+
+      validate data_one_of(:status, [:unavailable])
+
+      # The database has the last word on the state moved from. The validation
+      # above reads the copy the caller passed in, which may have been fetched
+      # before someone else moved the listing on.
+      change filter(expr(status == :unavailable))
+
+      change set_attribute(:status, :active)
+    end
+
+    update :mark_sold do
+      description "Records that a purchase completed. Terminal."
+      accept []
+
+      validate data_one_of(:status, [:active])
+
+      # The database has the last word on the state moved from. The validation
+      # above reads the copy the caller passed in, which may have been fetched
+      # before someone else moved the listing on.
+      change filter(expr(status == :active))
+
+      change set_attribute(:status, :sold)
+    end
+
     destroy :destroy do
       description "Removes the listing along with the gallery it owns."
       primary? true

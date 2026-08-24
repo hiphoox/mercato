@@ -1,7 +1,7 @@
 ---
 type: domain
 title: Listings
-description: Business rules for the Listing entity — ownership, price, quantity, category, condition, and lifecycle state.
+description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
 tags: [domain, listings, marketplace, pricing, categories]
 timestamp: 2026-08-24T00:00:00Z
 ---
@@ -53,6 +53,29 @@ Every listing holds one lifecycle state, and a new listing begins as a draft.
 | `deleted` | Withdrawn from the marketplace |
 
 A listing also records when it was first published, which stays blank until publication. That stamp marks first publication rather than current visibility, so it survives a later pause.
+
+A listing moves between states only along these paths:
+
+| From | To | Meaning |
+|---|---|---|
+| `draft` | `active` | The seller publishes it |
+| `active` | `unavailable` | The seller pauses it |
+| `unavailable` | `active` | The seller resumes it |
+| `active` | `sold` | A purchase completed |
+
+`sold` and `deleted` lead nowhere, so a listing that reaches either stays there.
+
+Publishing is what stamps the first-publication date, and it is the only thing that does. Pausing and resuming leave that stamp alone.
+
+Being sold is recorded by the platform when a purchase completes. It is not something a seller declares, so `sold` always means money changed hands here.
+
+## Who sees a listing
+
+A listing on offer is visible to everyone. A listing in any other state is visible only to the seller who owns it, so a draft is private while it is being composed and a paused listing disappears from public view without being lost.
+
+## Who may change a listing
+
+Only the seller who owns a listing may edit it, publish it, pause it, resume it, or delete it. Creating a listing requires an account, and the account creating it becomes its seller — ownership is never something the request supplies.
 
 ## Timestamps
 

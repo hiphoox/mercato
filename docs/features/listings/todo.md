@@ -41,11 +41,11 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Lifecycle
 
-15. [ ] States: `draft`, `active`, `unavailable`, `sold`, `deleted`
-16. [ ] `draft` is seller-only and becomes `active` on publish
-17. [ ] `active` is the only state visible in public browse and search
-18. [ ] `unavailable` is a reversible seller-initiated pause, visible only on the seller's own profile
-19. [ ] `sold` is set by the system when a purchase completes and is terminal
+15. [x] States: `draft`, `active`, `unavailable`, `sold`, `deleted`
+16. [x] `draft` is seller-only and becomes `active` on publish
+17. [x] `active` is the only state visible in public browse and search
+18. [x] `unavailable` is a reversible seller-initiated pause, visible only on the seller's own profile
+19. [x] `sold` is set by the system when a purchase completes and is terminal
 20. [ ] A listing that reached `sold` cannot be deleted; it is retained as transaction history
 21. [ ] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
 22. [ ] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)

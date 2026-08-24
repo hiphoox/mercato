@@ -12,6 +12,11 @@ defmodule Mercato.Listings do
       define :create_listing, action: :create
       define :update_listing, action: :update
       define :delete_listing, action: :destroy
+      define :list_listings, action: :read
+      define :publish_listing, action: :publish
+      define :pause_listing, action: :pause
+      define :resume_listing, action: :resume
+      define :mark_listing_sold, action: :mark_sold
     end
 
     resource Mercato.Listings.Category do
