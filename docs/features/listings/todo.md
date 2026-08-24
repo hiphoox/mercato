@@ -27,7 +27,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 4. [x] Single currency for the whole instance, set by config
 5. [x] Quantity defaults to 1
 6. [x] `condition` as a free enum with a config-supplied value list (new / like new / good / fair), so a non-goods marketplace can empty or replace it
-7. [ ] `Category` as a flat, seeded catalog with a listing belonging to one category
+7. [x] `Category` as a flat, seeded catalog with a listing belonging to one category
 8. [ ] Validation: title length bounds, price greater than zero, quantity non-negative, description length cap
 
 ### Media

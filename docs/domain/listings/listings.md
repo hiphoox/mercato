@@ -1,8 +1,8 @@
 ---
 type: domain
 title: Listings
-description: Business rules for the Listing entity — ownership, price, quantity, condition, and lifecycle state.
-tags: [domain, listings, marketplace, pricing]
+description: Business rules for the Listing entity — ownership, price, quantity, category, condition, and lifecycle state.
+tags: [domain, listings, marketplace, pricing, categories]
 timestamp: 2026-08-24T00:00:00Z
 ---
 
@@ -25,6 +25,12 @@ The marketplace runs on a single currency. It is set for the whole instance and 
 ## Quantity
 
 Quantity is how many units the listing offers. A listing offers one unit unless the seller says otherwise.
+
+## Category
+
+Every listing is filed under exactly one category, and a category holds any number of listings. Categories form a flat catalog: they have no parent and no nesting.
+
+The catalog is fixed by the marketplace rather than by sellers — a seller picks from it and cannot add to it. Each category carries a display name and a stable identifier that survives a rename, so browsing a category keeps working after the name it shows changes.
 
 ## Condition
 

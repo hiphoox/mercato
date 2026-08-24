@@ -21,7 +21,7 @@ defmodule Mercato.Listings.Listing do
 
       # Currency is deliberately not accepted: the instance has one currency,
       # so a listing stamps the configured default rather than choosing.
-      accept [:title, :description, :price, :quantity, :condition]
+      accept [:title, :description, :price, :quantity, :condition, :category_id]
 
       # The seller is the actor, never a client-supplied id: accepting
       # seller_id would let a caller create a listing under someone else's name.
@@ -29,7 +29,7 @@ defmodule Mercato.Listings.Listing do
     end
 
     update :update do
-      accept [:title, :description, :price, :quantity, :condition]
+      accept [:title, :description, :price, :quantity, :condition, :category_id]
     end
   end
 
@@ -91,6 +91,11 @@ defmodule Mercato.Listings.Listing do
 
   relationships do
     belongs_to :seller, Mercato.Accounts.User do
+      allow_nil? false
+      public? true
+    end
+
+    belongs_to :category, Mercato.Listings.Category do
       allow_nil? false
       public? true
     end

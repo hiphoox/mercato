@@ -14,7 +14,12 @@ defmodule Mercato.Listings.ListingTest do
     test "creates a listing owned by the acting seller", %{seller: seller} do
       assert {:ok, listing} =
                Listings.create_listing(
-                 %{title: "Vintage denim jacket", description: "Barely worn.", price: 4500},
+                 %{
+                   title: "Vintage denim jacket",
+                   description: "Barely worn.",
+                   price: 4500,
+                   category_id: default_category_id()
+                 },
                  actor: seller,
                  authorize?: false
                )
@@ -44,17 +49,26 @@ defmodule Mercato.Listings.ListingTest do
 
     test "refuses a listing with no acting seller" do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{title: "Orphaned", price: 100}, authorize?: false)
+               Listings.create_listing(
+                 %{title: "Orphaned", price: 100, category_id: default_category_id()},
+                 authorize?: false
+               )
     end
 
     test "requires a title", %{seller: seller} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{price: 100}, actor: seller, authorize?: false)
+               Listings.create_listing(%{price: 100, category_id: default_category_id()},
+                 actor: seller,
+                 authorize?: false
+               )
     end
 
     test "requires a price", %{seller: seller} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{title: "Priceless"}, actor: seller, authorize?: false)
+               Listings.create_listing(%{title: "Priceless", category_id: default_category_id()},
+                 actor: seller,
+                 authorize?: false
+               )
     end
   end
 
@@ -68,7 +82,8 @@ defmodule Mercato.Listings.ListingTest do
 
     test "refuses a fractional major-unit amount", %{seller: seller} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{title: "Denim", price: 19.99},
+               Listings.create_listing(
+                 %{title: "Denim", price: 19.99, category_id: default_category_id()},
                  actor: seller,
                  authorize?: false
                )
@@ -82,7 +97,13 @@ defmodule Mercato.Listings.ListingTest do
 
     test "refuses a seller-supplied currency on create", %{seller: seller} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{title: "Denim", price: 1999, currency: "GBP"},
+               Listings.create_listing(
+                 %{
+                   title: "Denim",
+                   price: 1999,
+                   currency: "GBP",
+                   category_id: default_category_id()
+                 },
                  actor: seller,
                  authorize?: false
                )
@@ -110,7 +131,34 @@ defmodule Mercato.Listings.ListingTest do
 
     test "refuses a condition outside the configured list", %{seller: seller} do
       assert {:error, %Ash.Error.Invalid{}} =
-               Listings.create_listing(%{title: "Denim", price: 1999, condition: "mint"},
+               Listings.create_listing(
+                 %{
+                   title: "Denim",
+                   price: 1999,
+                   condition: "mint",
+                   category_id: default_category_id()
+                 },
+                 actor: seller,
+                 authorize?: false
+               )
+    end
+  end
+
+  describe "category" do
+    test "a listing belongs to the category it was filed under", %{seller: seller} do
+      category = generate(category())
+
+      listing =
+        seller
+        |> create_listing!(category_id: category.id)
+        |> Ash.load!(:category, authorize?: false)
+
+      assert listing.category.id == category.id
+    end
+
+    test "refuses a listing filed under no category", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Uncategorised", price: 1000},
                  actor: seller,
                  authorize?: false
                )
@@ -136,8 +184,17 @@ defmodule Mercato.Listings.ListingTest do
   end
 
   defp create_listing!(seller, attrs \\ []) do
-    attrs = Enum.into(attrs, %{title: "A listing", price: 1000})
+    attrs =
+      Enum.into(attrs, %{title: "A listing", price: 1000, category_id: default_category_id()})
 
     Listings.create_listing!(attrs, actor: seller, authorize?: false)
+  end
+
+  # One category for the whole test, since only the category describe block
+  # cares which one a listing is filed under.
+  defp default_category_id do
+    :listing_test_category
+    |> Ash.Generator.once(fn -> generate(category()).id end)
+    |> Enum.at(0)
   end
 end

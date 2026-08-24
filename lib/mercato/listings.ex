@@ -12,6 +12,11 @@ defmodule Mercato.Listings do
       define :create_listing, action: :create
       define :update_listing, action: :update
     end
+
+    resource Mercato.Listings.Category do
+      define :create_category, action: :create
+      define :list_categories, action: :read
+    end
   end
 
   @default_currency "USD"

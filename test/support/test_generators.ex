@@ -30,14 +30,39 @@ defmodule Mercato.TestGenerators do
     generate(user(opts)) |> grant_permission("admin:access")
   end
 
-  def listing(opts \\ []) do
+  def category(opts \\ []) do
     changeset_generator(
-      Mercato.Listings.Listing,
+      Mercato.Listings.Category,
       :create,
       authorize?: false,
       defaults: [
+        name: sequence(:category_name, &"Category #{&1}"),
+        slug: sequence(:category_slug, &"category-#{&1}")
+      ],
+      overrides: opts
+    )
+  end
+
+  @doc """
+  A listing owned by `opts[:actor]`, or by a seller generated for the purpose.
+
+  The seller is an option rather than an attribute: a listing takes its owner
+  from whoever is acting, never from supplied content.
+  """
+  def listing(opts \\ []) do
+    {seller, opts} = Keyword.pop_lazy(opts, :actor, fn -> generate(user()) end)
+
+    changeset_generator(
+      Mercato.Listings.Listing,
+      :create,
+      actor: seller,
+      authorize?: false,
+      defaults: [
         title: sequence(:listing_title, &"Listing #{&1}"),
-        price: 1000
+        price: 1000,
+        # One category per test process rather than one per listing: every
+        # listing needs a category, but few tests care which.
+        category_id: once(:listing_category, fn -> generate(category()).id end)
       ],
       overrides: opts
     )
