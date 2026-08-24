@@ -90,6 +90,13 @@ defmodule Mercato.Listings.ListingLifecycleTest do
       assert listing.status == :sold
     end
 
+    test "is not something the seller does by hand", %{seller: seller, listing: listing} do
+      listing = publish!(seller, listing)
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               Listings.mark_listing_sold(listing, actor: seller)
+    end
+
     test "cannot be reached from a draft", %{seller: seller, listing: listing} do
       assert {:error, %Ash.Error.Invalid{}} = Listings.mark_listing_sold(listing)
       assert publish!(seller, listing).status == :active
@@ -115,6 +122,91 @@ defmodule Mercato.Listings.ListingLifecycleTest do
     end
   end
 
+  describe "who can see what" do
+    test "a stranger sees only what is on offer", %{seller: seller, listing: draft} do
+      stranger = generate(user())
+      offered = seller |> new_listing() |> publish!(seller)
+      paused = seller |> new_listing() |> publish!(seller) |> pause!(seller)
+
+      visible = ids_visible_to(stranger)
+
+      assert offered.id in visible
+      refute draft.id in visible
+      refute paused.id in visible
+    end
+
+    test "a seller sees their own whatever state it is in", %{seller: seller, listing: draft} do
+      paused = seller |> new_listing() |> publish!(seller) |> pause!(seller)
+
+      visible = ids_visible_to(seller)
+
+      assert draft.id in visible
+      assert paused.id in visible
+    end
+
+    test "a seller does not see another seller's draft", %{listing: draft} do
+      other = generate(user())
+
+      refute draft.id in ids_visible_to(other)
+    end
+  end
+
+  describe "who can act" do
+    test "a signed-in user may list something", %{seller: seller} do
+      category = generate(category())
+
+      assert {:ok, listing} =
+               Listings.create_listing(%{title: "Mine", price: 100, category_id: category.id},
+                 actor: seller
+               )
+
+      assert listing.seller_id == seller.id
+    end
+
+    test "a listing cannot be created with nobody to own it" do
+      category = generate(category())
+
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Nobody's", price: 100, category_id: category.id})
+    end
+
+    # On offer, so the listing is plainly visible to the other seller and it is
+    # ownership deciding the answer rather than the listing being out of sight.
+    test "only the seller may edit", %{seller: seller, listing: listing} do
+      listing = publish!(seller, listing)
+      other = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} =
+               Listings.update_listing(listing, %{title: "Hijacked"}, actor: other)
+    end
+
+    test "only the seller may pause", %{seller: seller, listing: listing} do
+      listing = publish!(seller, listing)
+      other = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} = Listings.pause_listing(listing, actor: other)
+    end
+
+    test "only the seller may delete", %{seller: seller, listing: listing} do
+      listing = publish!(seller, listing)
+      other = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} = Listings.delete_listing(listing, actor: other)
+    end
+
+    test "only the seller may publish", %{listing: listing} do
+      other = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} = Listings.publish_listing(listing, actor: other)
+    end
+
+    test "the seller may delete their own", %{seller: seller, listing: listing} do
+      assert :ok = Listings.delete_listing(listing, actor: seller)
+    end
+  end
+
+  defp new_listing(seller), do: generate(listing(actor: seller))
+
   defp publish!(seller, %Listing{} = listing), do: publish!(listing, seller)
 
   defp publish!(%Listing{} = listing, seller) do
@@ -139,5 +231,9 @@ defmodule Mercato.Listings.ListingLifecycleTest do
     {:ok, listing} = Listings.mark_listing_sold(listing)
 
     listing
+  end
+
+  defp ids_visible_to(actor) do
+    Listings.list_listings!(actor: actor) |> Enum.map(& &1.id)
   end
 end

@@ -6,7 +6,11 @@ defmodule Mercato.Listings.Listing do
   and rentals without biasing the starter kit toward retail.
   """
 
-  use Ash.Resource, otp_app: :mercato, domain: Mercato.Listings, data_layer: AshSqlite.DataLayer
+  use Ash.Resource,
+    otp_app: :mercato,
+    domain: Mercato.Listings,
+    data_layer: AshSqlite.DataLayer,
+    authorizers: [Ash.Policy.Authorizer]
 
   sqlite do
     table "listings"
@@ -30,6 +34,12 @@ defmodule Mercato.Listings.Listing do
 
     update :update do
       accept [:title, :description, :price, :quantity, :condition, :category_id]
+
+      # Run against the loaded row rather than as one atomic statement. Atomic
+      # updates carry ownership as part of the WHERE clause, so an edit by
+      # someone else comes back as "this listing changed underneath you" when
+      # the honest answer is that it belongs to another seller.
+      require_atomic? false
     end
 
     update :publish do
@@ -102,6 +112,36 @@ defmodule Mercato.Listings.Listing do
       # Before the listing, not after: the gallery's rows point at it, and the
       # database refuses to leave them dangling.
       change cascade_destroy(:images, after_action?: false)
+    end
+  end
+
+  policies do
+    # Filtering rather than refusing, so a public browse gets the listings on
+    # offer instead of an error. A seller sees their own whatever state it is in.
+    policy action_type(:read) do
+      authorize_if expr(status == :active)
+      authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # The creator becomes the seller, so there has to be one.
+    policy action_type(:create) do
+      authorize_if actor_present()
+    end
+
+    policy action([:update, :publish, :pause, :resume]) do
+      authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    policy action_type(:destroy) do
+      authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Named on its own so the seller rule above does not also cover it: a
+    # listing is sold because a purchase completed, never because someone said
+    # so. Only the platform, acting for nobody, may record it.
+    policy action(:mark_sold) do
+      forbid_if actor_present()
+      authorize_if always()
     end
   end
 
