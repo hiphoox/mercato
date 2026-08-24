@@ -1,0 +1,143 @@
+defmodule Mercato.Listings.ListingTest do
+  use Mercato.DataCase, async: true
+
+  import Mercato.TestGenerators
+
+  alias Mercato.Listings
+  alias Mercato.Listings.Listing
+
+  setup do
+    %{seller: generate(user())}
+  end
+
+  describe "create_listing/2" do
+    test "creates a listing owned by the acting seller", %{seller: seller} do
+      assert {:ok, listing} =
+               Listings.create_listing(
+                 %{title: "Vintage denim jacket", description: "Barely worn.", price: 4500},
+                 actor: seller,
+                 authorize?: false
+               )
+
+      assert listing.title == "Vintage denim jacket"
+      assert listing.description == "Barely worn."
+      assert listing.seller_id == seller.id
+    end
+
+    test "starts as a draft that has never been published", %{seller: seller} do
+      listing = create_listing!(seller)
+
+      assert listing.status == :draft
+      assert listing.published_at == nil
+    end
+
+    test "defaults quantity to a single unit", %{seller: seller} do
+      assert create_listing!(seller).quantity == 1
+    end
+
+    test "stamps the created and updated timestamps", %{seller: seller} do
+      listing = create_listing!(seller)
+
+      assert %DateTime{} = listing.created_at
+      assert %DateTime{} = listing.updated_at
+    end
+
+    test "refuses a listing with no acting seller" do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Orphaned", price: 100}, authorize?: false)
+    end
+
+    test "requires a title", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{price: 100}, actor: seller, authorize?: false)
+    end
+
+    test "requires a price", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Priceless"}, actor: seller, authorize?: false)
+    end
+  end
+
+  describe "price" do
+    test "round-trips exactly as the minor-unit integer it was given", %{seller: seller} do
+      listing = create_listing!(seller, price: 1999)
+
+      assert listing.price === 1999
+      assert Ash.get!(Listing, listing.id, authorize?: false).price === 1999
+    end
+
+    test "refuses a fractional major-unit amount", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Denim", price: 19.99},
+                 actor: seller,
+                 authorize?: false
+               )
+    end
+  end
+
+  describe "currency" do
+    test "defaults to the currency configured for the instance", %{seller: seller} do
+      assert create_listing!(seller).currency == Application.fetch_env!(:mercato, :currency)
+    end
+
+    test "refuses a seller-supplied currency on create", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Denim", price: 1999, currency: "GBP"},
+                 actor: seller,
+                 authorize?: false
+               )
+    end
+
+    test "refuses a seller-supplied currency on update", %{seller: seller} do
+      listing = create_listing!(seller)
+
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.update_listing(listing, %{currency: "GBP"},
+                 actor: seller,
+                 authorize?: false
+               )
+    end
+  end
+
+  describe "condition" do
+    test "is blank until the seller picks one", %{seller: seller} do
+      assert create_listing!(seller).condition == nil
+    end
+
+    test "accepts a condition the marketplace has configured", %{seller: seller} do
+      assert create_listing!(seller, condition: "like_new").condition == "like_new"
+    end
+
+    test "refuses a condition outside the configured list", %{seller: seller} do
+      assert {:error, %Ash.Error.Invalid{}} =
+               Listings.create_listing(%{title: "Denim", price: 1999, condition: "mint"},
+                 actor: seller,
+                 authorize?: false
+               )
+    end
+  end
+
+  describe "seller relationship" do
+    test "a seller has many listings", %{seller: seller} do
+      first = create_listing!(seller, title: "First")
+      second = create_listing!(seller, title: "Second")
+
+      seller = Ash.load!(seller, :listings, authorize?: false)
+
+      assert Enum.map(seller.listings, & &1.id) |> Enum.sort() ==
+               Enum.sort([first.id, second.id])
+    end
+
+    test "a listing belongs to its seller", %{seller: seller} do
+      listing = seller |> create_listing!() |> Ash.load!(:seller, authorize?: false)
+
+      assert listing.seller.id == seller.id
+    end
+  end
+
+  defp create_listing!(seller, attrs \\ []) do
+    attrs = Enum.into(attrs, %{title: "A listing", price: 1000})
+
+    Listings.create_listing!(attrs, actor: seller, authorize?: false)
+  end
+end

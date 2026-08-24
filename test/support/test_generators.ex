@@ -30,6 +30,19 @@ defmodule Mercato.TestGenerators do
     generate(user(opts)) |> grant_permission("admin:access")
   end
 
+  def listing(opts \\ []) do
+    changeset_generator(
+      Mercato.Listings.Listing,
+      :create,
+      authorize?: false,
+      defaults: [
+        title: sequence(:listing_title, &"Listing #{&1}"),
+        price: 1000
+      ],
+      overrides: opts
+    )
+  end
+
   def user(opts \\ []) do
     changeset_generator(
       Mercato.Accounts.User,

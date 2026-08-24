@@ -55,10 +55,18 @@ config :spark,
     "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
   ]
 
+# The single currency every price on this instance is denominated in, as an
+# ISO 4217 code. Prices are stored in this currency's minor units.
+config :mercato, :currency, "USD"
+
+# The conditions a seller may pick from. Replace the list to suit what this
+# marketplace sells, or set it to [] to drop the field entirely.
+config :mercato, :listing_conditions, ["new", "like_new", "good", "fair"]
+
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Mercato.Accounts],
+  ash_domains: [Mercato.Listings, Mercato.Accounts],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint
