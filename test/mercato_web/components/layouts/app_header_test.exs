@@ -83,6 +83,46 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     end
   end
 
+  describe "sell" do
+    test "offers a signed-in trader a way to start a listing" do
+      assert [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("href") ==
+               ["/listings/new"]
+    end
+
+    test "is the filled call to action, selling being what the bar is there to invite" do
+      class = [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("class") |> hd()
+
+      assert class =~ "bg-primary-500"
+      assert class =~ "text-white"
+    end
+
+    test "draws its look from the button vocabulary rather than restating it" do
+      # Layout belongs to the wrapper, because a class given to the button
+      # replaces its variant outright rather than adding to it.
+      assert [current_user: @user]
+             |> query("#sell-cta")
+             |> LazyHTML.attribute("class")
+             |> hd() =~ "h-[52px]"
+    end
+
+    test "is hidden from signed-out visitors, who have nowhere to be sent" do
+      assert [current_user: nil] |> query("#sell-cta") |> Enum.empty?()
+    end
+
+    test "keeps its name for a screen reader at the width that drops it" do
+      assert [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("aria-label") ==
+               ["Sell an item"]
+    end
+
+    test "shows its name from md up, where there is room for it" do
+      # Not any span: the icon is one too, and it is hidden from readers rather
+      # than from narrow screens.
+      assert [current_user: @user]
+             |> query("#sell-cta span:not([aria-hidden])")
+             |> LazyHTML.attribute("class") == ["hidden md:inline"]
+    end
+  end
+
   describe "cart" do
     test "is hidden from signed-out visitors, who have no cart" do
       assert [current_user: nil] |> query("#app-cart") |> Enum.count() == 0

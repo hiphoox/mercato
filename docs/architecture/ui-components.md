@@ -80,4 +80,6 @@ The names a component draws from when it needs a variant. Which of these a given
 
 ## Navigation bar
 
-Rounded card (radius 12) containing: logo, a pill-shaped search field (bg-2, radius pill), primary nav links, and a primary "Sell" button (sm).
+Holds, in reading order: the sidebar toggle, the logo, a search field, a primary "Sell" call to action, the cart, and the account control. Sell is the bar's filled action. Every account both buys and sells, so listing something is the thing the marketplace is for rather than a minority errand — it carries the primary fill even though the bar is on every screen, and a screen's own primary action sits alongside it without conflict: one starts something, the other finishes it. Below `md` the bar wraps and Sell keeps its icon but drops its label, which its accessible name then carries alone.
+
+The toggle, Sell and the cart are shown to a signed-in user only: there is no sidebar to toggle, nothing to list under, and no cart to open otherwise.
