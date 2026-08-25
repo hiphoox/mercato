@@ -11,20 +11,16 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.EmptyState
   import MercatoWeb.UI.ListingCard
+  import MercatoWeb.UI.ListingStatusBadge
 
   alias Mercato.Listings
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
 
-  # One row per state: how the section reads, how the badge reads, and what the
-  # trader can do from there. Order is the order the sections appear in — the
-  # listings still owed work first, the ones kept only for the record last.
   @states [
     %{
       value: :draft,
       section: "Drafts",
-      badge_kind: "neutral",
-      badge: "Draft",
       help: "Not visible to buyers yet.",
       icon: "hero-pencil-square",
       actions: [%{label: "Continue editing", variant: "primary", event: "edit"}]
@@ -32,8 +28,6 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     %{
       value: :active,
       section: "Live",
-      badge_kind: "verified",
-      badge: "Live",
       help: "On offer to buyers now.",
       icon: "hero-photo",
       actions: [
@@ -44,8 +38,6 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     %{
       value: :unavailable,
       section: "Paused",
-      badge_kind: "warning",
-      badge: "Paused",
       help: "Hidden from search until you relist.",
       icon: "hero-photo",
       actions: [
@@ -56,8 +48,6 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     %{
       value: :sold,
       section: "Sold",
-      badge_kind: "info",
-      badge: "Sold",
       help: "Kept for your records.",
       icon: "hero-photo",
       actions: [%{label: "View order", variant: "neutral", event: "view_order"}]
@@ -131,7 +121,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
           My listings
           <:subtitle>{subtitle(@listings, @counts)}</:subtitle>
           <:actions>
-            <.button id="new-listing" size="md">
+            <.button id="new-listing" size="md" navigate={~p"/listings/new"}>
               <.icon name="hero-plus" aria-hidden="true" class="size-4.5" /> New listing
             </.button>
           </:actions>
@@ -195,7 +185,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
               dimmed={state.value == :sold}
             >
               <:badges>
-                <.badge kind={state.badge_kind}>{state.badge}</.badge>
+                <.listing_status_badge status={listing.status} />
               </:badges>
               <:meta>{meta(listing, state)}</:meta>
               <:actions>
@@ -204,6 +194,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
                   id={"#{action.event}-#{listing.id}"}
                   size="sm"
                   variant={action.variant}
+                  navigate={action_target(action, listing)}
                 >
                   {action.label}
                 </.button>
@@ -286,6 +277,11 @@ defmodule MercatoWeb.Listings.MyListingsLive do
       counts[state.value] > 0 and (is_nil(status) or state.value == status)
     end)
   end
+
+  # Editing is a page rather than an event, so its control is a link. Every
+  # other action changes the listing where it stands and lands with the writes.
+  defp action_target(%{event: "edit"}, listing), do: ~p"/listings/#{listing.id}/edit"
+  defp action_target(_action, _listing), do: nil
 
   defp section_label(status) do
     case Enum.find(@states, &(&1.value == status)) do

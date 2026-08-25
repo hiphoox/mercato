@@ -18,6 +18,7 @@ A component's own anatomy — its slots, its states, what a variant means for it
 | Control heights | 32 / 36 / 44 / 52 |
 | Borders | 1px standard, 1.5px for emphasis — inputs and selected states |
 | Elevation | Subtle on a resting card, medium on hover and sticky bars, large on a sheet |
+| Card padding | 20 below `md`, 32 from `md` up — one rule for every card, so cards on a screen agree |
 
 44 is the minimum touch target. A control below it is pointer-first: it belongs beside other small controls inside a card or a dense row, never as the only action on a screen.
 
