@@ -3,6 +3,7 @@ defmodule MercatoWeb.UI.ListingStatusBadgeTest do
 
   import Phoenix.LiveViewTest
 
+  alias Mercato.Listings.Listing.Status
   alias MercatoWeb.UI.ListingStatusBadge
 
   defp badge_for(status) do
@@ -16,7 +17,7 @@ defmodule MercatoWeb.UI.ListingStatusBadgeTest do
     end
 
     test "has wording for every state a listing can hold" do
-      for status <- Mercato.Listings.Listing.Status.values() do
+      for status <- Status.values() do
         assert ListingStatusBadge.label(status) != ""
       end
     end

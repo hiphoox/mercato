@@ -228,9 +228,9 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   # on the tile cannot drift from what the gallery actually accepts.
   defp accepted(max) do
     types =
-      Mercato.Listings.image_types()
-      |> Enum.map(&(&1 |> String.split("/") |> List.last() |> String.upcase()))
-      |> Enum.join(", ")
+      Enum.map_join(Mercato.Listings.image_types(), ", ", fn type ->
+        type |> String.split("/") |> List.last() |> String.upcase()
+      end)
 
     "#{types}, up to #{max}"
   end
