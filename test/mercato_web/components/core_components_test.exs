@@ -13,6 +13,10 @@ defmodule MercatoWeb.CoreComponentsTest do
     render_component(&CoreComponents.filter_chip/1, assigns)
   end
 
+  defp render_card(assigns) do
+    render_component(&CoreComponents.card/1, assigns)
+  end
+
   defp render_button(assigns) do
     render_component(&CoreComponents.button/1, Map.put_new(assigns, :inner_block, slot("Go")))
   end
@@ -47,6 +51,21 @@ defmodule MercatoWeb.CoreComponentsTest do
 
     test "gives a neutral action the ink palette" do
       assert render_button(%{variant: "neutral"}) =~ "bg-ink-100"
+    end
+
+    test "gives a secondary action the secondary palette" do
+      html = render_button(%{variant: "secondary"})
+
+      assert html =~ "bg-secondary-500"
+      assert html =~ "text-white"
+    end
+
+    test "darkens a secondary action for dark mode, as the primary one is" do
+      assert render_button(%{variant: "secondary"}) =~ "dark:bg-secondary-600"
+    end
+
+    test "leaves the primary colour to the primary action" do
+      refute render_button(%{variant: "secondary"}) =~ "bg-primary-500"
     end
 
     test "hugs its content rather than the row it sits in" do
@@ -139,6 +158,22 @@ defmodule MercatoWeb.CoreComponentsTest do
 
     test "a plain chip has no remove control" do
       refute render_chip(label: "Active (2)", selected: false) =~ "Remove"
+    end
+  end
+
+  describe "card" do
+    test "pads tighter below md and wider from md up" do
+      html = render_card(inner_block: slot("Body"))
+
+      assert html =~ ~r/[\s"]p-5/
+      assert html =~ "md:p-8"
+    end
+
+    test "keeps the caller's classes alongside the surface" do
+      html = render_card(class: "flex flex-col gap-5", inner_block: slot("Body"))
+
+      assert html =~ "flex flex-col gap-5"
+      assert html =~ "rounded-lg"
     end
   end
 

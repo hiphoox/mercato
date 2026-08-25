@@ -94,11 +94,12 @@ defmodule MercatoWeb.CoreComponents do
       <.button>Send!</.button>
       <.button phx-click="go" variant="primary">Send!</.button>
       <.button size="sm" variant="neutral" phx-click="pause">Pause</.button>
+      <.button variant="secondary" phx-click="follow">Follow</.button>
       <.button navigate={~p"/"}>Home</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
   attr :class, :any, doc: "replaces every default class, rather than adding to them"
-  attr :variant, :string, default: "primary", values: ~w(primary neutral danger)
+  attr :variant, :string, default: "primary", values: ~w(primary secondary neutral danger)
 
   attr :size, :string,
     default: "lg",
@@ -112,6 +113,7 @@ defmodule MercatoWeb.CoreComponents do
   def button(%{rest: rest} = assigns) do
     variants = %{
       "primary" => "bg-primary-500 text-white",
+      "secondary" => "bg-secondary-500 text-white dark:bg-secondary-600",
       "neutral" => "bg-ink-100 text-ink-900 dark:bg-ink-700 dark:text-white",
       "danger" => "bg-error text-white"
     }
@@ -177,19 +179,27 @@ defmodule MercatoWeb.CoreComponents do
   @doc """
   Renders a white, bordered, shadowed card surface.
 
+  Padding follows the page's own margin regime — tighter on a phone, wider from
+  `md` up — rather than being chosen per card, so cards on one screen agree.
+
   ## Examples
 
       <.card class="flex flex-col gap-5">...</.card>
   """
   attr :class, :any, default: nil
+  attr :rest, :global
   slot :inner_block, required: true
 
   def card(assigns) do
     ~H"""
-    <div class={[
-      @class,
-      "bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-700 rounded-lg shadow-sm p-8"
-    ]}>
+    <div
+      class={[
+        @class,
+        "bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-700 rounded-lg shadow-sm",
+        "p-5 md:p-8"
+      ]}
+      {@rest}
+    >
       {render_slot(@inner_block)}
     </div>
     """
