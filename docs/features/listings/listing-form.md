@@ -33,6 +33,12 @@ The primary action names what will happen rather than which page it is on: a lis
 
 The help beneath the actions names what publishing still needs, counted against the marketplace's own minimum — a marketplace requiring no photos asks only for a title and a price.
 
+## What it says as it is filled in
+
+The form answers as the trader types rather than holding its objections until they try to save. A field is marked and told what is wrong with it — a title too short to identify the item, a price the marketplace will not take — and the mark clears as soon as the field is right. A field the trader has not reached yet is never marked, so an empty form is not a page of complaints.
+
+A price is read as the trader writes it, in whole currency units, and is refused rather than rounded when it carries more precision than the currency holds. What is typed stays in the box while it is being judged, so nothing is rewritten under the trader's cursor.
+
 ## What a refused publish looks like
 
 A publish refused for want of photos marks the gallery section itself rather than the page, names what is missing, and says that nothing written was lost.

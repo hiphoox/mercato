@@ -8,8 +8,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   action does differ. Behaviour is specified in
   `docs/features/listings/listing-form.md`.
 
-  The page reads only — its form renders with real fields and errors, but
-  saving, publishing, pausing and the gallery's controls are not yet wired.
+  The form validates as the seller types, so a refusal lands on the field that
+  caused it. Saving, publishing, pausing and the gallery's controls are not yet
+  wired.
   """
 
   use MercatoWeb, :live_view
@@ -64,16 +65,30 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   defp assign_form(socket) do
-    actor = socket.assigns.current_user
+    opts = [actor: socket.assigns.current_user, as: "listing", transform_params: &to_minor/2]
 
     form =
       case socket.assigns.listing do
-        nil -> AshPhoenix.Form.for_create(Listings.Listing, :create, actor: actor, as: "listing")
-        listing -> AshPhoenix.Form.for_update(listing, :update, actor: actor, as: "listing")
+        nil -> AshPhoenix.Form.for_create(Listings.Listing, :create, opts)
+        listing -> AshPhoenix.Form.for_update(listing, :update, opts)
       end
 
     assign(socket, :form, to_form(form))
   end
+
+  # The seller types major units and the listing stores minor ones. Converted
+  # on the way to the changeset rather than in each handler, so validating and
+  # saving both get it, and the form keeps the typed string to render back.
+  defp to_minor(%{"price" => price} = params, _kind) when is_binary(price) do
+    case Money.to_minor(price) do
+      {:ok, minor} -> %{params | "price" => minor}
+      # Passed through as typed, so an amount that is not one is refused as
+      # such rather than arriving as a field the seller left blank.
+      :error -> params
+    end
+  end
+
+  defp to_minor(params, _kind), do: params
 
   # Names to show and ids to submit. The catalog is the marketplace's, so a
   # seller picks from it rather than adding to it.
@@ -92,6 +107,11 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   defp humanize_condition(value) do
     value |> String.replace("_", " ") |> String.capitalize()
+  end
+
+  @impl true
+  def handle_event("validate", %{"listing" => params}, socket) do
+    {:noreply, assign(socket, :form, AshPhoenix.Form.validate(socket.assigns.form, params))}
   end
 
   @impl true
@@ -124,6 +144,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         <.form
           for={@form}
           id="listing-form"
+          phx-change="validate"
           class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]"
         >
           <div class="flex flex-col gap-5 min-w-0">
@@ -175,14 +196,13 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   <span class="text-body-sm font-medium text-ink-700 mb-1">
                     Price ({Money.symbol(Listings.currency())})
                   </span>
-                  <%!-- Shown in major units because that is how a seller thinks
-                        of a price; the listing stores minor units, and the
-                        conversion back lands with the submit handler. --%>
+                  <%!-- Shown in major units because that is how a seller
+                        thinks of a price; the listing stores minor units. --%>
                   <.input
                     field={@form[:price]}
                     type="text"
                     inputmode="decimal"
-                    value={Money.amount(@listing && @listing.price)}
+                    value={price(@form, @listing)}
                     placeholder="0.00"
                     required
                   />
@@ -239,6 +259,12 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     </Layouts.app>
     """
   end
+
+  # What the seller typed wins over what is stored, so the re-render that
+  # validates a keystroke does not undo it. Read from the untransformed params,
+  # since the transformed ones hold the minor units nobody types.
+  defp price(%{source: %{raw_params: %{"price" => typed}}}, _listing), do: typed
+  defp price(_form, listing), do: Money.amount(listing && listing.price)
 
   defp images(nil), do: []
   defp images(%{images: images}) when is_list(images), do: images

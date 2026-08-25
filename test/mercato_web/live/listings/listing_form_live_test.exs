@@ -278,4 +278,111 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert view |> element("#listing-status") |> render() =~ "Draft"
     end
   end
+
+  describe "validating as the seller types" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, view: view}
+    end
+
+    defp change(view, params) do
+      view |> form("#listing-form", listing: params) |> render_change()
+    end
+
+    test "says nothing is wrong about a form nobody has filled in yet", %{view: view} do
+      refute has_element?(view, "#listing_title.border-error")
+      refute has_element?(view, "#listing_price.border-error")
+    end
+
+    test "marks a title too short to identify the item", %{view: view} do
+      change(view, %{title: "ab"})
+
+      assert has_element?(view, "#listing_title.border-error")
+    end
+
+    test "clears the mark once the title is long enough", %{view: view} do
+      change(view, %{title: "ab"})
+      change(view, %{title: "Eames-style lounge chair"})
+
+      refute has_element?(view, "#listing_title.border-error")
+    end
+
+    test "says what is wrong, not only that something is", %{view: view} do
+      html = change(view, %{title: "ab"})
+
+      assert html =~ "greater than or equal to 3"
+    end
+
+    test "keeps the price the seller typed rather than reverting it", %{view: view} do
+      change(view, %{price: "24.99"})
+
+      assert value(view, "#listing_price") == "24.99"
+    end
+
+    test "reads a typed price as the minor units a listing stores", %{view: view} do
+      # A listing may not be free, so a price the marketplace refuses is proof
+      # the typed major units reached the changeset as minor ones.
+      change(view, %{price: "0.00"})
+      assert has_element?(view, "#listing_price.border-error")
+
+      change(view, %{price: "0.01"})
+      refute has_element?(view, "#listing_price.border-error")
+    end
+
+    test "refuses a price carrying more precision than the currency has", %{view: view} do
+      change(view, %{price: "24.999"})
+
+      assert has_element?(view, "#listing_price.border-error")
+    end
+
+    test "refuses a price that is not an amount at all", %{view: view} do
+      change(view, %{price: "free"})
+
+      assert has_element?(view, "#listing_price.border-error")
+    end
+
+    test "asks again for a price the seller has cleared", %{view: view} do
+      change(view, %{price: "24.99"})
+      change(view, %{price: ""})
+
+      assert has_element?(view, "#listing_price.border-error")
+    end
+
+    test "leaves the description alone, which a listing need not carry", %{view: view} do
+      change(view, %{description: ""})
+
+      refute has_element?(view, "#listing_description.border-error")
+    end
+  end
+
+  describe "validating a listing already saved" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      listing =
+        generate(listing(actor: seller, title: "Eames-style lounge chair", price: 42_000))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "shows the stored price until the seller types over it", %{view: view} do
+      assert value(view, "#listing_price") == "420.00"
+    end
+
+    test "keeps a newly typed price over the one stored", %{view: view} do
+      change(view, %{price: "99.95"})
+
+      assert value(view, "#listing_price") == "99.95"
+    end
+
+    test "marks a title the seller has emptied", %{view: view} do
+      change(view, %{title: ""})
+
+      assert has_element?(view, "#listing_title.border-error")
+    end
+  end
 end
