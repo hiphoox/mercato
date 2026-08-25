@@ -31,6 +31,10 @@ Below `lg` the sections stack in that order. From `lg` up, price and the actions
 
 The primary action names what will happen rather than which page it is on: a listing already on offer saves changes, and anything else publishes. A listing on offer offers pausing as the alternative; a draft has nothing to pause, so it is offered nothing.
 
+The action beside it follows the same rule. A listing not yet on offer can be put down and picked up again, kept as a draft without being shown to anyone. A listing already on offer has nothing to hold back, so what is offered instead is throwing away the changes on the page: it asks first, then puts back what was stored, having written nothing.
+
+Every save says so, and says it where the trader is already looking rather than only on the page they land on next. A draft says it was kept as a draft; a listing on offer says its changes were saved; a publish refused for want of photos says both — that the draft was kept, and, on the gallery itself, why it is not on offer.
+
 The help beneath the actions names what publishing still needs, counted against the marketplace's own minimum — a marketplace requiring no photos asks only for a title and a price.
 
 ## What it says as it is filled in
@@ -41,4 +45,4 @@ A price is read as the trader writes it, in whole currency units, and is refused
 
 ## What a refused publish looks like
 
-A publish refused for want of photos marks the gallery section itself rather than the page, names what is missing, and says that nothing written was lost.
+A publish refused for want of photos marks the gallery section itself rather than the page, names how many are still wanted, and says that nothing written was lost. It is not lost because it is saved: the listing is kept as a draft and the trader carries on editing that draft rather than starting again, so saving a second time changes the listing they already have instead of making another.

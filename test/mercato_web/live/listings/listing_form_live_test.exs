@@ -385,4 +385,314 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert has_element?(view, "#listing_title.border-error")
     end
   end
+
+  describe "saving a new listing" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, category: category, view: view}
+    end
+
+    defp submit(view, params) do
+      view |> form("#listing-form", listing: params) |> render_submit()
+    end
+
+    defp fields(category, overrides \\ %{}) do
+      Map.merge(
+        %{
+          title: "Eames-style lounge chair",
+          description: "Walnut veneer.",
+          price: "420.00",
+          quantity: "1",
+          category_id: category.id
+        },
+        overrides
+      )
+    end
+
+    test "keeps what the seller wrote even when it cannot go on offer yet", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category))
+
+      assert [listing] = Listings.list_my_listings!(actor: seller)
+      assert listing.title == "Eames-style lounge chair"
+      assert listing.status == :draft
+    end
+
+    test "reads the typed price back as the minor units a listing stores", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category, %{price: "99.95"}))
+
+      assert [%{price: 9995}] = Listings.list_my_listings!(actor: seller)
+    end
+
+    test "says on the gallery itself why it could not go on offer", %{
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category))
+
+      assert view |> element("#listing-photos") |> render() =~
+               "at least #{Listings.min_images()}"
+    end
+
+    test "carries on editing the listing it just made", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category))
+
+      [listing] = Listings.list_my_listings!(actor: seller)
+      assert_patched(view, "/listings/#{listing.id}/edit")
+    end
+
+    test "saving twice edits the one listing rather than making another", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category))
+      submit(view, fields(category, %{title: "Eames-style lounge chair, walnut"}))
+
+      assert [listing] = Listings.list_my_listings!(actor: seller)
+      assert listing.title == "Eames-style lounge chair, walnut"
+    end
+
+    test "writes nothing at all when a field is refused", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      submit(view, fields(category, %{title: "ab"}))
+
+      assert Listings.list_my_listings!(actor: seller) == []
+      assert has_element?(view, "#listing_title.border-error")
+    end
+  end
+
+  describe "publishing a draft that has its photos" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller, title: "Eames-style lounge chair"))
+      generate(listing_image(listing: listing))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "puts the listing on offer", %{seller: seller, listing: listing, view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "Eames-style lounge chair, walnut"})
+      |> render_submit()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.status == :active
+      assert saved.title == "Eames-style lounge chair, walnut"
+      assert saved.published_at
+    end
+
+    test "the page now offers to save changes rather than to publish again", %{view: view} do
+      view |> form("#listing-form", listing: %{}) |> render_submit()
+
+      assert view |> element("#publish-listing") |> render() =~ "Save changes"
+      assert view |> element("#listing-status") |> render() =~ "Live"
+    end
+  end
+
+  describe "saving a listing already on offer" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "saves the change and leaves it on offer", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_submit()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "A better title"
+      assert saved.status == :active
+    end
+
+    test "leaves the first-published stamp where it was", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_submit()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.published_at == listing.published_at
+    end
+  end
+
+  describe "saving a paused listing" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      paused =
+        Listings.pause_listing!(publish!(seller, generate(listing(actor: seller))), actor: seller)
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused.id}/edit")
+
+      %{seller: seller, listing: paused, view: view}
+    end
+
+    test "saves the change without putting it back on offer", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_submit()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "A better title"
+      assert saved.status == :unavailable
+    end
+  end
+
+  describe "keeping a listing without offering it" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, category: category, view: view}
+    end
+
+    defp finish_later(view, params) do
+      view
+      |> form("#listing-form", listing: params)
+      |> put_submitter("#save-draft")
+      |> render_submit()
+    end
+
+    test "keeps a new listing as a draft", %{seller: seller, category: category, view: view} do
+      finish_later(view, fields(category))
+
+      assert [%{status: :draft, title: "Eames-style lounge chair"}] =
+               Listings.list_my_listings!(actor: seller)
+    end
+
+    test "says the draft was saved", %{category: category, view: view} do
+      finish_later(view, fields(category))
+
+      assert view |> element("#flash-info") |> render() =~ "Draft saved"
+    end
+
+    test "carries on editing the draft it just made", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      finish_later(view, fields(category))
+
+      [listing] = Listings.list_my_listings!(actor: seller)
+      assert_patched(view, "/listings/#{listing.id}/edit")
+    end
+
+    test "leaves a draft that could have gone on offer as a draft", %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      generate(listing_image(listing: listing))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      view
+      |> form("#listing-form", listing: %{title: "A better title"})
+      |> put_submitter("#save-draft")
+      |> render_submit()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.status == :draft
+      assert saved.title == "A better title"
+    end
+
+    test "writes nothing at all when a field is refused", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      finish_later(view, fields(category, %{title: "ab"}))
+
+      assert Listings.list_my_listings!(actor: seller) == []
+    end
+  end
+
+  describe "confirming a draft was kept when it could not go on offer" do
+    test "says the draft was saved as well as why it is not on offer", %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      view |> form("#listing-form", listing: fields(category)) |> render_submit()
+
+      assert view |> element("#flash-info") |> render() =~ "Draft saved"
+      assert view |> element("#listing-photos") |> render() =~ "at least #{Listings.min_images()}"
+    end
+  end
+
+  describe "throwing away changes to a listing on offer" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      listing =
+        publish!(seller, generate(listing(actor: seller, title: "Eames-style lounge chair")))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "offers throwing them away rather than keeping a draft", %{view: view} do
+      html = view |> element("#save-draft") |> render()
+
+      assert html =~ "Discard changes"
+      assert html =~ "data-confirm"
+    end
+
+    test "puts back what was stored", %{view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "Something else entirely"})
+      |> render_change()
+
+      view |> element("#save-draft") |> render_click()
+
+      assert value(view, "#listing_title") == "Eames-style lounge chair"
+    end
+
+    test "changes nothing that was saved", %{seller: seller, listing: listing, view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "Something else entirely"})
+      |> render_change()
+
+      view |> element("#save-draft") |> render_click()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "Eames-style lounge chair"
+    end
+
+    test "says the changes were thrown away", %{view: view} do
+      view |> element("#save-draft") |> render_click()
+
+      assert view |> element("#flash-info") |> render() =~ "discarded"
+    end
+  end
 end

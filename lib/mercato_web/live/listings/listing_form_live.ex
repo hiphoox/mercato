@@ -9,8 +9,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   `docs/features/listings/listing-form.md`.
 
   The form validates as the seller types, so a refusal lands on the field that
-  caused it. Saving, publishing, pausing and the gallery's controls are not yet
-  wired.
+  caused it, and saving does what the primary action says: a draft goes on
+  offer, anything published before is only saved. Pausing and the gallery's
+  controls are not yet wired.
   """
 
   use MercatoWeb, :live_view
@@ -26,13 +27,23 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
 
   @impl true
-  def mount(params, _session, socket) do
+  def mount(_params, _session, socket) do
     {:ok,
      socket
      |> assign(:categories, categories())
      |> assign(:conditions, conditions())
-     |> load_listing(params)}
+     |> assign(:gallery_error, nil)}
   end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    {:noreply, load_listing(socket, params)}
+  end
+
+  # The page changes its own address once it has made a listing, so the one
+  # already on screen is left as it stands. Loading it afresh here would throw
+  # away the form and whatever the save had to say about it.
+  defp load_listing(%{assigns: %{listing: %{id: id}}} = socket, %{"id" => id}), do: socket
 
   # A listing the seller does not own reads as one that is not there: the form
   # could not save it either way, and saying which of the two it was would
@@ -114,6 +125,116 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     {:noreply, assign(socket, :form, AshPhoenix.Form.validate(socket.assigns.form, params))}
   end
 
+  def handle_event("save", %{"listing" => listing_params} = params, socket) do
+    # Read before the save, so the action taken is the one the button was named
+    # for rather than the one the saved listing happens to warrant afterwards.
+    # Finishing later is the same save minus the offering.
+    offering? = params["intent"] != "draft" and offering?(socket.assigns.listing)
+
+    case AshPhoenix.Form.submit(socket.assigns.form, params: listing_params) do
+      {:ok, listing} -> {:noreply, saved(socket, listing, offering?)}
+      {:error, form} -> {:noreply, assign(socket, :form, form)}
+    end
+  end
+
+  # Nothing was written, so nothing is undone — the stored listing is simply
+  # read again, and the form is built afresh from it.
+  def handle_event("discard", _params, socket) do
+    {:noreply,
+     socket
+     |> reload(socket.assigns.listing)
+     |> put_flash(:info, "Changes discarded.")}
+  end
+
+  # A draft goes on offer when it is saved, whether it was opened fresh or
+  # picked up again. Anything published before is only saved, even while
+  # paused — the same rule the primary action is labelled by.
+  defp offering?(nil), do: true
+  defp offering?(%{status: :draft}), do: true
+  defp offering?(_listing), do: false
+
+  defp saved(socket, listing, false) do
+    socket
+    |> reload(listing)
+    |> put_flash(:info, kept(listing))
+    |> at_its_own_address(listing)
+  end
+
+  defp saved(socket, listing, true) do
+    case Listings.publish_listing(listing, actor: socket.assigns.current_user) do
+      {:ok, published} ->
+        socket
+        |> reload(published)
+        |> put_flash(:info, "Your listing is on offer.")
+        |> at_its_own_address(published)
+
+      {:error, error} ->
+        socket
+        |> reload(listing)
+        |> put_flash(:info, kept(listing))
+        |> refused(error)
+        |> at_its_own_address(listing)
+    end
+  end
+
+  # A draft is worth saying was saved, since nothing else on the page shows it
+  # happened; an edit to a listing already on offer is just a change.
+  defp kept(%{status: :draft}), do: "Draft saved."
+  defp kept(_listing), do: "Changes saved."
+
+  # The listing is saved either way, so what was written is never lost — only
+  # the offering of it is refused, and the gallery is where that is said.
+  defp refused(socket, error) do
+    case gallery_error(error) do
+      nil -> put_flash(socket, :error, "That listing could not go on offer.")
+      message -> assign(socket, :gallery_error, message)
+    end
+  end
+
+  defp gallery_error(%Ash.Error.Invalid{errors: errors}) do
+    if Enum.any?(errors, &about_the_gallery?/1) do
+      photos_wanted(Listings.min_images())
+    end
+  end
+
+  defp gallery_error(_error), do: nil
+
+  # Both spellings, because which one an error carries depends on whether it
+  # was raised against a single attribute or against the change as a whole.
+  defp about_the_gallery?(error) do
+    :images in (List.wrap(Map.get(error, :field)) ++ Map.get(error, :fields, []))
+  end
+
+  defp photos_wanted(1), do: wanted("1 photo")
+  defp photos_wanted(min), do: wanted("#{min} photos")
+
+  defp wanted(photos) do
+    "Add at least #{photos} to put this on offer. Everything else you wrote is saved."
+  end
+
+  # Read back rather than kept as the action returned it, so the gallery and
+  # the price are loaded as every other way into this page has them.
+  defp reload(socket, listing) do
+    listing =
+      case Listings.get_my_listing(listing.id, actor: socket.assigns.current_user) do
+        {:ok, reloaded} -> reloaded
+        {:error, _reason} -> listing
+      end
+
+    socket
+    |> assign(:listing, listing)
+    |> assign(:gallery_error, nil)
+    |> assign_form()
+  end
+
+  # Only a listing just made needs its address changed. Patched rather than
+  # navigated, so the page stays and keeps what the save had to say.
+  defp at_its_own_address(%{assigns: %{live_action: :new}} = socket, listing) do
+    push_patch(socket, to: ~p"/listings/#{listing.id}/edit")
+  end
+
+  defp at_its_own_address(socket, _listing), do: socket
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -145,6 +266,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
           for={@form}
           id="listing-form"
           phx-change="validate"
+          phx-submit="save"
           class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]"
         >
           <div class="flex flex-col gap-5 min-w-0">
@@ -152,6 +274,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
               images={images(@listing)}
               min={Listings.min_images()}
               max={Listings.max_images()}
+              error={@gallery_error}
             />
 
             <.card class="flex flex-col gap-3.5">
@@ -232,11 +355,34 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
             <.card class="flex flex-col gap-3 bg-bg-2 dark:bg-ink-900">
               <section aria-label="Save or publish" class="flex flex-col gap-3">
-                <.button id="publish-listing" type="submit" full_width>
+                <.button id="publish-listing" type="submit" name="intent" value="offer" full_width>
                   {primary_label(@listing)}
                 </.button>
-                <.button id="save-draft" type="button" variant="neutral" full_width>
-                  {secondary_label(@listing)}
+
+                <%!-- A listing not yet on offer can be put down and picked up
+                      again. One already on offer has nothing to hold back, so
+                      the same slot offers throwing away what was typed. --%>
+                <.button
+                  :if={offering?(@listing)}
+                  id="save-draft"
+                  type="submit"
+                  name="intent"
+                  value="draft"
+                  variant="neutral"
+                  full_width
+                >
+                  Save and finish later
+                </.button>
+                <.button
+                  :if={!offering?(@listing)}
+                  id="save-draft"
+                  type="button"
+                  phx-click="discard"
+                  data-confirm="Throw away everything you have changed here?"
+                  variant="neutral"
+                  full_width
+                >
+                  Discard changes
                 </.button>
 
                 <p class="text-caption-lg text-ink-500 text-pretty">{action_help(@listing)}</p>
@@ -293,10 +439,6 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   defp primary_label(%{status: :draft}), do: "Publish listing"
   defp primary_label(nil), do: "Publish listing"
   defp primary_label(_listing), do: "Save changes"
-
-  defp secondary_label(%{status: :draft}), do: "Save and finish later"
-  defp secondary_label(nil), do: "Save and finish later"
-  defp secondary_label(_listing), do: "Discard changes"
 
   defp action_help(%{status: :active}) do
     "Buyers who saved this listing are not notified of a change."
