@@ -956,4 +956,89 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert view |> element("#photo-#{second.id}") |> render() =~ "Cover"
     end
   end
+
+  describe "putting a paused listing back on offer" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      paused =
+        Listings.pause_listing!(publish!(seller, generate(listing(actor: seller))), actor: seller)
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused.id}/edit")
+
+      %{seller: seller, listing: paused, view: view}
+    end
+
+    test "puts it back on offer", %{seller: seller, listing: listing, view: view} do
+      view |> element("#resume-listing") |> render_click()
+
+      assert {:ok, resumed} = Listings.get_my_listing(listing.id, actor: seller)
+      assert resumed.status == :active
+    end
+
+    test "says so", %{view: view} do
+      view |> element("#resume-listing") |> render_click()
+
+      assert view |> element("#flash-info") |> render() =~ "on offer"
+    end
+
+    test "reads back as live without leaving the page", %{view: view} do
+      view |> element("#resume-listing") |> render_click()
+
+      assert view |> element("#listing-status") |> render() =~ "Live"
+      assert has_element?(view, "#listing-form")
+    end
+
+    test "offers pausing again, and no second relist", %{view: view} do
+      view |> element("#resume-listing") |> render_click()
+
+      assert has_element?(view, "#pause-listing")
+      refute has_element?(view, "#resume-listing")
+    end
+
+    test "keeps what the seller was still writing", %{view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "Eames-style lounge chair, walnut"})
+      |> render_change()
+
+      view |> element("#resume-listing") |> render_click()
+
+      assert value(view, "#listing_title") == "Eames-style lounge chair, walnut"
+    end
+
+    test "says why it cannot go back on offer without its photos", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      for image <- Listings.list_listing_images!(listing.id, authorize?: false) do
+        :ok = Listings.delete_listing_image(image, actor: seller)
+      end
+
+      view |> element("#resume-listing") |> render_click()
+
+      assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(listing.id, actor: seller)
+      assert view |> element("#listing-photos") |> render() =~ "at least #{Listings.min_images()}"
+    end
+  end
+
+  describe "relisting is offered only where it can be taken" do
+    test "a listing on offer is offered no relist", %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      refute has_element?(view, "#resume-listing")
+    end
+
+    test "a draft is offered no relist, having never been on offer", %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      refute has_element?(view, "#resume-listing")
+    end
+  end
 end

@@ -129,7 +129,15 @@ defmodule Mercato.Listings.Listing do
       description "Puts a paused listing back on offer."
       accept []
 
+      # Counting the gallery is a query, so this cannot be one atomic statement.
+      require_atomic? false
+
       validate data_one_of(:status, [:unavailable])
+
+      # The same bar publishing has to clear, because this is the same move: a
+      # listing going back in front of buyers. The minimum guards a listing on
+      # offer, so a paused one may lose photos while it is off it.
+      validate Mercato.Listings.Listing.Validations.GalleryMeetsMinimum
 
       # The database has the last word on the state moved from. The validation
       # above reads the copy the caller passed in, which may have been fetched

@@ -22,7 +22,7 @@ Each upload is stored under its own key, so two files of the same name never dis
 
 The marketplace sets how few and how many images a listing may have. A gallery that is already full refuses another image.
 
-The minimum applies from the moment a listing goes on offer: a listing showing fewer images than required cannot be published, and an image cannot be removed if doing so would drop a listing already on offer below the requirement. A draft is exempt while it is still being composed. Setting the minimum to none drops the requirement altogether, which is what a marketplace selling services or digital goods wants.
+The minimum applies from the moment a listing goes on offer: a listing showing fewer images than required cannot be published or put back on offer after a pause, and an image cannot be removed if doing so would drop a listing already on offer below the requirement. A paused listing is not on offer, so it may fall below the minimum while it is off it, and is refused when it tries to return. A draft is exempt while it is still being composed. Setting the minimum to none drops the requirement altogether, which is what a marketplace selling services or digital goods wants.
 
 How many images a listing has is a fact about the listing rather than about who is asking, so these limits are counted the same way for everyone.
 

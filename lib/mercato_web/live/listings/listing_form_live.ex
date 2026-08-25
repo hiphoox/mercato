@@ -12,7 +12,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   caused it, and saving does what the primary action says: a draft goes on
   offer, anything published before is only saved. A photo can be added,
   removed and promoted to cover, though only once the listing exists to attach
-  one to.
+  one to, and a listing can be taken off offer and put back on it.
   """
 
   use MercatoWeb, :live_view
@@ -169,6 +169,21 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     end
   end
 
+  def handle_event("resume", _params, socket) do
+    case Listings.resume_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
+      {:ok, resumed} ->
+        {:noreply,
+         socket
+         |> still_writing(resumed)
+         |> put_flash(:info, "This listing is back on offer.")}
+
+      # Most often a gallery stripped below the minimum while the listing was
+      # off offer, which is the gallery's refusal to make rather than the page's.
+      {:error, error} ->
+        {:noreply, relist_refused(socket, error)}
+    end
+  end
+
   def handle_event("pause", _params, socket) do
     case Listings.pause_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
       {:ok, paused} ->
@@ -228,6 +243,13 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # happened; an edit to a listing already on offer is just a change.
   defp kept(%{status: :draft}), do: "Draft saved."
   defp kept(_listing), do: "Changes saved."
+
+  defp relist_refused(socket, error) do
+    case gallery_error(error) do
+      nil -> put_flash(socket, :error, "That listing could not go back on offer.")
+      message -> assign(socket, :gallery_error, message)
+    end
+  end
 
   # The listing is saved either way, so what was written is never lost — only
   # the offering of it is refused, and the gallery is where that is said.
@@ -480,6 +502,18 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                 </.button>
 
                 <p class="text-caption-lg text-ink-500 text-pretty">{action_help(@listing)}</p>
+
+                <%!-- Offered only where it can be taken: relisting is
+                      reachable from `unavailable` alone. --%>
+                <button
+                  :if={@listing && @listing.status == :unavailable}
+                  type="button"
+                  id="resume-listing"
+                  phx-click="resume"
+                  class="py-0.5 text-left text-body-sm font-semibold text-primary-700 cursor-pointer hover:text-primary-600"
+                >
+                  Relist this listing
+                </button>
 
                 <%!-- Offered only where it can be taken: pausing is reachable
                       from `active` alone, so a draft gets no such control. --%>

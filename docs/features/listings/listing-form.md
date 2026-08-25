@@ -29,7 +29,7 @@ Below `lg` the sections stack in that order. From `lg` up, price and the actions
 
 ## What the actions say
 
-The primary action names what will happen rather than which page it is on: a listing already on offer saves changes, and anything else publishes. A listing on offer offers pausing as the alternative; a draft has nothing to pause, so it is offered nothing.
+The primary action names what will happen rather than which page it is on: a listing already on offer saves changes, and anything else publishes. A listing on offer offers taking it off offer; a listing already off it offers putting it back; a draft has been on offer neither way, so it is offered neither. Putting one back has to clear the same bar publishing did, since it is the same move — a paused listing may lose photos while it is off offer, and one that has fallen below the marketplace's minimum is refused and told so on the gallery.
 
 The action beside it follows the same rule. A listing not yet on offer can be put down and picked up again, kept as a draft without being shown to anyone. A listing already on offer has nothing to hold back, so what is offered instead is throwing away the changes on the page: it asks first, then puts back what was stored, having written nothing.
 
