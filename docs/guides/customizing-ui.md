@@ -22,7 +22,7 @@ This covers a full rebrand — new primary/secondary/accent colors, a different 
 
 For a change a token can't express — a different button shape, a new button/input variant, a different card layout — edit the component directly in `lib/mercato_web/components/core_components.ex`. This is the single source for atoms used across the whole app (`<.button>`, `<.input>`, `<.card>`, `<.accent_link>`, `<.table>`, `<.list>`, `<.flash>`), so a change here applies everywhere those are used.
 
-- [ui-components.md](../architecture/ui-components.md) documents the intended spec (variants, heights, states) for each component — check it before diverging, and update it in the same change if you intend the new look to become the project's own convention.
+- [ui-components.md](../architecture/ui-components.md) holds the rules every component follows — control heights, color discipline, accessibility baseline — and the variant vocabulary they draw from. Check it before diverging, and update it in the same change if you intend the new rule to become the project's own convention. What a single component's anatomy and variants are is documented on that component in code.
 - Follow [liveview-css.md](../architecture/liveview-css.md): components are hand-written Tailwind utility classes directly in the component's `~H` template, not `@apply`'d custom CSS classes and not a component library like daisyUI.
 - Adding a genuinely new reusable atom (a badge, a chip)? Add it to `core_components.ex` alongside the existing ones, following the same pattern: `attr`/`slot` declarations, a `~H` template with literal Tailwind classes.
 

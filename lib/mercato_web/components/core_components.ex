@@ -85,32 +85,59 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   @doc """
-  Renders a button with navigation support.
+  Renders a button, or a link when given a navigation target.
+
+  Hugs its content unless `full_width`.
 
   ## Examples
 
       <.button>Send!</.button>
       <.button phx-click="go" variant="primary">Send!</.button>
+      <.button size="sm" variant="neutral" phx-click="pause">Pause</.button>
       <.button navigate={~p"/"}>Home</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
-  attr :class, :any
-  attr :variant, :string, values: ~w(primary neutral)
+  attr :class, :any, doc: "replaces every default class, rather than adding to them"
+  attr :variant, :string, default: "primary", values: ~w(primary neutral danger)
+
+  attr :size, :string,
+    default: "lg",
+    values: ~w(xs sm md lg),
+    doc: "32 / 36 / 44 / 52px tall"
+
+  attr :full_width, :boolean, default: false, doc: "fills the row it sits in"
+
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
     variants = %{
-      "primary" =>
-        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white",
-      "neutral" =>
-        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-11 bg-ink-100 text-ink-900",
-      nil =>
-        "flex items-center justify-center rounded-md shadow-sm font-semibold hover:brightness-95 transition-colors w-full h-[52px] bg-primary-500 text-white"
+      "primary" => "bg-primary-500 text-white",
+      "neutral" => "bg-ink-100 text-ink-900 dark:bg-ink-700 dark:text-white",
+      "danger" => "bg-error text-white"
+    }
+
+    sizes = %{
+      "xs" => "h-8 px-3 text-caption-lg",
+      "sm" => "h-9 px-3.5 text-body-sm",
+      "md" => "h-11 px-4 text-body-md",
+      "lg" => "h-[52px] px-5 text-body-md"
     }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        Map.fetch!(variants, assigns[:variant])
+        [
+          "inline-flex items-center justify-center gap-2 whitespace-nowrap",
+          "rounded-md shadow-sm font-semibold cursor-pointer",
+          "transition-[filter,background-color] hover:brightness-95",
+          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100",
+          # Spelled out rather than left to opacity: the disabled palette is a
+          # design token pair, not a faded version of the variant's own colors.
+          "disabled:bg-ink-100 disabled:text-ink-300 disabled:shadow-none",
+          "disabled:cursor-not-allowed disabled:hover:brightness-100",
+          Map.fetch!(sizes, assigns.size),
+          Map.fetch!(variants, assigns.variant),
+          assigns.full_width && "w-full"
+        ]
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -180,6 +207,7 @@ defmodule MercatoWeb.CoreComponents do
   | `featured` | Sets a record apart — a promoted listing, an admin account |
   | `warning` | A state that limits the record without ending it — a restricted account |
   | `danger` | A state that stops the record — a banned account, a failed payment |
+  | `info` | A state the record has come to rest in — a sold listing, a settled order |
   | `neutral` | Anything with no state of its own — a category, a count |
 
   `warning` and `danger` are the semantic alert tokens, not `accent` and not
@@ -191,7 +219,10 @@ defmodule MercatoWeb.CoreComponents do
 
       <.badge kind="verified">Active</.badge>
   """
-  attr :kind, :string, default: "neutral", values: ~w(verified featured warning danger neutral)
+  attr :kind, :string,
+    default: "neutral",
+    values: ~w(verified featured warning danger info neutral)
+
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -202,6 +233,7 @@ defmodule MercatoWeb.CoreComponents do
       "featured" => "bg-accent-100 text-accent-600",
       "warning" => "bg-warning-bg text-warning-text",
       "danger" => "bg-error-bg text-error-text",
+      "info" => "bg-info-bg text-info-text",
       "neutral" => "bg-ink-100 text-ink-700"
     }
 

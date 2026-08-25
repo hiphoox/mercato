@@ -129,7 +129,7 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
             </div>
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Signing in...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Signing in...">
             Sign in
           </.button>
         </.form>
@@ -156,7 +156,7 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
             <p class="text-caption-lg text-ink-500">We'll email you a link to sign in instantly.</p>
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Sending...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
             Send magic link
           </.button>
         </.form>

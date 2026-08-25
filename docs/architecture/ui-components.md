@@ -1,16 +1,57 @@
 ---
 type: architecture
 title: UI Components
-description: Specs for Mercato's core UI components — buttons, form fields, badges, chips, tables, and the listing card.
+description: The rules every Mercato UI component follows, and the variant vocabulary components name their states from.
 tags: [ui, design, components]
-timestamp: 2026-08-21T00:00:00Z
+timestamp: 2026-08-25T00:00:00Z
 ---
 
-See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here. These specs are the default implementation — Mercato's second level of customization is editing a component directly when a theme-token swap isn't enough (see [ui-guidelines.md](ui-guidelines.md#customization-model)).
+See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here, [ui-guidelines.md](ui-guidelines.md) for the principles behind them, and [liveview.md](liveview.md) for which tier a component belongs in.
 
-## Buttons
+A component's own anatomy — its slots, its states, what a variant means for it — is documented on the component in code, which is the current and authoritative description of what that component does. This file holds what is true across all of them: the rules a new component follows, and the shared vocabulary it names its variants from.
 
-Action buttons are rectangular with slightly rounded corners (radius 8). Heights are 32/36/44/52 (xs/sm/md/lg), semibold weight. Minimum touch target is 44×44.
+## Shape
+
+| Group | Rule |
+|---|---|
+| Radius | Controls 8, cards and sheets 12, chips/badges/avatars pill |
+| Control heights | 32 / 36 / 44 / 52 |
+| Borders | 1px standard, 1.5px for emphasis — inputs and selected states |
+| Elevation | Subtle on a resting card, medium on hover and sticky bars, large on a sheet |
+
+44 is the minimum touch target. A control below it is pointer-first: it belongs beside other small controls inside a card or a dense row, never as the only action on a screen.
+
+## Color discipline
+
+- The primary color belongs to actions and brand moments. It never sits behind a product photo.
+- Filter chips stay black-and-white in both states, which is what keeps the primary color exclusive to actions.
+- Accent marks a featured or highlighted record and the vibrant sale red marks a discount. Neither ever means "something is wrong" — the warning, error, and info tokens carry that.
+- A disabled control is ink-100 with ink-300 text and no shadow, in every variant.
+
+## Composition
+
+- Anatomy is fixed, content is supplied. A component two features both render has one anatomy and two sets of slot content.
+- A component that changes shape across widths renders one markup tree and switches in CSS, so a resize costs no re-render.
+- Values arrive already formatted. A component that formatted money would have to know the record's currency.
+- A control hugs its content; filling the row it sits in is opt-in.
+- A component given a navigation target renders a link and renders a button otherwise, so one component covers acting and going somewhere.
+- A collection that has never held anything and a filter matching nothing are two different empty states. The first explains how to start; the second names what is empty and offers a way back to everything.
+
+## Accessibility baseline
+
+- Labels are always visible. A placeholder is never the label.
+- An error carries a message and a border. Color alone never carries a state.
+- Focus is a 3px primary-100 ring.
+- Decorative icons and placeholder artwork are hidden from screen readers.
+- A section's heading is a heading, including when the section is empty.
+- A table column can be marked as its row's header, and a table carries a caption available to screen readers only.
+- Below its breakpoint a table renders one card per record, with each column's label shown beside its value.
+
+## Variant vocabulary
+
+The names a component draws from when it needs a variant. Which of these a given component implements is visible in that component's own documentation.
+
+### Button variants
 
 | Variant | Use |
 |---|---|
@@ -21,18 +62,8 @@ Action buttons are rectangular with slightly rounded corners (radius 8). Heights
 | success | Confirm — accept offer |
 | neutral | Cancel / secondary |
 | danger | Destructive — decline offer, delete listing, remove account |
-| disabled | ink-100 background, ink-300 text, no shadow |
 
-## Form Fields
-
-- Labels are always visible — never use a placeholder as the label.
-- Errors show a message and a red border — color alone never carries the error state.
-- Focus state is a 3px primary-100 ring.
-- Field height/padding: 11px 14px, radius 8, 1.5px border.
-
-## Badges & Filter Chips
-
-Filter chips: white background, black border; selected state is solid black. The primary color stays exclusive to actions.
+### Badge kinds
 
 | Badge | Style |
 |---|---|
@@ -42,26 +73,9 @@ Filter chips: white background, black border; selected state is solid black. The
 | Verified | Success green background/text |
 | Warning | Warning amber background/text — a state that limits a record without ending it |
 | Danger | Error red background/text — a state that stops a record |
-| Neutral (category, etc.) | ink-100 background, ink-700 text |
+| Info | Info blue background/text — a state a record has come to rest in |
+| Neutral | ink-100 background, ink-700 text — anything with no state of its own |
 
-Warning and danger use the semantic alert tokens. Accent stays reserved for featured records and the vibrant sale red for discounts, so neither carries an "something is wrong" meaning.
-
-Removable filter chips (applied filters): white background, thin black border, height 24.
-
-## Tables
-
-One table component serves every tabular listing. Column headers stick to the top so they stay readable while the body scrolls, and each row is separated by a top border rather than shading.
-
-A column can be marked as the row's header, so a screen reader announces which row a cell belongs to. A table carries a caption describing its contents, available to screen readers only.
-
-Rows and individual cells can be styled from their own data — a deactivated record dimmed, a column hidden below a given breakpoint, a value kept on one line.
-
-Below the table's breakpoint a listing renders as one card per record instead, with each column's label shown beside its value.
-
-## Listing Card
-
-Fixed anatomy: photo → title → price + discount (sale red) → seller with rating. Public heart/favorite count feeds "notify interested buyers" campaigns.
-
-## Navigation Bar
+## Navigation bar
 
 Rounded card (radius 12) containing: logo, a pill-shaped search field (bg-2, radius pill), primary nav links, and a primary "Sell" button (sm).

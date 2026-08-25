@@ -13,6 +13,58 @@ defmodule MercatoWeb.CoreComponentsTest do
     render_component(&CoreComponents.filter_chip/1, assigns)
   end
 
+  defp render_button(assigns) do
+    render_component(&CoreComponents.button/1, Map.put_new(assigns, :inner_block, slot("Go")))
+  end
+
+  describe "button" do
+    test "renders a button element when given no navigation target" do
+      assert render_button(%{}) =~ "<button"
+    end
+
+    test "renders a link when given a navigation target" do
+      assert render_button(%{navigate: "/"}) =~ "<a"
+    end
+
+    test "defaults to the full-height primary call to action" do
+      html = render_button(%{})
+
+      assert html =~ "bg-primary-500"
+      assert html =~ "h-[52px]"
+    end
+
+    test "sizes a small action to the card-action height" do
+      assert render_button(%{size: "sm"}) =~ "h-9"
+    end
+
+    test "sizes an extra-small action to the chip height" do
+      assert render_button(%{size: "xs"}) =~ "h-8"
+    end
+
+    test "gives a destructive action the error palette" do
+      assert render_button(%{variant: "danger"}) =~ "bg-error"
+    end
+
+    test "gives a neutral action the ink palette" do
+      assert render_button(%{variant: "neutral"}) =~ "bg-ink-100"
+    end
+
+    test "hugs its content rather than the row it sits in" do
+      refute render_button(%{}) =~ "w-full"
+    end
+
+    test "fills the row when asked to" do
+      assert render_button(%{full_width: true}) =~ "w-full"
+    end
+
+    test "an explicit class replaces the defaults outright" do
+      html = render_button(%{class: "my-class"})
+
+      assert html =~ "my-class"
+      refute html =~ "bg-primary-500"
+    end
+  end
+
   describe "badge" do
     test "renders its content" do
       assert render_badge(kind: "verified", inner_block: slot("Active")) =~ "Active"
@@ -45,6 +97,13 @@ defmodule MercatoWeb.CoreComponentsTest do
 
       assert html =~ "bg-error-bg"
       assert html =~ "text-error-text"
+    end
+
+    test "uses the info palette for a state a record has come to rest in" do
+      html = render_badge(%{kind: "info", inner_block: slot("Sold")})
+
+      assert html =~ "bg-info-bg"
+      assert html =~ "text-info-text"
     end
 
     test "uses the ink palette for neutral" do

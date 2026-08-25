@@ -140,7 +140,7 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
             />
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Creating account...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Creating account...">
             Create account
           </.button>
         </.form>
@@ -169,7 +169,7 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
             </p>
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Sending...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
             Send magic link
           </.button>
         </.form>
