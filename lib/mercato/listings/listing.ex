@@ -57,6 +57,16 @@ defmodule Mercato.Listings.Listing do
       prepare build(sort: [updated_at: :desc], load: [:display_price, images: :url])
     end
 
+    read :get_mine do
+      description "One listing the acting seller owns, whatever state it is in."
+      get? true
+
+      filter expr(seller_id == ^actor(:id))
+
+      # The form renders the gallery and the price as the seller last saw them.
+      prepare build(load: [:display_price, images: :url])
+    end
+
     create :create do
       description "Publishes nothing yet — a new listing starts as the seller's draft."
 
@@ -182,7 +192,7 @@ defmodule Mercato.Listings.Listing do
 
     # Filtering, like :read above — a signed-out visitor gets an empty list
     # rather than an error, which is what the page can actually render.
-    policy action(:list_mine) do
+    policy action([:list_mine, :get_mine]) do
       authorize_if expr(seller_id == ^actor(:id))
     end
 

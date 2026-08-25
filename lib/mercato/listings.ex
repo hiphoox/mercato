@@ -14,6 +14,7 @@ defmodule Mercato.Listings do
       define :delete_listing, action: :destroy
       define :list_listings, action: :read
       define :list_my_listings, action: :list_mine
+      define :get_my_listing, action: :get_mine, get_by: [:id]
       define :list_listings_for_moderation, action: :list_for_moderation
       define :moderate_delete_listing, action: :moderate_delete
       define :publish_listing, action: :publish
