@@ -51,4 +51,40 @@ defmodule Mercato.MoneyTest do
       assert Money.symbol("SEK") == "SEK"
     end
   end
+
+  describe "to_minor/1" do
+    test "reads a typed amount as the minor units a listing stores" do
+      assert Money.to_minor("420.50") == {:ok, 42_050}
+    end
+
+    test "reads a whole amount as having no cents" do
+      assert Money.to_minor("420") == {:ok, 42_000}
+    end
+
+    test "pads a single decimal place out to cents" do
+      assert Money.to_minor("420.5") == {:ok, 42_050}
+    end
+
+    test "reads an amount below one major unit" do
+      assert Money.to_minor("0.07") == {:ok, 7}
+    end
+
+    test "ignores the spaces a person leaves around what they typed" do
+      assert Money.to_minor("  18.05  ") == {:ok, 1805}
+    end
+
+    test "refuses more precision than the currency has, rather than rounding it away" do
+      assert Money.to_minor("420.567") == :error
+    end
+
+    test "refuses an amount that is not a number" do
+      assert Money.to_minor("abc") == :error
+      assert Money.to_minor("12abc") == :error
+      assert Money.to_minor("") == :error
+    end
+
+    test "refuses a negative amount, which no listing may hold" do
+      assert Money.to_minor("-5.00") == :error
+    end
+  end
 end

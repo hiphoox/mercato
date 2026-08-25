@@ -1,9 +1,14 @@
 defmodule Mercato.Money do
   @moduledoc """
-  Rendering an amount of money for a person to read.
+  Reading an amount of money the way a person writes it.
 
-  The one place minor units are converted back, so no caller knows the factor.
+  The one place the minor-unit factor lives, in both directions: rendering a
+  stored amount for a person, and reading back what one typed.
   """
+
+  # Hundredths, so a zero-decimal currency such as JPY is mis-handled — the
+  # trade for carrying no currency database.
+  @minor_units 100
 
   # Only the currencies a default install is likely to price in. An unlisted
   # currency reads as its ISO code rather than a wrong symbol.
@@ -39,8 +44,8 @@ defmodule Mercato.Money do
   def amount(nil), do: nil
 
   def amount(amount) when is_integer(amount) do
-    major = amount |> div(100) |> Integer.to_string()
-    minor = amount |> rem(100) |> Integer.to_string() |> String.pad_leading(2, "0")
+    major = amount |> div(@minor_units) |> Integer.to_string()
+    minor = amount |> rem(@minor_units) |> Integer.to_string() |> String.pad_leading(2, "0")
 
     "#{major}.#{minor}"
   end
@@ -55,6 +60,38 @@ defmodule Mercato.Money do
     case Map.fetch(@symbols, currency) do
       {:ok, symbol} -> symbol
       :error -> currency
+    end
+  end
+
+  # Anchored, so trailing rubbish is refused rather than silently dropped, and
+  # capped at two decimals, which is all the minor unit can hold.
+  @typed ~r/^(\d+)(?:\.(\d{1,2}))?$/
+
+  @doc """
+  Reads a typed major-unit amount as the minor units a listing stores.
+
+  Refuses anything it cannot read exactly, rather than rounding: a price is
+  money, and a silently altered one is worse than a rejected one. A negative
+  amount is refused too, since no listing may hold one.
+
+      iex> Mercato.Money.to_minor("420.50")
+      {:ok, 42_050}
+
+      iex> Mercato.Money.to_minor("420.567")
+      :error
+  """
+  def to_minor(typed) when is_binary(typed) do
+    case Regex.run(@typed, String.trim(typed)) do
+      [_, major] ->
+        {:ok, String.to_integer(major) * @minor_units}
+
+      [_, major, minor] ->
+        # Padded, not parsed as-is: "420.5" is five tenths, not five hundredths.
+        minor = minor |> String.pad_trailing(2, "0") |> String.to_integer()
+        {:ok, String.to_integer(major) * @minor_units + minor}
+
+      nil ->
+        :error
     end
   end
 end
