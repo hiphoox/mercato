@@ -14,6 +14,7 @@ defmodule Mercato.Listings.Listing do
     extensions: [AshArchival.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
+  alias Mercato.Listings.Listing.Calculations
 
   sqlite do
     table "listings"
@@ -40,6 +41,30 @@ defmodule Mercato.Listings.Listing do
 
     read :list_for_moderation do
       description "Every listing including those moderation has taken down."
+    end
+
+    read :list_mine do
+      description "Everything the acting seller has listed, whatever state it is in."
+
+      # "Mine" is meaningless without someone to be, and Ash refuses the read
+      # outright when the filter has no actor to resolve — a caller acting as
+      # nobody gets an error rather than a silently empty page.
+      filter expr(seller_id == ^actor(:id))
+
+      # Newest activity first: this view is the seller's worklist, and an edit
+      # or a pause is what makes a listing worth looking at again. The gallery
+      # comes along because every row shows its cover.
+      prepare build(sort: [updated_at: :desc], load: [:display_price, images: :url])
+    end
+
+    read :get_mine do
+      description "One listing the acting seller owns, whatever state it is in."
+      get? true
+
+      filter expr(seller_id == ^actor(:id))
+
+      # The form renders the gallery and the price as the seller last saw them.
+      prepare build(load: [:display_price, images: :url])
     end
 
     create :create do
@@ -104,7 +129,15 @@ defmodule Mercato.Listings.Listing do
       description "Puts a paused listing back on offer."
       accept []
 
+      # Counting the gallery is a query, so this cannot be one atomic statement.
+      require_atomic? false
+
       validate data_one_of(:status, [:unavailable])
+
+      # The same bar publishing has to clear, because this is the same move: a
+      # listing going back in front of buyers. The minimum guards a listing on
+      # offer, so a paused one may lose photos while it is off it.
+      validate Mercato.Listings.Listing.Validations.GalleryMeetsMinimum
 
       # The database has the last word on the state moved from. The validation
       # above reads the copy the caller passed in, which may have been fetched
@@ -162,6 +195,12 @@ defmodule Mercato.Listings.Listing do
     # offer instead of an error. A seller sees their own whatever state it is in.
     policy action(:read) do
       authorize_if expr(status == :active)
+      authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Filtering, like :read above — a signed-out visitor gets an empty list
+    # rather than an error, which is what the page can actually render.
+    policy action([:list_mine, :get_mine]) do
       authorize_if expr(seller_id == ^actor(:id))
     end
 
@@ -277,6 +316,15 @@ defmodule Mercato.Listings.Listing do
 
     has_many :images, Mercato.Listings.ListingImage do
       sort position: :asc
+      public? true
+    end
+  end
+
+  calculations do
+    # A calculation rather than a caller's own arithmetic: the price is stored
+    # in minor units, and every place a listing is shown needs the same
+    # conversion against the currency the listing itself carries.
+    calculate :display_price, :string, Calculations.DisplayPrice do
       public? true
     end
   end

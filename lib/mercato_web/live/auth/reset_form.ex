@@ -113,7 +113,7 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
             </p>
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Sending...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
             Send reset instructions
           </.button>
         </.form>
@@ -142,7 +142,7 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
             </p>
           </div>
 
-          <.button type="submit" variant="primary" phx-disable-with="Sending...">
+          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
             Send magic link
           </.button>
         </.form>

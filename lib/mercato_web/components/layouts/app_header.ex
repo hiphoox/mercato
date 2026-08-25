@@ -1,7 +1,7 @@
 defmodule MercatoWeb.Layouts.AppHeader do
   @moduledoc """
-  The app layout's top bar: sidebar toggle, brand, search, cart and the
-  user menu.
+  The app layout's top bar: sidebar toggle, brand, search, the call to sell,
+  cart and the user menu.
 
   Only ever composed by `MercatoWeb.Layouts.app/1`.
   """
@@ -12,8 +12,9 @@ defmodule MercatoWeb.Layouts.AppHeader do
   @doc """
   Renders the app header.
 
-  The toggle and cart are signed-in only: there is no sidebar to toggle and no
-  cart to open when nobody is signed in.
+  The toggle, the call to sell and the cart are signed-in only: there is no
+  sidebar to toggle, nothing to list under, and no cart to open when nobody is
+  signed in.
   """
   attr :current_user, :map, default: nil
   attr :admin?, :boolean, default: false
@@ -78,6 +79,24 @@ defmodule MercatoWeb.Layouts.AppHeader do
             "text-body-md text-ink-900 dark:text-white placeholder:text-ink-500"
           ]}
         />
+      </div>
+
+      <%!-- The filled action in the bar. Every account here both buys and
+            sells, so listing something is not a minority errand tucked into a
+            utility strip — it is the thing the marketplace is for.
+
+            The layout lives on the wrapper rather than on the button: a class
+            given to the button replaces its variant outright, and restating
+            the fill here is how a vocabulary drifts. --%>
+      <div :if={@current_user} class="order-1 md:order-none flex-none">
+        <.button id="sell-cta" navigate={~p"/listings/new"} aria-label="Sell an item">
+          <.icon name="hero-tag" aria-hidden="true" class="size-4.5" />
+          <%!-- The span carries the responsive display rather than the button, whose
+                own `inline-flex` is an unprefixed display utility and would race
+                `hidden` in Tailwind's output. Below md the bar is already wrapping,
+                so the label goes and the aria-label speaks for it. --%>
+          <span class="hidden md:inline">Sell</span>
+        </.button>
       </div>
 
       <.link

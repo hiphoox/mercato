@@ -77,6 +77,22 @@ defmodule Mercato.Listings.ListingLifecycleTest do
       assert {:error, %Ash.Error.Invalid{}} = Listings.pause_listing(listing, actor: seller)
     end
 
+    test "refuses resuming a listing stripped of the photos it needs", %{
+      seller: seller,
+      listing: listing
+    } do
+      paused = listing |> publish!(seller) |> pause!(seller)
+
+      # Nothing stops this while paused: the minimum guards a listing on offer,
+      # and a paused one is not.
+      for image <- Listings.list_listing_images!(paused.id, authorize?: false) do
+        :ok = Listings.delete_listing_image(image, actor: seller)
+      end
+
+      assert {:error, %Ash.Error.Invalid{}} = Listings.resume_listing(paused, actor: seller)
+      assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(paused.id, actor: seller)
+    end
+
     test "refuses resuming a listing already on offer", %{seller: seller, listing: listing} do
       listing = publish!(seller, listing)
 

@@ -38,6 +38,9 @@ defmodule MercatoWeb.Router do
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
 
       live "/profile", ProfileLive
+      live "/my-listings", Listings.MyListingsLive
+      live "/listings/new", Listings.ListingFormLive, :new
+      live "/listings/:id/edit", Listings.ListingFormLive, :edit
       live "/admin/users", Admin.UsersLive
     end
   end

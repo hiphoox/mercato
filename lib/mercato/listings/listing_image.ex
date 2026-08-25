@@ -14,7 +14,7 @@ defmodule Mercato.Listings.ListingImage do
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Mercato.Listings.ListingImage.{Changes, Checks, Validations}
+  alias Mercato.Listings.ListingImage.{Calculations, Changes, Checks, Validations}
 
   sqlite do
     table "listing_images"
@@ -151,6 +151,14 @@ defmodule Mercato.Listings.ListingImage do
   relationships do
     belongs_to :listing, Mercato.Listings.Listing do
       allow_nil? false
+      public? true
+    end
+  end
+
+  calculations do
+    # Where the bytes are is the storage adapter's answer, not a shape this
+    # resource can build from the key it holds.
+    calculate :url, :string, Calculations.Url do
       public? true
     end
   end

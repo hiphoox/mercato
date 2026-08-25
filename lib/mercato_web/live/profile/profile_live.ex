@@ -103,7 +103,7 @@ defmodule MercatoWeb.ProfileLive do
               <.input field={form[:first_name]} label="First name" required />
               <.input field={form[:last_name]} label="Last name" required />
             </div>
-            <.button type="submit" variant="primary" phx-disable-with="Saving…">
+            <.button type="submit" variant="primary" full_width phx-disable-with="Saving…">
               Save name
             </.button>
           </.form>
@@ -125,7 +125,7 @@ defmodule MercatoWeb.ProfileLive do
             class="flex flex-col gap-5"
           >
             <.input field={form[:handle]} label="Handle" required />
-            <.button type="submit" variant="primary" phx-disable-with="Saving…">
+            <.button type="submit" variant="primary" full_width phx-disable-with="Saving…">
               Save handle
             </.button>
           </.form>
@@ -199,7 +199,7 @@ defmodule MercatoWeb.ProfileLive do
               label="Confirm new password"
               required
             />
-            <.button type="submit" variant="primary" phx-disable-with="Updating…">
+            <.button type="submit" variant="primary" full_width phx-disable-with="Updating…">
               Update password
             </.button>
           </.form>
@@ -232,10 +232,10 @@ defmodule MercatoWeb.ProfileLive do
             <.button
               id="delete-account-button"
               type="submit"
-              variant="primary"
+              variant="danger"
+              full_width
               disabled={!@delete_confirmed?}
               phx-disable-with="Deleting…"
-              class="bg-error text-white hover:brightness-95"
             >
               Delete my account
             </.button>

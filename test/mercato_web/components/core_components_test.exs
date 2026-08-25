@@ -13,6 +13,95 @@ defmodule MercatoWeb.CoreComponentsTest do
     render_component(&CoreComponents.filter_chip/1, assigns)
   end
 
+  defp render_card(assigns) do
+    render_component(&CoreComponents.card/1, assigns)
+  end
+
+  defp render_button(assigns) do
+    render_component(&CoreComponents.button/1, Map.put_new(assigns, :inner_block, slot("Go")))
+  end
+
+  describe "button" do
+    test "renders a button element when given no navigation target" do
+      assert render_button(%{}) =~ "<button"
+    end
+
+    test "renders a link when given a navigation target" do
+      assert render_button(%{navigate: "/"}) =~ "<a"
+    end
+
+    test "defaults to the full-height primary call to action" do
+      html = render_button(%{})
+
+      assert html =~ "bg-primary-500"
+      assert html =~ "h-[52px]"
+    end
+
+    test "sizes a small action to the card-action height" do
+      assert render_button(%{size: "sm"}) =~ "h-9"
+    end
+
+    test "sizes an extra-small action to the chip height" do
+      assert render_button(%{size: "xs"}) =~ "h-8"
+    end
+
+    test "gives a destructive action the error palette" do
+      assert render_button(%{variant: "danger"}) =~ "bg-error"
+    end
+
+    test "gives a neutral action the ink palette" do
+      assert render_button(%{variant: "neutral"}) =~ "bg-ink-100"
+    end
+
+    test "gives a secondary action the secondary palette" do
+      html = render_button(%{variant: "secondary"})
+
+      assert html =~ "bg-secondary-500"
+      assert html =~ "text-white"
+    end
+
+    test "darkens a secondary action for dark mode, as the primary one is" do
+      assert render_button(%{variant: "secondary"}) =~ "dark:bg-secondary-600"
+    end
+
+    test "leaves the primary colour to the primary action" do
+      refute render_button(%{variant: "secondary"}) =~ "bg-primary-500"
+    end
+
+    test "outlines a tertiary action rather than filling it" do
+      html = render_button(%{variant: "tertiary"})
+
+      assert html =~ "border-primary-500"
+      refute html =~ "bg-primary-500"
+    end
+
+    test "gives a tertiary action text dark enough to read on white" do
+      # primary-500 fails AA at this size on white; primary-700 is the token
+      # the palette reserves for exactly that.
+      assert render_button(%{variant: "tertiary"}) =~ "text-primary-700"
+    end
+
+    test "lifts a filled action off the page but not an outlined one" do
+      assert render_button(%{}) =~ "shadow-sm"
+      refute render_button(%{variant: "tertiary"}) =~ ~r/[\s"]shadow-sm/
+    end
+
+    test "hugs its content rather than the row it sits in" do
+      refute render_button(%{}) =~ "w-full"
+    end
+
+    test "fills the row when asked to" do
+      assert render_button(%{full_width: true}) =~ "w-full"
+    end
+
+    test "an explicit class replaces the defaults outright" do
+      html = render_button(%{class: "my-class"})
+
+      assert html =~ "my-class"
+      refute html =~ "bg-primary-500"
+    end
+  end
+
   describe "badge" do
     test "renders its content" do
       assert render_badge(kind: "verified", inner_block: slot("Active")) =~ "Active"
@@ -45,6 +134,13 @@ defmodule MercatoWeb.CoreComponentsTest do
 
       assert html =~ "bg-error-bg"
       assert html =~ "text-error-text"
+    end
+
+    test "uses the info palette for a state a record has come to rest in" do
+      html = render_badge(%{kind: "info", inner_block: slot("Sold")})
+
+      assert html =~ "bg-info-bg"
+      assert html =~ "text-info-text"
     end
 
     test "uses the ink palette for neutral" do
@@ -80,6 +176,22 @@ defmodule MercatoWeb.CoreComponentsTest do
 
     test "a plain chip has no remove control" do
       refute render_chip(label: "Active (2)", selected: false) =~ "Remove"
+    end
+  end
+
+  describe "card" do
+    test "pads tighter below md and wider from md up" do
+      html = render_card(inner_block: slot("Body"))
+
+      assert html =~ ~r/[\s"]p-5/
+      assert html =~ "md:p-8"
+    end
+
+    test "keeps the caller's classes alongside the surface" do
+      html = render_card(class: "flex flex-col gap-5", inner_block: slot("Body"))
+
+      assert html =~ "flex flex-col gap-5"
+      assert html =~ "rounded-lg"
     end
   end
 
