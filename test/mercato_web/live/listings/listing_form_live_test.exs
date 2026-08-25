@@ -695,4 +695,78 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert view |> element("#flash-info") |> render() =~ "discarded"
     end
   end
+
+  describe "taking a listing off offer" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      listing =
+        publish!(seller, generate(listing(actor: seller, title: "Eames-style lounge chair")))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "pauses the listing", %{seller: seller, listing: listing, view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      assert {:ok, paused} = Listings.get_my_listing(listing.id, actor: seller)
+      assert paused.status == :unavailable
+    end
+
+    test "says so", %{view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      assert view |> element("#flash-info") |> render() =~ "paused"
+    end
+
+    test "reads back as paused without leaving the page", %{view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      assert view |> element("#listing-status") |> render() =~ "Paused"
+      assert has_element?(view, "#listing-form")
+    end
+
+    test "offers no second pause, having nothing left on offer", %{view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      refute has_element?(view, "#pause-listing")
+    end
+
+    test "still offers saving changes rather than publishing again", %{view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      assert view |> element("#publish-listing") |> render() =~ "Save changes"
+    end
+
+    test "keeps what the seller was still writing", %{view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "Eames-style lounge chair, walnut"})
+      |> render_change()
+
+      view |> element("#pause-listing") |> render_click()
+
+      assert value(view, "#listing_title") == "Eames-style lounge chair, walnut"
+    end
+
+    test "keeps the gallery on the page", %{listing: listing, view: view} do
+      view |> element("#pause-listing") |> render_click()
+
+      [image] = Listings.list_listing_images!(listing.id, authorize?: false)
+      assert has_element?(view, "#photo-#{image.id}")
+    end
+
+    test "writes nothing when the listing has already moved on", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      Listings.pause_listing!(listing, actor: seller)
+
+      view |> element("#pause-listing") |> render_click()
+
+      assert view |> element("#flash-error") |> render() =~ "could not be paused"
+    end
+  end
 end

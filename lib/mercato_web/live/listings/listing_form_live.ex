@@ -10,8 +10,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   The form validates as the seller types, so a refusal lands on the field that
   caused it, and saving does what the primary action says: a draft goes on
-  offer, anything published before is only saved. Pausing and the gallery's
-  controls are not yet wired.
+  offer, anything published before is only saved. The gallery's controls are
+  not yet wired.
   """
 
   use MercatoWeb, :live_view
@@ -137,6 +137,21 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     end
   end
 
+  def handle_event("pause", _params, socket) do
+    case Listings.pause_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
+      {:ok, paused} ->
+        {:noreply,
+         socket
+         |> still_writing(paused)
+         |> put_flash(:info, "This listing is paused. Buyers cannot see it until you relist it.")}
+
+      # Almost always a listing that moved on elsewhere between the page being
+      # opened and the control being pressed, so what is on screen is stale.
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "That listing could not be paused.")}
+    end
+  end
+
   # Nothing was written, so nothing is undone — the stored listing is simply
   # read again, and the form is built afresh from it.
   def handle_event("discard", _params, socket) do
@@ -210,6 +225,19 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   defp wanted(photos) do
     "Add at least #{photos} to put this on offer. Everything else you wrote is saved."
+  end
+
+  # Pausing changes what the listing is, not what the seller is part-way through
+  # writing. Reading it back rebuilds the form, so whatever was typed is put
+  # over the top of the fresh one rather than quietly thrown away.
+  defp still_writing(socket, listing) do
+    typed = socket.assigns.form.source.raw_params
+    socket = reload(socket, listing)
+
+    case typed do
+      nil -> socket
+      typed -> assign(socket, :form, AshPhoenix.Form.validate(socket.assigns.form, typed))
+    end
   end
 
   # Read back rather than kept as the action returned it, so the gallery and
@@ -393,6 +421,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   :if={@listing && @listing.status == :active}
                   type="button"
                   id="pause-listing"
+                  phx-click="pause"
                   class="py-0.5 text-left text-body-sm font-semibold text-primary-700 cursor-pointer hover:text-primary-600"
                 >
                   Pause this listing instead
