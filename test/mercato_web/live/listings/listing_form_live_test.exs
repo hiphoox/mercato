@@ -769,4 +769,191 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert view |> element("#flash-error") |> render() =~ "could not be paused"
     end
   end
+
+  describe "adding a photo" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    defp upload(view, opts \\ []) do
+      name = Keyword.get(opts, :name, "photo.png")
+
+      entry = %{
+        name: name,
+        content: Keyword.get(opts, :content, Mercato.TestGenerators.png_bytes()),
+        type: Keyword.get(opts, :type, "image/png")
+      }
+
+      view
+      |> file_input("#listing-form", :photos, [entry])
+      |> render_upload(name)
+    end
+
+    defp gallery(view), do: view |> element("#listing-photos") |> render()
+
+    test "puts it in the listing's gallery", %{listing: listing, view: view} do
+      upload(view)
+
+      assert [image] = Listings.list_listing_images!(listing.id, authorize?: false)
+      assert has_element?(view, "#photo-#{image.id}")
+    end
+
+    test "makes the first photo the cover", %{listing: listing, view: view} do
+      upload(view)
+
+      assert [%{is_cover: true}] = Listings.list_listing_images!(listing.id, authorize?: false)
+    end
+
+    test "puts a later photo behind the first, leaving the cover alone", %{
+      listing: listing,
+      view: view
+    } do
+      upload(view, name: "first.png")
+      upload(view, name: "second.png")
+
+      assert [%{is_cover: true, position: 0}, %{is_cover: false, position: 1}] =
+               Listings.list_listing_images!(listing.id, authorize?: false)
+    end
+
+    test "counts the gallery afresh", %{view: view} do
+      upload(view)
+
+      assert gallery(view) =~ "1 of #{Listings.max_images()}"
+    end
+
+    test "refuses bytes that are not an image at all", %{listing: listing, view: view} do
+      upload(view, content: "this is not an image")
+
+      assert Listings.list_listing_images!(listing.id, authorize?: false) == []
+      assert gallery(view) =~ "not an accepted image type"
+    end
+
+    test "offers no way to add one past what the gallery holds", %{
+      seller: seller,
+      listing: listing
+    } do
+      for _ <- 1..Listings.max_images(), do: generate(listing_image(listing: listing))
+
+      {:ok, view, _html} =
+        live(log_in(build_conn(), seller), ~p"/listings/#{listing.id}/edit")
+
+      refute has_element?(view, "#listing-form input[type=file]")
+      assert view |> element("#add-photos") |> render() =~ "all #{Listings.max_images()}"
+    end
+  end
+
+  describe "adding a photo before the listing exists" do
+    setup %{conn: conn} do
+      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/new")
+
+      %{view: view}
+    end
+
+    test "offers no way to add one yet", %{view: view} do
+      refute has_element?(view, "#listing-form input[type=file]")
+    end
+
+    test "says what has to happen first", %{view: view} do
+      assert view |> element("#add-photos") |> render() =~ "Save"
+    end
+
+    test "still names what the gallery will accept", %{view: view} do
+      assert view |> element("#add-photos") |> render() =~ to_string(Listings.max_images())
+    end
+  end
+
+  describe "removing a photo" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      first = generate(listing_image(listing: listing))
+      second = generate(listing_image(listing: listing))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, first: first, second: second, view: view}
+    end
+
+    test "takes it out of the gallery", %{listing: listing, second: second, view: view} do
+      view |> element("#remove-photo-#{second.id}") |> render_click()
+
+      assert [remaining] = Listings.list_listing_images!(listing.id, authorize?: false)
+      assert remaining.id != second.id
+      refute has_element?(view, "#photo-#{second.id}")
+    end
+
+    test "hands the cover on when the cover is the one removed", %{
+      listing: listing,
+      first: first,
+      second: second,
+      view: view
+    } do
+      view |> element("#remove-photo-#{first.id}") |> render_click()
+
+      assert [%{id: id, is_cover: true}] =
+               Listings.list_listing_images!(listing.id, authorize?: false)
+
+      assert id == second.id
+    end
+
+    test "refuses to drop a listing on offer below the minimum", %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      image = generate(listing_image(listing: listing))
+      Listings.publish_listing!(listing, actor: seller)
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      view |> element("#remove-photo-#{image.id}") |> render_click()
+
+      assert [_still_there] = Listings.list_listing_images!(listing.id, authorize?: false)
+
+      assert view |> element("#listing-photos") |> render() =~
+               "fewer than #{Listings.min_images()}"
+    end
+  end
+
+  describe "promoting a photo to cover" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      first = generate(listing_image(listing: listing))
+      second = generate(listing_image(listing: listing))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, first: first, second: second, view: view}
+    end
+
+    test "makes it the cover and stands the previous one down", %{
+      listing: listing,
+      first: first,
+      second: second,
+      view: view
+    } do
+      view |> element("#make-cover-#{second.id}") |> render_click()
+
+      images = Listings.list_listing_images!(listing.id, authorize?: false)
+
+      assert Enum.find(images, &(&1.id == second.id)).is_cover
+      refute Enum.find(images, &(&1.id == first.id)).is_cover
+    end
+
+    test "offers no promotion on the photo that is already the cover", %{
+      first: first,
+      view: view
+    } do
+      refute has_element?(view, "#make-cover-#{first.id}")
+    end
+
+    test "marks the newly promoted photo in the grid", %{second: second, view: view} do
+      view |> element("#make-cover-#{second.id}") |> render_click()
+
+      assert view |> element("#photo-#{second.id}") |> render() =~ "Cover"
+    end
+  end
 end

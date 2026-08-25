@@ -10,8 +10,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   The form validates as the seller types, so a refusal lands on the field that
   caused it, and saving does what the primary action says: a draft goes on
-  offer, anything published before is only saved. The gallery's controls are
-  not yet wired.
+  offer, anything published before is only saved. A photo can be added,
+  removed and promoted to cover, though only once the listing exists to attach
+  one to.
   """
 
   use MercatoWeb, :live_view
@@ -32,7 +33,16 @@ defmodule MercatoWeb.Listings.ListingFormLive do
      socket
      |> assign(:categories, categories())
      |> assign(:conditions, conditions())
-     |> assign(:gallery_error, nil)}
+     |> assign(:gallery_error, nil)
+     |> allow_upload(:photos,
+       # Every limit is the marketplace's, so the upload refuses on the same
+       # terms the gallery does rather than on a second set written here.
+       accept: Listings.image_types(),
+       max_entries: Listings.max_images(),
+       max_file_size: Listings.image_max_bytes(),
+       auto_upload: true,
+       progress: &stored/3
+     )}
   end
 
   @impl true
@@ -137,6 +147,28 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     end
   end
 
+  def handle_event("make_cover", %{"id" => id}, socket) do
+    with %{} = image <- photo(socket, id),
+         {:ok, _promoted} <-
+           Listings.set_listing_image_cover(image, actor: socket.assigns.current_user) do
+      {:noreply, still_writing(socket, socket.assigns.listing)}
+    else
+      _refused -> {:noreply, put_flash(socket, :error, "That photo could not be made the cover.")}
+    end
+  end
+
+  def handle_event("remove_photo", %{"id" => id}, socket) do
+    with %{} = image <- photo(socket, id),
+         :ok <- Listings.delete_listing_image(image, actor: socket.assigns.current_user) do
+      {:noreply, still_writing(socket, socket.assigns.listing)}
+    else
+      # Refusing a removal is the gallery's own business — most often a listing
+      # on offer that would be left with too few photos to stay there.
+      {:error, error} -> {:noreply, assign(socket, :gallery_error, about_the_photo(error))}
+      _missing -> {:noreply, socket}
+    end
+  end
+
   def handle_event("pause", _params, socket) do
     case Listings.pause_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
       {:ok, paused} ->
@@ -224,8 +256,41 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   defp photos_wanted(min), do: wanted("#{min} photos")
 
   defp wanted(photos) do
-    "Add at least #{photos} to put this on offer. Everything else you wrote is saved."
+    "Add at least #{photos} to put this on offer. Nothing else you wrote was lost."
   end
+
+  # Consumed only once the whole file has arrived; a part-uploaded photo is
+  # nothing the gallery can be given.
+  defp stored(:photos, %{done?: false}, socket), do: {:noreply, socket}
+
+  defp stored(:photos, entry, socket) do
+    listing = socket.assigns.listing
+    bytes = consume_uploaded_entry(socket, entry, &{:ok, File.read!(&1.path)})
+
+    case Listings.add_listing_image(
+           %{listing_id: listing.id, image: bytes, filename: entry.client_name},
+           actor: socket.assigns.current_user
+         ) do
+      {:ok, _image} -> {:noreply, still_writing(socket, listing)}
+      {:error, error} -> {:noreply, assign(socket, :gallery_error, about_the_photo(error))}
+    end
+  end
+
+  defp photo(%{assigns: %{listing: %{images: images}}}, id) when is_list(images) do
+    Enum.find(images, &(&1.id == id))
+  end
+
+  defp photo(_socket, _id), do: nil
+
+  # The domain writes these to follow a field name, so they are given a subject
+  # rather than restated here: a sentence invented at this layer would drift
+  # from what the gallery actually refuses.
+  defp about_the_photo(%Ash.Error.Invalid{errors: [%{message: message} | _]})
+       when is_binary(message) do
+    "That photo #{message}."
+  end
+
+  defp about_the_photo(_error), do: "That photo could not be added."
 
   # Pausing changes what the listing is, not what the seller is part-way through
   # writing. Reading it back rebuilds the form, so whatever was typed is put
@@ -303,6 +368,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
               min={Listings.min_images()}
               max={Listings.max_images()}
               error={@gallery_error}
+              upload={@listing && @uploads.photos}
             />
 
             <.card class="flex flex-col gap-3.5">

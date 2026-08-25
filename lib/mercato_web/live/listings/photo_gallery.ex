@@ -7,8 +7,9 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   thing that composes it — a gallery is the seller's own view of a listing's
   photos, not a shape anything else renders.
 
-  The controls render but are not yet wired; adding, removing and promoting a
-  photo land with the form's write actions.
+  Adding, removing and promoting a photo are the owner's events: the gallery
+  renders the controls and names them, and the page that owns the listing is
+  what actually changes it.
   """
   use MercatoWeb, :html
 
@@ -16,17 +17,27 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   Renders the gallery section.
 
   `images` are the listing's images in gallery order, each carrying a `:url`
-  and an `:is_cover`. An `error` puts the whole section in the error state,
-  which is what a publish refused for want of a photo looks like.
+  and an `:is_cover`. An `error` puts the whole section in the error state —
+  a publish refused for want of a photo, or a photo the gallery would not take.
+
+  `upload` is what the add tile offers a file to. Without one there is nothing
+  to attach a photo to yet, and the tile says so rather than pretending.
   """
   attr :id, :string, default: "listing-photos"
   attr :images, :list, required: true, doc: "the listing's images, in gallery order"
   attr :min, :integer, required: true, doc: "how few images the listing may go on offer with"
   attr :max, :integer, required: true, doc: "how many the gallery holds at most"
   attr :error, :string, default: nil, doc: "why the gallery is refusing, if it is"
+
+  attr :upload, Phoenix.LiveView.UploadConfig,
+    default: nil,
+    doc: "the upload a photo is offered to; without one the tile cannot take a file"
+
   attr :rest, :global
 
   def photo_gallery(assigns) do
+    assigns = assign(assigns, :open?, open?(assigns))
+
     ~H"""
     <.card
       id={@id}
@@ -57,11 +68,17 @@ defmodule MercatoWeb.Listings.PhotoGallery do
           class="flex items-start gap-2.5 px-3.5 py-3 rounded-md bg-error-bg text-error-text"
         >
           <.icon name="hero-exclamation-circle" aria-hidden="true" class="size-4.5 flex-none mt-px" />
-          <div>
-            <div class="text-body-sm font-bold">{@error}</div>
-            <div class="mt-0.5 text-caption-lg">Nothing you have written was lost.</div>
-          </div>
+          <div class="text-body-sm font-bold">{@error}</div>
         </div>
+
+        <p
+          :for={{_ref, refusal} <- (@upload && @upload.errors) || []}
+          role="alert"
+          class="flex items-center gap-2 text-body-sm text-error"
+        >
+          <.icon name="hero-exclamation-circle" aria-hidden="true" class="size-4.5 flex-none" />
+          {refused(refusal, @max)}
+        </p>
 
         <div class="grid grid-cols-[repeat(auto-fill,minmax(8.25rem,1fr))] gap-3 md:grid-cols-[repeat(auto-fill,minmax(9.75rem,1fr))]">
           <figure
@@ -92,6 +109,8 @@ defmodule MercatoWeb.Listings.PhotoGallery do
                 :if={!image.is_cover}
                 type="button"
                 id={"make-cover-#{image.id}"}
+                phx-click="make_cover"
+                phx-value-id={image.id}
                 class="px-0.5 py-1 text-caption-md font-bold text-primary-700 cursor-pointer hover:text-primary-600"
               >
                 Make cover
@@ -101,6 +120,8 @@ defmodule MercatoWeb.Listings.PhotoGallery do
               <button
                 type="button"
                 id={"remove-photo-#{image.id}"}
+                phx-click="remove_photo"
+                phx-value-id={image.id}
                 aria-label="Remove this photo"
                 class={[
                   "flex flex-none items-center justify-center size-8 cursor-pointer",
@@ -114,24 +135,31 @@ defmodule MercatoWeb.Listings.PhotoGallery do
             </figcaption>
           </figure>
 
-          <button
-            type="button"
+          <%!-- A label rather than a button: the file input it carries is what
+                opens the picker, and wrapping it means no id has to be kept in
+                step between the two. --%>
+          <label
             id="add-photos"
-            disabled={length(@images) >= @max}
             class={[
               "flex flex-col items-center justify-center gap-1.5 text-center",
-              "min-h-43 md:min-h-49 p-4 rounded-md cursor-pointer",
+              "min-h-43 md:min-h-49 p-4 rounded-md",
               "border-[1.5px] border-dashed transition-colors",
-              "text-ink-700 dark:text-ink-100",
-              @error && "border-error",
-              !@error && "border-ink-300 hover:border-primary-500 hover:text-primary-700",
-              "disabled:cursor-not-allowed disabled:border-ink-100 disabled:text-ink-300"
+              @open? && "cursor-pointer text-ink-700 dark:text-ink-100",
+              @open? && @error && "border-error",
+              @open? && !@error && "border-ink-300 hover:border-primary-500 hover:text-primary-700",
+              !@open? && "cursor-not-allowed border-ink-100 text-ink-300"
             ]}
           >
+            <.live_file_input :if={@open?} upload={@upload} class="sr-only" />
             <.icon name="hero-camera" aria-hidden="true" class="size-6" />
             <span class="text-body-sm font-bold">Add photos</span>
-            <span class="text-caption-md text-ink-500">{accepted(@max)}</span>
-          </button>
+            <%!-- What the gallery takes is named whether or not it can take one
+                  now, so the tile still answers the question it is asked. --%>
+            <span class={["text-caption-md", @open? && "text-ink-500", !@open? && "text-ink-300"]}>
+              {accepted(@max)}
+            </span>
+            <span :if={!@open?} class="text-caption-md font-bold">{shut(@upload, @images, @max)}</span>
+          </label>
         </div>
       </section>
     </.card>
@@ -163,4 +191,19 @@ defmodule MercatoWeb.Listings.PhotoGallery do
 
     "#{types}, up to #{max}"
   end
+
+  # Nothing to attach a photo to until the listing exists, and nowhere to put
+  # one once the gallery is full.
+  defp open?(%{upload: nil}), do: false
+  defp open?(%{images: images, max: max}), do: length(images) < max
+
+  defp shut(nil, _images, _max), do: "Save this listing first"
+  defp shut(_upload, _images, max), do: "That is all #{max} of them"
+
+  # The upload refuses a file before the gallery ever sees it, so these are the
+  # limits restated for the person rather than the ones the resource enforces.
+  defp refused(:too_large, _max), do: "That file is too large."
+  defp refused(:not_accepted, _max), do: "That file is not one of the types accepted here."
+  defp refused(:too_many_files, max), do: "No more than #{max} photos at a time."
+  defp refused(_refusal, _max), do: "That file could not be added."
 end
