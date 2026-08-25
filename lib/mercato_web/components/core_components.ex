@@ -95,11 +95,17 @@ defmodule MercatoWeb.CoreComponents do
       <.button phx-click="go" variant="primary">Send!</.button>
       <.button size="sm" variant="neutral" phx-click="pause">Pause</.button>
       <.button variant="secondary" phx-click="follow">Follow</.button>
+      <.button variant="tertiary" size="md" phx-click="pause">
+        <.icon name="hero-pause" class="size-4" /> Pause
+      </.button>
       <.button navigate={~p"/"}>Home</.button>
   """
   attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
   attr :class, :any, doc: "replaces every default class, rather than adding to them"
-  attr :variant, :string, default: "primary", values: ~w(primary secondary neutral danger)
+
+  attr :variant, :string,
+    default: "primary",
+    values: ~w(primary secondary tertiary neutral danger)
 
   attr :size, :string,
     default: "lg",
@@ -111,11 +117,17 @@ defmodule MercatoWeb.CoreComponents do
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
+    # The shadow belongs to the variant rather than to every button: an outlined
+    # one sits on the page rather than above it, and two competing shadow
+    # utilities would be settled by the order Tailwind happened to emit them in.
     variants = %{
-      "primary" => "bg-primary-500 text-white",
-      "secondary" => "bg-secondary-500 text-white dark:bg-secondary-600",
-      "neutral" => "bg-ink-100 text-ink-900 dark:bg-ink-700 dark:text-white",
-      "danger" => "bg-error text-white"
+      "primary" => "shadow-sm bg-primary-500 text-white",
+      "secondary" => "shadow-sm bg-secondary-500 text-white dark:bg-secondary-600",
+      "tertiary" =>
+        "border-[1.5px] border-primary-500 text-primary-700 dark:text-primary-100 " <>
+          "hover:bg-primary-050 dark:hover:bg-ink-700",
+      "neutral" => "shadow-sm bg-ink-100 text-ink-900 dark:bg-ink-700 dark:text-white",
+      "danger" => "shadow-sm bg-error text-white"
     }
 
     sizes = %{
@@ -129,7 +141,7 @@ defmodule MercatoWeb.CoreComponents do
       assign_new(assigns, :class, fn ->
         [
           "inline-flex items-center justify-center gap-2 whitespace-nowrap",
-          "rounded-md shadow-sm font-semibold cursor-pointer",
+          "rounded-md font-semibold cursor-pointer",
           "transition-[filter,background-color] hover:brightness-95",
           "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100",
           # Spelled out rather than left to opacity: the disabled palette is a

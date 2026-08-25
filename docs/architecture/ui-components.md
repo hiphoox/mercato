@@ -28,6 +28,7 @@ A component's own anatomy — its slots, its states, what a variant means for it
 - Filter chips stay black-and-white in both states, which is what keeps the primary color exclusive to actions.
 - Accent marks a featured or highlighted record and the vibrant sale red marks a discount. Neither ever means "something is wrong" — the warning, error, and info tokens carry that.
 - A disabled control is ink-100 with ink-300 text and no shadow, in every variant.
+- A filled button carries a subtle shadow; an outlined one does not, so it sits on the page rather than above it.
 
 ## Composition
 
@@ -58,7 +59,7 @@ The names a component draws from when it needs a variant. Which of these a given
 |---|---|
 | critical | The single highest-stakes action on a screen — pay, checkout. Used sparingly, above `primary` in emphasis. |
 | primary | Main CTA — buy, publish |
-| tertiary (primary border, no fill) | Offer / counter-offer |
+| tertiary (primary border, no fill) | Offer / counter-offer; a real action that must not compete with the CTA beside it — pause, relist |
 | secondary | Social — follow |
 | success | Confirm — accept offer |
 | neutral | Cancel / secondary |

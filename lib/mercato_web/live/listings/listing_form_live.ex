@@ -564,27 +564,32 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
                 <%!-- Offered only where it can be taken: relisting is
                       reachable from `unavailable` alone. --%>
-                <button
+                <.button
                   :if={@listing && @listing.status == :unavailable}
-                  type="button"
                   id="resume-listing"
+                  type="button"
+                  variant="tertiary"
+                  size="md"
+                  full_width
                   phx-click="resume"
-                  class="py-0.5 text-left text-body-sm font-semibold text-primary-700 cursor-pointer hover:text-primary-600"
                 >
+                  <.icon name="hero-arrow-path" aria-hidden="true" class="size-4" />
                   Relist this listing
-                </button>
+                </.button>
 
                 <%!-- Offered only where it can be taken: pausing is reachable
                       from `active` alone, so a draft gets no such control. --%>
-                <button
+                <.button
                   :if={@listing && @listing.status == :active}
-                  type="button"
                   id="pause-listing"
+                  type="button"
+                  variant="tertiary"
+                  size="md"
+                  full_width
                   phx-click="pause"
-                  class="py-0.5 text-left text-body-sm font-semibold text-primary-700 cursor-pointer hover:text-primary-600"
                 >
-                  Pause this listing instead
-                </button>
+                  <.icon name="hero-pause" aria-hidden="true" class="size-4" /> Pause this listing
+                </.button>
 
                 <%!-- Set apart by a rule, because everything above it keeps the
                       listing and this is the one control that does not. --%>

@@ -68,6 +68,24 @@ defmodule MercatoWeb.CoreComponentsTest do
       refute render_button(%{variant: "secondary"}) =~ "bg-primary-500"
     end
 
+    test "outlines a tertiary action rather than filling it" do
+      html = render_button(%{variant: "tertiary"})
+
+      assert html =~ "border-primary-500"
+      refute html =~ "bg-primary-500"
+    end
+
+    test "gives a tertiary action text dark enough to read on white" do
+      # primary-500 fails AA at this size on white; primary-700 is the token
+      # the palette reserves for exactly that.
+      assert render_button(%{variant: "tertiary"}) =~ "text-primary-700"
+    end
+
+    test "lifts a filled action off the page but not an outlined one" do
+      assert render_button(%{}) =~ "shadow-sm"
+      refute render_button(%{variant: "tertiary"}) =~ ~r/[\s"]shadow-sm/
+    end
+
     test "hugs its content rather than the row it sits in" do
       refute render_button(%{}) =~ "w-full"
     end
