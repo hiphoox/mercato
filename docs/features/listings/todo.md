@@ -54,10 +54,11 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 ### Create & edit
 
 24. [x] Single-form create; no multi-step stepper in Phase 1
-25. [ ] Draft auto-save so leaving the form does not lose work
+25. [x] Draft auto-save so leaving the form does not lose work — a draft alone; a listing that has been on offer is saved only when the seller asks, so buyers never see a half-finished thought
 26. [x] Edit any field while `draft` or `active`
 27. [x] Publish and unpublish actions
-28. [ ] Publish blocked until the seller satisfies the configured fulfillment prerequisites; the shipped-goods default requires a shipping-origin address, and a marketplace of services or digital goods configures none
+
+Publishing blocked on the seller's fulfillment prerequisites has moved to [orders/todo.md](../orders/todo.md), which governs fulfillment.
 
 ### Public presentation
 

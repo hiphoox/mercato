@@ -13,7 +13,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   offer, anything published before is only saved. A photo can be added,
   removed and promoted to cover, though only once the listing exists to attach
   one to, a listing can be taken off offer and put back on it, and one the
-  seller is done with can be removed outright.
+  seller is done with can be removed outright. A draft writes itself down as it
+  is typed, so leaving the page costs nothing.
   """
 
   use MercatoWeb, :live_view
@@ -149,7 +150,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   @impl true
   def handle_event("validate", %{"listing" => params}, socket) do
-    {:noreply, assign(socket, :form, AshPhoenix.Form.validate(socket.assigns.form, params))}
+    form = AshPhoenix.Form.validate(socket.assigns.form, params)
+
+    {:noreply, socket |> assign(:form, form) |> keeps_itself()}
   end
 
   def handle_event("save", %{"listing" => listing_params} = params, socket) do
@@ -315,6 +318,23 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     "Add at least #{photos} to put this on offer. Nothing else you wrote was lost."
   end
 
+  # A draft is the seller's own workspace, so it writes itself down as they go
+  # and leaving the page costs them nothing. Anything that has been on offer is
+  # saved only when asked: what buyers are looking at should not follow a
+  # half-finished thought. A listing not yet saved has nowhere to be kept.
+  defp keeps_itself(%{assigns: %{listing: %{status: :draft}, form: form}} = socket) do
+    if form.source.valid?, do: save_quietly(form)
+
+    socket
+  end
+
+  defp keeps_itself(socket), do: socket
+
+  # Nothing is reported either way. What the seller typed is already judged on
+  # the page, and a refusal from the database is not theirs to answer for — the
+  # save they ask for is where anything wrong with the listing is said.
+  defp save_quietly(form), do: AshPhoenix.Form.submit(form, params: form.source.raw_params)
+
   # Consumed only once the whole file has arrived; a part-uploaded photo is
   # nothing the gallery can be given.
   defp stored(:photos, %{done?: false}, socket), do: {:noreply, socket}
@@ -416,6 +436,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
           id="listing-form"
           phx-change="validate"
           phx-submit="save"
+          phx-debounce="600"
           class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]"
         >
           <div class="flex flex-col gap-5 min-w-0">
@@ -537,6 +558,10 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
                 <p class="text-caption-lg text-ink-500 text-pretty">{action_help(@listing)}</p>
 
+                <p :if={draft?(@listing)} class="text-caption-lg text-ink-500 text-pretty">
+                  Saved automatically as you type, so you can leave whenever you like.
+                </p>
+
                 <%!-- Offered only where it can be taken: relisting is
                       reachable from `unavailable` alone. --%>
                 <button
@@ -590,6 +615,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # since the transformed ones hold the minor units nobody types.
   defp price(%{source: %{raw_params: %{"price" => typed}}}, _listing), do: typed
   defp price(_form, listing), do: Money.amount(listing && listing.price)
+
+  defp draft?(%{status: :draft}), do: true
+  defp draft?(_listing), do: false
 
   defp images(nil), do: []
   defp images(%{images: images}) when is_list(images), do: images

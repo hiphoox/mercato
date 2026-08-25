@@ -1109,4 +1109,111 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       refute has_element?(view, "#delete-listing")
     end
   end
+
+  describe "a draft keeping itself" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller, title: "Eames-style lounge chair"))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "saves what the seller types without being asked", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view
+      |> form("#listing-form", listing: %{title: "Eames-style lounge chair, walnut"})
+      |> render_change()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "Eames-style lounge chair, walnut"
+    end
+
+    test "leaves it a draft rather than putting it on offer", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_change()
+
+      assert {:ok, %{status: :draft}} = Listings.get_my_listing(listing.id, actor: seller)
+    end
+
+    test "writes nothing while what was typed is refused", %{
+      seller: seller,
+      listing: listing,
+      view: view
+    } do
+      view |> form("#listing-form", listing: %{title: "ab"}) |> render_change()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "Eames-style lounge chair"
+    end
+
+    test "says it is keeping itself, so the seller can leave", %{view: view} do
+      assert view |> element("#listing-form") |> render() =~ "Saved automatically"
+    end
+
+    test "keeps what the seller typed on the page", %{view: view} do
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_change()
+
+      assert value(view, "#listing_title") == "A better title"
+    end
+  end
+
+  describe "a listing that keeps itself only when asked" do
+    test "one on offer is never saved behind the seller's back", %{conn: conn} do
+      seller = generate(user())
+
+      listing =
+        publish!(seller, generate(listing(actor: seller, title: "Eames-style lounge chair")))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      view
+      |> form("#listing-form", listing: %{title: "Something buyers never chose"})
+      |> render_change()
+
+      assert {:ok, saved} = Listings.get_my_listing(listing.id, actor: seller)
+      assert saved.title == "Eames-style lounge chair"
+      refute view |> element("#listing-form") |> render() =~ "Saved automatically"
+    end
+
+    test "a paused one is not saved either, since it goes back on offer as it stands", %{
+      conn: conn
+    } do
+      seller = generate(user())
+
+      paused =
+        Listings.pause_listing!(
+          publish!(seller, generate(listing(actor: seller, title: "Eames-style lounge chair"))),
+          actor: seller
+        )
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused.id}/edit")
+      view |> form("#listing-form", listing: %{title: "A better title"}) |> render_change()
+
+      assert {:ok, saved} = Listings.get_my_listing(paused.id, actor: seller)
+      assert saved.title == "Eames-style lounge chair"
+    end
+
+    test "one not yet saved has nothing to keep itself in", %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      view
+      |> form("#listing-form",
+        listing: %{title: "Eames-style lounge chair", price: "42.00", category_id: category.id}
+      )
+      |> render_change()
+
+      assert Listings.list_my_listings!(actor: seller) == []
+    end
+  end
 end
