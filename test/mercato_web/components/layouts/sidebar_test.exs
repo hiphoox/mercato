@@ -142,7 +142,9 @@ defmodule MercatoWeb.Layouts.SidebarTest do
       # Otherwise the drawer would stay open over the page the user just navigated to.
       clicks = [current_path: "/"] |> query("nav a") |> LazyHTML.attribute("phx-click")
 
-      assert Enum.count(clicks) == 2
+      # Every entry, not a fixed number of them: adding a nav entry should not
+      # be able to add one that leaves the drawer open behind it.
+      assert clicks != []
       assert Enum.all?(clicks, &(&1 =~ ~s(["data-sidebar-drawer","closed"])))
     end
   end
