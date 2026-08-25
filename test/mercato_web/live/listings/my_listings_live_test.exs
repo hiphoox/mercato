@@ -224,4 +224,54 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       assert view |> element("#remove-#{listing.id}") |> render() =~ "data-confirm"
     end
   end
+
+  describe "pausing and relisting from the shelf" do
+    test "pausing takes a live listing off offer", %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      view |> element("#pause-#{listing.id}") |> render_click()
+
+      assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(listing.id, actor: seller)
+      assert view |> element("#flash-info") |> render() =~ "paused"
+    end
+
+    test "a paused listing moves into the paused section", %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      view |> element("#pause-#{listing.id}") |> render_click()
+
+      assert has_element?(view, "#resume-#{listing.id}")
+      refute has_element?(view, "#pause-#{listing.id}")
+    end
+
+    test "relisting puts a paused listing back on offer", %{conn: conn} do
+      seller = generate(user())
+      listing = paused!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      view |> element("#resume-#{listing.id}") |> render_click()
+
+      assert {:ok, %{status: :active}} = Listings.get_my_listing(listing.id, actor: seller)
+      assert view |> element("#flash-info") |> render() =~ "on offer"
+    end
+
+    test "refuses to relist a listing stripped of the photos it needs", %{conn: conn} do
+      seller = generate(user())
+      listing = paused!(seller, generate(listing(actor: seller)))
+
+      for image <- Listings.list_listing_images!(listing.id, authorize?: false) do
+        :ok = Listings.delete_listing_image(image, actor: seller)
+      end
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      view |> element("#resume-#{listing.id}") |> render_click()
+
+      assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(listing.id, actor: seller)
+      assert view |> element("#flash-error") |> render() =~ "back on offer"
+    end
+  end
 end

@@ -53,10 +53,10 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Create & edit
 
-24. [ ] Single-form create; no multi-step stepper in Phase 1
+24. [x] Single-form create; no multi-step stepper in Phase 1
 25. [ ] Draft auto-save so leaving the form does not lose work
-26. [ ] Edit any field while `draft` or `active`
-27. [ ] Publish and unpublish actions
+26. [x] Edit any field while `draft` or `active`
+27. [x] Publish and unpublish actions
 28. [ ] Publish blocked until the seller satisfies the configured fulfillment prerequisites; the shipped-goods default requires a shipping-origin address, and a marketplace of services or digital goods configures none
 
 ### Public presentation
@@ -69,8 +69,8 @@ Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/t
 
 ### Seller management
 
-32. [ ] "My Listings" view grouped by state with edit, pause, and delete actions
-33. [ ] Draft listings reachable from the same view
+32. [x] "My Listings" view grouped by state with edit, pause, and delete actions
+33. [x] Draft listings reachable from the same view
 
 ### Authorization
 

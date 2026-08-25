@@ -35,4 +35,4 @@ Two different empty views:
 
 ## Available actions
 
-Every listing offers the actions its state allows: continuing a draft, editing or pausing a live listing, relisting or editing a paused one, opening the order behind a sold one. Removal is offered on anything except a sold listing, which is the record of a sale and cannot be removed, and asks for confirmation first.
+Every listing offers the actions its state allows: continuing a draft, editing or pausing a live listing, relisting or editing a paused one, opening the order behind a sold one. Pausing, relisting and removing happen on this page, and the shelf is read again after each so the card, the section it sits in and the counts on the chips all describe the same snapshot. A relist has to clear the same bar publishing did, so one whose gallery fell below the marketplace's minimum while it was off offer is refused and told so. Removal is offered on anything except a sold listing, which is the record of a sale and cannot be removed, and asks for confirmation first.

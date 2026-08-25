@@ -4,7 +4,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
 
   Behaviour is specified in `docs/features/listings/my-listings.md`. Editing
   and composing are pages, so those actions are links, and removing happens
-  here. Pausing, relisting and opening an order are not yet wired.
+  here, as do pausing and relisting. Opening the order behind a sold listing
+  waits on there being orders to open.
   """
 
   use MercatoWeb, :live_view
@@ -99,6 +100,20 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     end
   end
 
+  def handle_event("pause", %{"id" => id}, socket) do
+    moved(socket, id, &Listings.pause_listing/2, "was paused.", "could not be paused.")
+  end
+
+  def handle_event("resume", %{"id" => id}, socket) do
+    moved(
+      socket,
+      id,
+      &Listings.resume_listing/2,
+      "is back on offer.",
+      "could not go back on offer."
+    )
+  end
+
   def handle_event("filter_status", %{"status" => "all"}, socket) do
     {:noreply, push_patch(socket, to: ~p"/my-listings")}
   end
@@ -107,6 +122,21 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     case parse_status(status) do
       nil -> {:noreply, push_patch(socket, to: ~p"/my-listings")}
       status -> {:noreply, push_patch(socket, to: ~p"/my-listings?status=#{status}")}
+    end
+  end
+
+  # Every move a listing makes from this page reads the shelf again afterwards,
+  # so the card, the section it sits in and the counts on the chips all describe
+  # the same snapshot.
+  defp moved(socket, id, move, said, refused) do
+    with %{} = listing <- Enum.find(socket.assigns.listings, &(&1.id == id)),
+         {:ok, _moved} <- move.(listing, actor: socket.assigns.current_user) do
+      {:noreply,
+       socket
+       |> load_listings()
+       |> put_flash(:info, "“#{listing.title}” #{said}")}
+    else
+      _refused -> {:noreply, put_flash(socket, :error, "That listing #{refused}")}
     end
   end
 
@@ -210,6 +240,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
                   size="sm"
                   variant={action.variant}
                   navigate={action_target(action, listing)}
+                  phx-click={action_event(action)}
+                  phx-value-id={listing.id}
                 >
                   {action.label}
                 </.button>
@@ -296,9 +328,14 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   end
 
   # Editing is a page rather than an event, so its control is a link. Every
-  # other action changes the listing where it stands and lands with the writes.
+  # other action changes the listing where it stands.
   defp action_target(%{event: "edit"}, listing), do: ~p"/listings/#{listing.id}/edit"
   defp action_target(_action, _listing), do: nil
+
+  # A link carries no event, and there is nothing yet to open behind a sale.
+  defp action_event(%{event: "edit"}), do: nil
+  defp action_event(%{event: "view_order"}), do: nil
+  defp action_event(%{event: event}), do: event
 
   defp section_label(status) do
     case Enum.find(@states, &(&1.value == status)) do
