@@ -11,7 +11,7 @@ defmodule MercatoWeb.UI.ListingStatusBadgeTest do
 
   describe "wording" do
     test "uses the trader's words rather than the schema's" do
-      assert badge_for(:active) =~ "Live"
+      assert badge_for(:active) =~ "Active"
       assert badge_for(:unavailable) =~ "Paused"
     end
 

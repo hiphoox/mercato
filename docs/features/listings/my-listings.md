@@ -14,7 +14,7 @@ Every account holds the trader role and can both buy and sell, so this is one of
 
 A trader sees the listings they put up and nobody else's, in every state a listing can be in — including the drafts and paused listings no public browse would return. A listing moderation has taken down is gone from the view.
 
-Listings are grouped into a section per state, in the order Drafts, Live, Paused, Sold: the ones still owed work first, the ones kept only as a record last. A state with nothing in it has no section. Each section names how many listings it holds and what the state means for whoever listed them.
+Listings are grouped into a section per state, in the order Drafts, Active, Paused, Sold: the ones still owed work first, the ones kept only as a record last. A state with nothing in it has no section. Each section names how many listings it holds and what the state means for whoever listed them.
 
 Within a section the most recently touched listing comes first, so an edit or a pause brings a listing back to the top.
 

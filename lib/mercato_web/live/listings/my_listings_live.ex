@@ -29,7 +29,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     },
     %{
       value: :active,
-      section: "Live",
+      section: "Active",
       help: "On offer to buyers now.",
       icon: "hero-photo",
       actions: [

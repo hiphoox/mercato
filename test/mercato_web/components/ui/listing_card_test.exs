@@ -70,9 +70,9 @@ defmodule MercatoWeb.UI.ListingCardTest do
 
   describe "slots" do
     test "renders badges above the title" do
-      assert %{badges: slot(:badges, "Live")}
+      assert %{badges: slot(:badges, "Active")}
              |> query("[data-role=badges]")
-             |> LazyHTML.text() =~ "Live"
+             |> LazyHTML.text() =~ "Active"
     end
 
     test "renders the meta line" do

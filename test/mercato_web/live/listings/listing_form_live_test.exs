@@ -191,7 +191,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     end
 
     test "says what state the listing is in", %{view: view} do
-      assert view |> element("#listing-status") |> render() =~ "Live"
+      assert view |> element("#listing-status") |> render() =~ "Active"
     end
 
     test "fills the fields with what the seller last saved", %{view: view} do
@@ -519,7 +519,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       view |> form("#listing-form", listing: %{}) |> render_submit()
 
       assert view |> element("#publish-listing") |> render() =~ "Save changes"
-      assert view |> element("#listing-status") |> render() =~ "Live"
+      assert view |> element("#listing-status") |> render() =~ "Active"
     end
   end
 
@@ -999,7 +999,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     test "reads back as live without leaving the page", %{view: view} do
       view |> element("#resume-listing") |> render_click()
 
-      assert view |> element("#listing-status") |> render() =~ "Live"
+      assert view |> element("#listing-status") |> render() =~ "Active"
       assert has_element?(view, "#listing-form")
     end
 

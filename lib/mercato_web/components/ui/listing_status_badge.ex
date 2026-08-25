@@ -3,7 +3,7 @@ defmodule MercatoWeb.UI.ListingStatusBadge do
   The badge naming the lifecycle state a listing is in.
 
   One place deciding how each state reads and which badge kind carries it, so
-  a listing labelled "Live" on one page is never "Active" on the next.
+  a listing labelled "Active" on one page is never "Live" on the next.
 
       <.listing_status_badge status={@listing.status} />
   """
@@ -14,7 +14,7 @@ defmodule MercatoWeb.UI.ListingStatusBadge do
   # because it is the state that stops a listing.
   @states %{
     draft: {"neutral", "Draft"},
-    active: {"verified", "Live"},
+    active: {"verified", "Active"},
     unavailable: {"warning", "Paused"},
     sold: {"info", "Sold"},
     deleted: {"danger", "Removed"}
