@@ -75,11 +75,7 @@ defmodule Mercato.Listings.ListingDeletionTest do
       assert Listings.list_listings!(actor: stranger) == []
     end
 
-    test "keeps the gallery as the backup it is", %{
-      moderator: moderator,
-      seller: seller,
-      listing: listing
-    } do
+    test "keeps the gallery as the backup it is", %{moderator: moderator, listing: listing} do
       image = add_image(listing)
 
       :ok = Listings.moderate_delete_listing(listing, actor: moderator)

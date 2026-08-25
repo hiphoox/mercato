@@ -87,7 +87,12 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   defp assign_form(socket) do
-    opts = [actor: socket.assigns.current_user, as: "listing", transform_params: &to_minor/2]
+    opts = [
+      actor: socket.assigns.current_user,
+      as: "listing",
+      transform_params: &to_minor/2,
+      transform_errors: &readable/2
+    ]
 
     form =
       case socket.assigns.listing do
@@ -111,6 +116,17 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   defp to_minor(params, _kind), do: params
+
+  # A price that could not be read never reaches the attribute as a number, so
+  # Ash refuses it as the wrong sort of thing and says only that it is invalid.
+  # The seller typed an amount, so they are shown one instead.
+  defp readable(_changeset, %{field: :price, message: "is invalid"}) do
+    [{:price, "must be an amount, like 24.99", []}]
+  end
+
+  # Everything else stands, including the marketplace's own floor: a price it
+  # could read but will not take is a different complaint.
+  defp readable(_changeset, error), do: error
 
   # Names to show and ids to submit. The catalog is the marketplace's, so a
   # seller picks from it rather than adding to it.

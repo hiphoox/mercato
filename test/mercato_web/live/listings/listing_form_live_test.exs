@@ -343,6 +343,20 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert has_element?(view, "#listing_price.border-error")
     end
 
+    test "shows a seller what an amount looks like rather than calling it invalid", %{view: view} do
+      html = change(view, %{price: "free"})
+
+      assert html =~ "24.99"
+      refute view |> element("#listing-price-field") |> render() =~ "is invalid"
+    end
+
+    test "still names the marketplace's own floor for a price it could read", %{view: view} do
+      html = change(view, %{price: "0.00"})
+
+      assert has_element?(view, "#listing_price.border-error")
+      refute html =~ "24.99"
+    end
+
     test "asks again for a price the seller has cleared", %{view: view} do
       change(view, %{price: "24.99"})
       change(view, %{price: ""})
