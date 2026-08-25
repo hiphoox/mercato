@@ -25,4 +25,30 @@ defmodule Mercato.MoneyTest do
       assert Money.format(1000, "SEK") == "SEK 10.00"
     end
   end
+
+  describe "amount/1" do
+    test "reads minor units back without a currency on the front" do
+      assert Money.amount(42_000) == "420.00"
+    end
+
+    test "keeps the cents a round amount would otherwise lose" do
+      assert Money.amount(1805) == "18.05"
+      assert Money.amount(7) == "0.07"
+    end
+
+    test "reads nothing back for an amount that has not been set" do
+      assert Money.amount(nil) == nil
+    end
+  end
+
+  describe "symbol/1" do
+    test "gives the symbol of a currency it knows" do
+      assert Money.symbol("USD") == "$"
+      assert Money.symbol("EUR") == "€"
+    end
+
+    test "falls back to the code for a currency it has no symbol for" do
+      assert Money.symbol("SEK") == "SEK"
+    end
+  end
 end
