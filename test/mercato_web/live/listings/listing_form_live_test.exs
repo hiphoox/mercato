@@ -1041,4 +1041,58 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       refute has_element?(view, "#resume-listing")
     end
   end
+
+  describe "removing a listing from the page it is composed on" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller, title: "Eames-style lounge chair"))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "asks before doing it, naming what will go", %{listing: listing, view: view} do
+      html = view |> element("#delete-listing") |> render()
+
+      assert html =~ "data-confirm"
+      assert html =~ listing.title
+    end
+
+    test "takes it off Mercato", %{seller: seller, view: view} do
+      view |> element("#delete-listing") |> render_click()
+
+      assert Listings.list_my_listings!(actor: seller) == []
+    end
+
+    test "sends the seller back to their own listings, the page being gone", %{view: view} do
+      view |> element("#delete-listing") |> render_click()
+
+      assert_redirect(view, "/my-listings")
+    end
+
+    test "takes the gallery and its files with it", %{listing: listing, view: view} do
+      image = generate(listing_image(listing: listing))
+
+      view |> element("#delete-listing") |> render_click()
+
+      storage = Application.fetch_env!(:mercato, :storage_adapter)
+      assert {:error, _gone} = storage.get(image.storage_key)
+    end
+
+    test "is offered on a listing already on offer too", %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      assert has_element?(view, "#delete-listing")
+    end
+
+    test "is offered on nothing that has not been saved yet", %{conn: conn} do
+      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/new")
+
+      refute has_element?(view, "#delete-listing")
+    end
+  end
 end

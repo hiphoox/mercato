@@ -12,7 +12,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   caused it, and saving does what the primary action says: a draft goes on
   offer, anything published before is only saved. A photo can be added,
   removed and promoted to cover, though only once the listing exists to attach
-  one to, and a listing can be taken off offer and put back on it.
+  one to, a listing can be taken off offer and put back on it, and one the
+  seller is done with can be removed outright.
   """
 
   use MercatoWeb, :live_view
@@ -166,6 +167,23 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       # on offer that would be left with too few photos to stay there.
       {:error, error} -> {:noreply, assign(socket, :gallery_error, about_the_photo(error))}
       _missing -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("delete", _params, socket) do
+    listing = socket.assigns.listing
+
+    case Listings.delete_listing(listing, actor: socket.assigns.current_user) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "“#{listing.title}” was removed.")
+         |> push_navigate(to: ~p"/my-listings")}
+
+      # Almost always a listing sold since the page was opened: a sale outlives
+      # the seller's wish to be rid of it, so the listing stays as its record.
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "That listing could not be removed.")}
     end
   end
 
@@ -526,6 +544,22 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                 >
                   Pause this listing instead
                 </button>
+
+                <%!-- Set apart by a rule, because everything above it keeps the
+                      listing and this is the one control that does not. --%>
+                <div :if={@listing} class="mt-1 pt-3.5 border-t border-ink-100 dark:border-ink-700">
+                  <.button
+                    id="delete-listing"
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    full_width
+                    phx-click="delete"
+                    data-confirm={"“#{@listing.title}” will be taken off Mercato, along with its photos. This cannot be undone."}
+                  >
+                    Delete this listing
+                  </.button>
+                </div>
               </section>
             </.card>
           </div>

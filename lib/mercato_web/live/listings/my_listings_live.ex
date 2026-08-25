@@ -2,8 +2,9 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   @moduledoc """
   Everything the signed-in trader has listed, grouped by the state it is in.
 
-  Behaviour is specified in `docs/features/listings/my-listings.md`. The page
-  reads only — its actions render but are not yet wired.
+  Behaviour is specified in `docs/features/listings/my-listings.md`. Editing
+  and composing are pages, so those actions are links, and removing happens
+  here. Pausing, relisting and opening an order are not yet wired.
   """
 
   use MercatoWeb, :live_view
@@ -84,6 +85,20 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   end
 
   @impl true
+  def handle_event("remove", %{"id" => id}, socket) do
+    with %{} = listing <- Enum.find(socket.assigns.listings, &(&1.id == id)),
+         :ok <- Listings.delete_listing(listing, actor: socket.assigns.current_user) do
+      {:noreply,
+       socket
+       |> load_listings()
+       |> put_flash(:info, "“#{listing.title}” was removed.")}
+    else
+      # Almost always a listing sold between this page being drawn and the
+      # control being pressed: a sale outlives the seller's wish to be rid of it.
+      _refused -> {:noreply, put_flash(socket, :error, "That listing could not be removed.")}
+    end
+  end
+
   def handle_event("filter_status", %{"status" => "all"}, socket) do
     {:noreply, push_patch(socket, to: ~p"/my-listings")}
   end
@@ -205,6 +220,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
                   :if={state.value != :sold}
                   type="button"
                   id={"remove-#{listing.id}"}
+                  phx-click="remove"
+                  phx-value-id={listing.id}
                   aria-label={"Remove #{listing.title}"}
                   data-confirm={"“#{listing.title}” will be taken off Mercato. This cannot be undone."}
                   class={[

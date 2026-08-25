@@ -170,4 +170,58 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       assert has_element?(view, "#new-listing")
     end
   end
+
+  describe "removing a listing" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller, title: "Eames-style lounge chair"))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+
+      %{seller: seller, listing: listing, view: view}
+    end
+
+    test "takes it off Mercato", %{seller: seller, listing: listing, view: view} do
+      view |> element("#remove-#{listing.id}") |> render_click()
+
+      assert Listings.list_my_listings!(actor: seller) == []
+    end
+
+    test "takes it off the page it was removed from", %{listing: listing, view: view} do
+      view |> element("#remove-#{listing.id}") |> render_click()
+
+      refute has_element?(view, "#remove-#{listing.id}")
+    end
+
+    test "says so", %{listing: listing, view: view} do
+      view |> element("#remove-#{listing.id}") |> render_click()
+
+      assert view |> element("#flash-info") |> render() =~ "removed"
+    end
+
+    test "takes the gallery and its files with it", %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller))
+      image = generate(listing_image(listing: listing))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      view |> element("#remove-#{listing.id}") |> render_click()
+
+      storage = Application.fetch_env!(:mercato, :storage_adapter)
+      assert {:error, _gone} = storage.get(image.storage_key)
+    end
+
+    test "offers no removal of a sold listing, which is the record of a sale", %{conn: conn} do
+      seller = generate(user())
+      sold = sold!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+
+      refute has_element?(view, "#remove-#{sold.id}")
+    end
+
+    test "asks before doing it", %{listing: listing, view: view} do
+      assert view |> element("#remove-#{listing.id}") |> render() =~ "data-confirm"
+    end
+  end
 end
