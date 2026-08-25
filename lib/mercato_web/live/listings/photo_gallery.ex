@@ -20,8 +20,10 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   and an `:is_cover`. An `error` puts the whole section in the error state —
   a publish refused for want of a photo, or a photo the gallery would not take.
 
-  `upload` is what the add tile offers a file to. Without one there is nothing
-  to attach a photo to yet, and the tile says so rather than pretending.
+  `upload` is what the add tile offers a file to, and carries the entries still
+  waiting: a photo offered before the listing exists is held rather than
+  stored, and shown beside the stored ones until there is something to attach
+  it to.
   """
   attr :id, :string, default: "listing-photos"
   attr :images, :list, required: true, doc: "the listing's images, in gallery order"
@@ -30,13 +32,16 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   attr :error, :string, default: nil, doc: "why the gallery is refusing, if it is"
 
   attr :upload, Phoenix.LiveView.UploadConfig,
-    default: nil,
-    doc: "the upload a photo is offered to; without one the tile cannot take a file"
+    required: true,
+    doc: "what a photo is offered to, and the ones still waiting to be stored"
 
   attr :rest, :global
 
   def photo_gallery(assigns) do
-    assigns = assign(assigns, :open?, open?(assigns))
+    assigns =
+      assigns
+      |> assign(:waiting, assigns.upload.entries)
+      |> assign(:open?, open?(assigns))
 
     ~H"""
     <.card
@@ -55,7 +60,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
           >
             Photos
           </h2>
-          <span class="text-caption-lg text-ink-500">{count(@images, @max)}</span>
+          <span class="text-caption-lg text-ink-500">{count(@images, @waiting, @max)}</span>
         </div>
 
         <p class="text-body-sm text-ink-500 text-pretty">
@@ -72,7 +77,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
         </div>
 
         <p
-          :for={{_ref, refusal} <- (@upload && @upload.errors) || []}
+          :for={{_ref, refusal} <- @upload.errors}
           role="alert"
           class="flex items-center gap-2 text-body-sm text-error"
         >
@@ -135,6 +140,38 @@ defmodule MercatoWeb.Listings.PhotoGallery do
             </figcaption>
           </figure>
 
+          <%!-- Held, not stored: there is nothing to attach it to yet, so it
+                is shown from the browser's own copy until there is. --%>
+          <figure
+            :for={entry <- @waiting}
+            id={"waiting-photo-#{entry.ref}"}
+            data-role="waiting"
+            class="m-0 flex flex-col overflow-hidden rounded-md bg-white dark:bg-ink-900 border border-dashed border-ink-300"
+          >
+            <div class="relative flex aspect-square items-center justify-center bg-ink-100 dark:bg-ink-700">
+              <.live_img_preview entry={entry} class="size-full object-cover" />
+            </div>
+
+            <figcaption class="flex items-center justify-between gap-1.5 py-2 pl-2.5 pr-2">
+              <span class="text-caption-md text-ink-500">Waiting</span>
+
+              <button
+                type="button"
+                phx-click="cancel_photo"
+                phx-value-ref={entry.ref}
+                aria-label={"Take back #{entry.client_name}"}
+                class={[
+                  "flex flex-none items-center justify-center size-8 cursor-pointer",
+                  "rounded-sm border border-ink-100 dark:border-ink-700 text-ink-500",
+                  "transition-colors hover:bg-error-bg hover:text-error-text hover:border-error-bg",
+                  "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100"
+                ]}
+              >
+                <.icon name="hero-x-mark" aria-hidden="true" class="size-3.5" />
+              </button>
+            </figcaption>
+          </figure>
+
           <%!-- A label rather than a button: the file input it carries is what
                 opens the picker, and wrapping it means no id has to be kept in
                 step between the two. --%>
@@ -158,7 +195,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
             <span class={["text-caption-md", @open? && "text-ink-500", !@open? && "text-ink-300"]}>
               {accepted(@max)}
             </span>
-            <span :if={!@open?} class="text-caption-md font-bold">{shut(@upload, @images, @max)}</span>
+            <span :if={!@open?} class="text-caption-md font-bold">That is all {@max} of them</span>
           </label>
         </div>
       </section>
@@ -166,8 +203,14 @@ defmodule MercatoWeb.Listings.PhotoGallery do
     """
   end
 
-  defp count([], _max), do: "None yet"
-  defp count(images, max), do: "#{length(images)} of #{max} added"
+  # A waiting photo is counted with the stored ones: to the seller they are all
+  # simply photos on the listing, whatever the gallery has managed to keep.
+  defp count(images, waiting, max) do
+    case length(images) + length(waiting) do
+      0 -> "None yet"
+      held -> "#{held} of #{max} added"
+    end
+  end
 
   # A marketplace of services or digital goods sets the minimum to none, and
   # telling those sellers a photo is required would simply be wrong.
@@ -192,13 +235,10 @@ defmodule MercatoWeb.Listings.PhotoGallery do
     "#{types}, up to #{max}"
   end
 
-  # Nothing to attach a photo to until the listing exists, and nowhere to put
-  # one once the gallery is full.
-  defp open?(%{upload: nil}), do: false
-  defp open?(%{images: images, max: max}), do: length(images) < max
-
-  defp shut(nil, _images, _max), do: "Save this listing first"
-  defp shut(_upload, _images, max), do: "That is all #{max} of them"
+  # Nowhere to put another once the gallery is full, counting the ones waiting.
+  defp open?(%{images: images, upload: upload, max: max}) do
+    length(images) + length(upload.entries) < max
+  end
 
   # The upload refuses a file before the gallery ever sees it, so these are the
   # limits restated for the person rather than the ones the resource enforces.

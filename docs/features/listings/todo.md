@@ -54,7 +54,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 ### Create & edit
 
 24. [x] Single-form create; no multi-step stepper in Phase 1
-25. [x] Draft auto-save so leaving the form does not lose work — a draft alone; a listing that has been on offer is saved only when the seller asks, so buyers never see a half-finished thought
+25. [x] Draft auto-save so leaving the form does not lose work — the draft comes into being as soon as the form holds a title, a price and a category, and keeps itself from then on; a listing that has been on offer is saved only when the seller asks, so buyers never see a half-finished thought
 26. [x] Edit any field while `draft` or `active`
 27. [x] Publish and unpublish actions
 

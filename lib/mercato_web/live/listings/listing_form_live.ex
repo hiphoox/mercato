@@ -13,8 +13,10 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   offer, anything published before is only saved. A photo can be added,
   removed and promoted to cover, though only once the listing exists to attach
   one to, a listing can be taken off offer and put back on it, and one the
-  seller is done with can be removed outright. A draft writes itself down as it
-  is typed, so leaving the page costs nothing.
+  seller is done with can be removed outright. Photos can be offered before
+  there is a listing to hold them: they wait until one exists. A listing
+  becomes a draft as soon as it holds what a listing needs, and writes itself
+  down from then on, so leaving the page costs nothing.
   """
 
   use MercatoWeb, :live_view
@@ -162,9 +164,22 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     offering? = params["intent"] != "draft" and offering?(socket.assigns.listing)
 
     case AshPhoenix.Form.submit(socket.assigns.form, params: listing_params) do
-      {:ok, listing} -> {:noreply, saved(socket, listing, offering?)}
-      {:error, form} -> {:noreply, assign(socket, :form, form)}
+      {:ok, listing} ->
+        {:noreply, saved(socket, listing, offering?)}
+
+      # The fields carry the detail. The flash is there because the seller
+      # pressed something and would otherwise be told nothing happened by
+      # nothing happening.
+      {:error, form} ->
+        {:noreply,
+         socket
+         |> assign(:form, form)
+         |> put_flash(:error, "This listing is not ready yet — see what is marked below.")}
     end
+  end
+
+  def handle_event("cancel_photo", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :photos, ref)}
   end
 
   def handle_event("make_cover", %{"id" => id}, socket) do
@@ -321,11 +336,28 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # A draft is the seller's own workspace, so it writes itself down as they go
   # and leaving the page costs them nothing. Anything that has been on offer is
   # saved only when asked: what buyers are looking at should not follow a
-  # half-finished thought. A listing not yet saved has nowhere to be kept.
+  # half-finished thought.
   defp keeps_itself(%{assigns: %{listing: %{status: :draft}, form: form}} = socket) do
     if form.source.valid?, do: save_quietly(form)
 
     socket
+  end
+
+  # Nothing has been written yet, so the first save is the one that makes the
+  # listing. It happens the moment there is a listing to make — which is also
+  # the moment the gallery has something to attach a photo to.
+  defp keeps_itself(%{assigns: %{listing: nil, form: form}} = socket) do
+    with true <- form.source.valid?,
+         {:ok, draft} <- save_quietly(form) do
+      refused = attach_waiting(socket, draft)
+
+      socket
+      |> still_writing(draft)
+      |> waiting_refused(refused)
+      |> at_its_own_address(draft)
+    else
+      _not_yet -> socket
+    end
   end
 
   defp keeps_itself(socket), do: socket
@@ -335,20 +367,47 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # save they ask for is where anything wrong with the listing is said.
   defp save_quietly(form), do: AshPhoenix.Form.submit(form, params: form.source.raw_params)
 
+  # The photos offered while there was nowhere to put them, stored now in the
+  # order they were offered, so the first one the seller chose is the cover.
+  defp attach_waiting(socket, listing) do
+    socket
+    |> consume_uploaded_entries(:photos, fn %{path: path}, entry ->
+      {:ok, attach(listing, File.read!(path), entry.client_name, socket.assigns.current_user)}
+    end)
+    |> Enum.find_value(&(&1 != :ok && &1))
+  end
+
+  defp attach(listing, bytes, filename, actor) do
+    case Listings.add_listing_image(
+           %{listing_id: listing.id, image: bytes, filename: filename},
+           actor: actor
+         ) do
+      {:ok, _image} -> :ok
+      {:error, error} -> about_the_photo(error)
+    end
+  end
+
+  # Applied after the listing is read back, since reading it back is what clears
+  # whatever the gallery was last complaining about.
+  defp waiting_refused(socket, nil), do: socket
+  defp waiting_refused(socket, message), do: assign(socket, :gallery_error, message)
+
   # Consumed only once the whole file has arrived; a part-uploaded photo is
   # nothing the gallery can be given.
   defp stored(:photos, %{done?: false}, socket), do: {:noreply, socket}
+
+  # Nothing to attach it to yet, so it is left where it is. LiveView keeps the
+  # file until the listing exists or the seller closes the page, and neither
+  # storage nor the gallery hears about it in the meantime.
+  defp stored(:photos, _entry, %{assigns: %{listing: nil}} = socket), do: {:noreply, socket}
 
   defp stored(:photos, entry, socket) do
     listing = socket.assigns.listing
     bytes = consume_uploaded_entry(socket, entry, &{:ok, File.read!(&1.path)})
 
-    case Listings.add_listing_image(
-           %{listing_id: listing.id, image: bytes, filename: entry.client_name},
-           actor: socket.assigns.current_user
-         ) do
-      {:ok, _image} -> {:noreply, still_writing(socket, listing)}
-      {:error, error} -> {:noreply, assign(socket, :gallery_error, about_the_photo(error))}
+    case attach(listing, bytes, entry.client_name, socket.assigns.current_user) do
+      :ok -> {:noreply, still_writing(socket, listing)}
+      message -> {:noreply, assign(socket, :gallery_error, message)}
     end
   end
 
@@ -445,7 +504,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
               min={Listings.min_images()}
               max={Listings.max_images()}
               error={@gallery_error}
-              upload={@listing && @uploads.photos}
+              upload={@uploads.photos}
             />
 
             <.card class="flex flex-col gap-3.5">

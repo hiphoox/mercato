@@ -860,23 +860,137 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     end
   end
 
-  describe "adding a photo before the listing exists" do
+  describe "photos offered to a listing that does not exist yet" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, category: category, view: view}
+    end
+
+    defp offer(view, name \\ "photo.png") do
+      view
+      |> file_input("#listing-form", :photos, [
+        %{name: name, content: Mercato.TestGenerators.png_bytes(), type: "image/png"}
+      ])
+      |> render_upload(name)
+    end
+
+    test "takes one straight away", %{view: view} do
+      assert has_element?(view, "#listing-form input[type=file]")
+    end
+
+    test "names what the gallery accepts", %{view: view} do
+      assert view |> element("#add-photos") |> render() =~ to_string(Listings.max_images())
+    end
+
+    test "holds it rather than storing it", %{seller: seller, view: view} do
+      offer(view)
+
+      assert Listings.list_my_listings!(actor: seller) == []
+    end
+
+    test "shows it waiting in the gallery", %{view: view} do
+      offer(view)
+
+      assert has_element?(view, "#listing-photos [data-role=waiting]")
+    end
+
+    test "counts one waiting against the marketplace's limit", %{view: view} do
+      offer(view)
+
+      assert view |> element("#listing-photos") |> render() =~ "1 of #{Listings.max_images()}"
+    end
+
+    test "lets the seller take one back before it is stored", %{view: view} do
+      offer(view)
+      view |> element("#listing-photos [data-role=waiting] button") |> render_click()
+
+      refute has_element?(view, "#listing-photos [data-role=waiting]")
+    end
+  end
+
+  describe "photos waiting for a listing that then exists" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, category: category, view: view}
+    end
+
+    test "are stored the moment the listing is", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      offer(view)
+      fill(view, category)
+
+      assert [listing] = Listings.list_my_listings!(actor: seller)
+      assert [image] = Listings.list_listing_images!(listing.id, authorize?: false)
+      assert image.is_cover
+    end
+
+    test "keep the order the seller offered them in", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      offer(view, "first.png")
+      offer(view, "second.png")
+      fill(view, category)
+
+      [listing] = Listings.list_my_listings!(actor: seller)
+
+      assert [%{position: 0, is_cover: true}, %{position: 1, is_cover: false}] =
+               Listings.list_listing_images!(listing.id, authorize?: false)
+    end
+
+    test "stop waiting once they are stored", %{category: category, view: view} do
+      offer(view)
+      fill(view, category)
+
+      refute has_element?(view, "#listing-photos [data-role=waiting]")
+      assert has_element?(view, "#listing-photos figure")
+    end
+  end
+
+  describe "asking to save a listing that is not ready" do
     setup %{conn: conn} do
       {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/new")
 
       %{view: view}
     end
 
-    test "offers no way to add one yet", %{view: view} do
-      refute has_element?(view, "#listing-form input[type=file]")
+    test "marks what is wrong when publishing is asked for", %{view: view} do
+      view |> form("#listing-form", listing: %{title: "ab"}) |> render_submit()
+
+      assert has_element?(view, "#listing_title.border-error")
     end
 
-    test "says what has to happen first", %{view: view} do
-      assert view |> element("#add-photos") |> render() =~ "Save"
+    test "says out loud that nothing was saved", %{view: view} do
+      view |> form("#listing-form", listing: %{title: "ab"}) |> render_submit()
+
+      assert has_element?(view, "#flash-error")
     end
 
-    test "still names what the gallery will accept", %{view: view} do
-      assert view |> element("#add-photos") |> render() =~ to_string(Listings.max_images())
+    test "says the same when the seller only meant to finish later", %{view: view} do
+      view
+      |> form("#listing-form", listing: %{title: "ab"})
+      |> put_submitter("#save-draft")
+      |> render_submit()
+
+      assert has_element?(view, "#flash-error")
+      assert has_element?(view, "#listing_title.border-error")
+    end
+
+    test "keeps any photos the seller had already offered", %{view: view} do
+      offer(view)
+      view |> form("#listing-form", listing: %{title: "ab"}) |> render_submit()
+
+      assert has_element?(view, "#listing-photos [data-role=waiting]")
     end
   end
 
@@ -1201,7 +1315,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert saved.title == "Eames-style lounge chair"
     end
 
-    test "one not yet saved has nothing to keep itself in", %{conn: conn} do
+    test "one not yet saved comes into being as soon as it could be saved", %{conn: conn} do
       seller = generate(user())
       category = generate(category())
 
@@ -1213,7 +1327,85 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       )
       |> render_change()
 
+      assert [%{status: :draft, title: "Eames-style lounge chair"}] =
+               Listings.list_my_listings!(actor: seller)
+    end
+  end
+
+  describe "a new listing becoming a draft on its own" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      category = generate(category())
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      %{seller: seller, category: category, view: view}
+    end
+
+    defp fill(view, category, overrides \\ %{}) do
+      params =
+        Map.merge(
+          %{title: "Eames-style lounge chair", price: "42.00", category_id: category.id},
+          overrides
+        )
+
+      view |> form("#listing-form", listing: params) |> render_change()
+    end
+
+    test "writes nothing until it has what a listing needs", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      fill(view, category, %{title: "ab"})
+
       assert Listings.list_my_listings!(actor: seller) == []
+    end
+
+    test "carries on at its own address once it exists", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      fill(view, category)
+
+      [listing] = Listings.list_my_listings!(actor: seller)
+      assert_patched(view, "/listings/#{listing.id}/edit")
+    end
+
+    test "leaves the gallery open throughout, having nothing to wait for", %{
+      category: category,
+      view: view
+    } do
+      assert has_element?(view, "#listing-form input[type=file]")
+
+      fill(view, category)
+
+      assert has_element?(view, "#listing-form input[type=file]")
+    end
+
+    test "goes on keeping itself rather than making a second listing", %{
+      seller: seller,
+      category: category,
+      view: view
+    } do
+      fill(view, category)
+      fill(view, category, %{title: "Eames-style lounge chair, walnut"})
+
+      assert [%{title: "Eames-style lounge chair, walnut"}] =
+               Listings.list_my_listings!(actor: seller)
+    end
+
+    test "keeps what the seller typed on the page", %{category: category, view: view} do
+      fill(view, category)
+
+      assert value(view, "#listing_title") == "Eames-style lounge chair"
+      assert value(view, "#listing_price") == "42.00"
+    end
+
+    test "says it is keeping itself, now that it is a draft", %{category: category, view: view} do
+      fill(view, category)
+
+      assert view |> element("#listing-form") |> render() =~ "Saved automatically"
     end
   end
 end
