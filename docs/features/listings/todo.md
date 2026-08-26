@@ -3,7 +3,7 @@ type: feature
 title: Listings Todo
 description: Backlog of listing capabilities split into Phase 1 MVP musts and Phase 2 extension nice-to-haves.
 tags: [listings, todo, backlog, mvp]
-timestamp: 2026-08-24T00:00:00Z
+timestamp: 2026-08-26T00:00:00Z
 ---
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
@@ -62,7 +62,7 @@ Publishing blocked on the seller's fulfillment prerequisites has moved to [order
 
 ### Public presentation
 
-29. [ ] Listing detail page: image gallery, title, price, description, seller card, buy action, and condition where configured
+29. [x] Listing detail page: image gallery, title, price, description, seller card, buy action, and condition where configured
 30. [ ] Public listing URLs use a slug or short id, stable across edits
 31. [ ] Seller's public profile lists their `active` listings first, `sold` and `unavailable` below
 
