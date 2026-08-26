@@ -13,8 +13,8 @@ A fixed sequence for turning a task into a change, so the user stays in control 
 
 1. **Ask clarifying questions if needed.** Don't guess at ambiguous scope or an unstated design choice — ask, one question at a time if there are several.
 2. **Always read the docs and code before proposing anything.** Use `read-docs` and `understand-code` per their own trigger conditions — don't rely on memory of an earlier turn or an earlier session.
-3. **Propose a plan as a simple bullet list** before writing any code. Keep it short — what will change, in what files, and why. Wait for the user to confirm before implementing.
-4. **Implement test-first.** Write a failing test for the behavior, confirm it fails for the right reason, then write the minimal code to pass it — see Verify RED For The Right Reason below. If the change adds or touches an action meant to be called from outside the resource, give it a public interface in the same change — see Externally-Called Actions Get A Public Interface below.
+3. **Propose a plan as a simple bullet list** before writing any code. Keep it short — what will change, in what files, and why. Wait for the user to confirm before implementing and then do the tasks as TODO items.
+4. **Implement test-first. (TDD)** Write a failing test for the behavior, confirm it fails for the right reason, then write the minimal code to pass it — see Verify RED For The Right Reason below. If the change adds or touches an action meant to be called from outside the resource, give it a public interface in the same change — see Externally-Called Actions Get A Public Interface below.
 5. **Run the full test suite before declaring the work done**, not just the tests you added — a change can pass its own tests while breaking something else.
 6. **Give the user something to manually verify the change with.** For backend/non-UI work, provide a ready-to-paste `iex -S mix` snippet exercising the new/changed behavior (not just "trust the tests"). For UI work, give concrete click-through steps (page, action, expected result). Do this before asking about commits — the user should be able to see the change work before deciding whether to commit it.
 7. **Propose a commit list and ask for explicit permission before committing.** Never commit without the user saying so, even after a successful implementation. Group changes the way the user asks when they respond.
@@ -62,7 +62,7 @@ Never run a destructive or hard-to-reverse git operation (`reset --hard`, force-
 
 ## Prefer Ash's Declarative DSL
 
-Ash's distinguishing feature is that behavior is *declared*, not programmed. Before writing a custom `Change`, `Validation`, `Preparation`, `Check`, or a plain function that queries a resource, check whether the DSL already expresses it:
+Ash's distinguishing feature is that behavior is _declared_, not programmed. Before writing a custom `Change`, `Validation`, `Preparation`, `Check`, or a plain function that queries a resource, check whether the DSL already expresses it:
 
 - **A builtin before a custom module.** `Ash.Resource.Change.Builtins`, `Ash.Resource.Validation.Builtins`, and `Ash.Policy.Check.Builtins` cover most cases, and they compose — `negate(attribute_in(:handle, @reserved))` replaces a hand-written validation module outright. A custom module earns its place only when the logic genuinely can't be expressed as one: a DB lookup, a third-party call, multi-step branching.
 - **Let the DSL derive rather than restating.** `accept [:field]` infers type, constraints, and `allow_nil?` from the attribute. Restate a value by hand only when it must truly diverge, and say why in a comment.
@@ -71,7 +71,7 @@ Ash's distinguishing feature is that behavior is *declared*, not programmed. Bef
 - **Hoist a change repeated across actions** into a top-level `changes do ... on: [:create] end` block, so the rule is declared once.
 - **Each concern in its own section.** Authorization goes in `policies`, validity in `validations` — not as `if`/`case` branches inside a `change`.
 
-**Check the data layer supports it before designing around it.** AshSqlite is not AshPostgres — `deps/ash_sqlite/lib/data_layer.ex`'s `can?/2` clauses are the authoritative list. Notably it has **no aggregate support at all** (`aggregates do` blocks, aggregate filter/sort/relationship), and no transactions, lateral joins, or `distinct`. Expression calculations, `exists/2`, filter expressions, and query-time counts *are* supported. A design that leans on an unsupported feature fails at compile or runtime, not review — verify against `can?/2` first. See [data-layer-expressions.md](../../../docs/architecture/data-layer-expressions.md).
+**Check the data layer supports it before designing around it.** AshSqlite is not AshPostgres — `deps/ash_sqlite/lib/data_layer.ex`'s `can?/2` clauses are the authoritative list. Notably it has **no aggregate support at all** (`aggregates do` blocks, aggregate filter/sort/relationship), and no transactions, lateral joins, or `distinct`. Expression calculations, `exists/2`, filter expressions, and query-time counts _are_ supported. A design that leans on an unsupported feature fails at compile or runtime, not review — verify against `can?/2` first. See [data-layer-expressions.md](../../../docs/architecture/data-layer-expressions.md).
 
 Full rationale in [ash-declarative-conventions.md](../../../docs/architecture/ash-declarative-conventions.md).
 
