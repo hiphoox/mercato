@@ -209,6 +209,36 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       assert view |> element("#buy-now") |> render_click() =~ "not available yet"
     end
 
+    test "tells a visitor with no account that they need not make one", %{
+      conn: conn,
+      listing: listing
+    } do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+
+      assert has_element?(view, "#buy-footnote", "without an account")
+    end
+
+    test "does not offer a signed-in buyer the chance to sign in", %{conn: conn, listing: listing} do
+      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{listing.id}")
+
+      assert has_element?(view, "#buy-footnote")
+      refute has_element?(view, "#buy-footnote", "without an account")
+      refute has_element?(view, "#buy-footnote", "Sign in")
+    end
+
+    test "says nothing is charged when the seller has run out, signed in or not", %{
+      conn: conn,
+      seller: seller
+    } do
+      empty = publish!(seller, generate(listing(actor: seller, quantity: 0)))
+
+      {:ok, anon, _html} = live(conn, ~p"/listings/#{empty.id}")
+      {:ok, buyer, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{empty.id}")
+
+      assert has_element?(anon, "#buy-footnote", "Nothing is charged")
+      assert has_element?(buyer, "#buy-footnote", "Nothing is charged")
+    end
+
     test "disables the buy action when the seller has run out", %{conn: conn, seller: seller} do
       empty = publish!(seller, generate(listing(actor: seller, quantity: 0)))
 

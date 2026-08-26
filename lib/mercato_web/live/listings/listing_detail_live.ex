@@ -229,6 +229,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
                 status={@listing.status}
                 quantity={@listing.quantity}
                 owner?={owner?(@listing, @current_user)}
+                signed_in?={!is_nil(@current_user)}
                 edit_path={~p"/listings/#{@listing.id}/edit"}
                 sold_at={@listing.updated_at}
               />

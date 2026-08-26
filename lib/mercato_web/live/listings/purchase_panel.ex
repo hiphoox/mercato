@@ -35,6 +35,7 @@ defmodule MercatoWeb.Listings.PurchasePanel do
   attr :status, :atom, required: true
   attr :quantity, :integer, required: true
   attr :owner?, :boolean, default: false, doc: "whether the viewer is the listing's seller"
+  attr :signed_in?, :boolean, default: false, doc: "whether the viewer has an account"
   attr :edit_path, :string, default: nil, doc: "where the seller's editing actions lead"
   attr :sold_at, :any, default: nil, doc: "when the sale completed, for the closed statement"
   attr :rest, :global
@@ -120,7 +121,7 @@ defmodule MercatoWeb.Listings.PurchasePanel do
         >
           {if @quantity == 0, do: "Sold out", else: "Buy now"}
         </.button>
-        <p class="text-caption-md text-ink-500 text-pretty">{@state.footnote}</p>
+        <p id="buy-footnote" class="text-caption-md text-ink-500 text-pretty">{@state.footnote}</p>
       </div>
 
       <div :if={@state.owner_actions} class="flex flex-col gap-2.5">
@@ -255,7 +256,7 @@ defmodule MercatoWeb.Listings.PurchasePanel do
       buyable?: status == :active,
       closed?: false,
       owner_actions: nil,
-      footnote: buy_footnote(quantity)
+      footnote: buy_footnote(quantity, assigns.signed_in?)
     }
   end
 
@@ -285,11 +286,23 @@ defmodule MercatoWeb.Listings.PurchasePanel do
   end
 
   # The disabled control raises the question of whether pressing it costs
-  # anything; the line answers it in place.
-  defp buy_footnote(0), do: "Nothing is charged. The seller can restock this listing at any time."
+  # anything; the line answers it in place, and the answer does not depend on
+  # who is asking.
+  defp buy_footnote(0, _signed_in?) do
+    "Nothing is charged. The seller can restock this listing at any time."
+  end
 
-  defp buy_footnote(_quantity) do
+  # Removing the sign-up wall from the highest-intent moment, which is only
+  # worth saying to someone who has not signed up.
+  defp buy_footnote(_quantity, false) do
     "You can start without an account. Sign in or continue as a guest at the next step, before any payment."
+  end
+
+  # Says what happens next rather than naming a delivery address and a card the
+  # way the mockup does: neither is recorded yet, and a line promising details
+  # the checkout cannot show would be a worse lie than a vaguer one.
+  defp buy_footnote(_quantity, true) do
+    "You confirm delivery and payment on the next step. Nothing is charged until you do."
   end
 
   # Editing is a page, so the primary carries a target rather than an event —
