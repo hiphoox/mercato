@@ -50,18 +50,30 @@ defmodule MercatoWeb.UI.ListingCard do
       ]}
       {@rest}
     >
-      <div class={[
-        "flex items-center justify-center overflow-hidden",
-        "size-16 rounded-md md:size-auto md:w-full md:aspect-[4/3] md:rounded-none",
-        "bg-ink-100 dark:bg-ink-700"
-      ]}>
-        <img :if={@image_src} src={@image_src} alt={@image_alt} class="size-full object-cover" />
-        <.icon
-          :if={!@image_src}
-          name={@placeholder_icon}
-          data-role="placeholder"
+      <%!-- The photo is the biggest thing on the card and the part a browser aims
+            at, so it opens the listing wherever the title does. --%>
+      <div
+        data-role="photo"
+        class={[
+          "flex items-center justify-center overflow-hidden",
+          "size-16 rounded-md md:size-auto md:w-full md:aspect-[4/3] md:rounded-none",
+          "bg-ink-100 dark:bg-ink-700"
+        ]}
+      >
+        <.link
+          :if={@navigate}
+          navigate={@navigate}
+          tabindex="-1"
           aria-hidden="true"
-          class="size-5.5 text-ink-300"
+          class="size-full flex items-center justify-center"
+        >
+          <.photo src={@image_src} alt={@image_alt} placeholder_icon={@placeholder_icon} />
+        </.link>
+        <.photo
+          :if={!@navigate}
+          src={@image_src}
+          alt={@image_alt}
+          placeholder_icon={@placeholder_icon}
         />
       </div>
 
@@ -107,6 +119,25 @@ defmodule MercatoWeb.UI.ListingCard do
         {render_slot(@actions)}
       </div>
     </article>
+    """
+  end
+
+  # The cover or the stand-in for one. Split out so linking the photo does not
+  # mean writing the image and its placeholder twice.
+  attr :src, :string, default: nil
+  attr :alt, :string, default: ""
+  attr :placeholder_icon, :string, required: true
+
+  defp photo(assigns) do
+    ~H"""
+    <img :if={@src} src={@src} alt={@alt} class="size-full object-cover" />
+    <.icon
+      :if={!@src}
+      name={@placeholder_icon}
+      data-role="placeholder"
+      aria-hidden="true"
+      class="size-5.5 text-ink-300"
+    />
     """
   end
 end

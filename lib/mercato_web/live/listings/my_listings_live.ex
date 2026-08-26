@@ -224,6 +224,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
               id={"listing-#{listing.id}"}
               title={listing.title}
               price={listing.display_price}
+              navigate={~p"/listings/#{listing.id}"}
               image_src={cover_url(listing)}
               image_alt={"Cover photo of #{listing.title}"}
               placeholder_icon={state.icon}

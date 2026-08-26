@@ -41,6 +41,33 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
     end
   end
 
+  describe "opening a listing" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      draft = generate(listing(actor: seller, title: "A draft chair"))
+
+      %{conn: log_in(conn, seller), draft: draft}
+    end
+
+    test "the photo opens the listing's own page", %{conn: conn, draft: draft} do
+      {:ok, view, _html} = live(conn, ~p"/my-listings")
+
+      assert has_element?(
+               view,
+               ~s(#listing-#{draft.id} [data-role=photo] a[href="/listings/#{draft.id}"])
+             )
+    end
+
+    test "the title opens it too", %{conn: conn, draft: draft} do
+      {:ok, view, _html} = live(conn, ~p"/my-listings")
+
+      assert has_element?(
+               view,
+               ~s(#listing-#{draft.id} [data-role=title] a[href="/listings/#{draft.id}"])
+             )
+    end
+  end
+
   describe "the seller's listings" do
     setup %{conn: conn} do
       seller = generate(user())
