@@ -13,6 +13,7 @@ defmodule Mercato.Listings do
       define :update_listing, action: :update
       define :delete_listing, action: :destroy
       define :list_listings, action: :read
+      define :get_listing, action: :get, get_by: [:id]
       define :list_my_listings, action: :list_mine
       define :get_my_listing, action: :get_mine, get_by: [:id]
       define :list_listings_for_moderation, action: :list_for_moderation
@@ -56,6 +57,23 @@ defmodule Mercato.Listings do
   sets it to `[]`, which leaves every listing's condition blank.
   """
   def conditions, do: Application.get_env(:mercato, :listing_conditions, @default_conditions)
+
+  @doc """
+  How a stored condition reads to a person.
+
+  Here rather than in each page that shows one, so the chip on a listing's
+  detail page and the option in the seller's form never word it differently.
+  A listing with no condition has nothing to label, which is what lets the
+  caller leave the chip out rather than render an empty one.
+
+      iex> Mercato.Listings.condition_label("like_new")
+      "Like new"
+  """
+  def condition_label(nil), do: nil
+
+  def condition_label(condition) when is_binary(condition) do
+    condition |> String.replace("_", " ") |> String.capitalize()
+  end
 
   @default_image_types ["image/jpeg", "image/png", "image/webp"]
 

@@ -43,6 +43,20 @@ defmodule Mercato.Listings.Listing do
       description "Every listing including those moderation has taken down."
     end
 
+    read :get do
+      description "One listing as its detail page shows it, to whoever may see it."
+      get? true
+
+      # No filter of its own: who may see which listing is the read policy's
+      # business, and stating it twice would let the two drift apart. A listing
+      # the caller may not see comes back as not found rather than as refused,
+      # which is what a public page can honestly say.
+
+      # The whole page in one read: the gallery, the seller behind the card, the
+      # category the breadcrumb names, and the price already formatted.
+      prepare build(load: [:display_price, :seller, :category, images: :url])
+    end
+
     read :list_mine do
       description "Everything the acting seller has listed, whatever state it is in."
 
@@ -193,7 +207,9 @@ defmodule Mercato.Listings.Listing do
   policies do
     # Filtering rather than refusing, so a public browse gets the listings on
     # offer instead of an error. A seller sees their own whatever state it is in.
-    policy action(:read) do
+    # Browsing and opening one share the rule: a listing reachable in a grid and
+    # a listing reachable by its own URL are the same set.
+    policy action([:read, :get]) do
       authorize_if expr(status == :active)
       authorize_if expr(seller_id == ^actor(:id))
     end

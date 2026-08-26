@@ -143,11 +143,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # and one selling services or digital goods empties it, which renders no
   # condition control at all.
   defp conditions do
-    Enum.map(Listings.conditions(), &{humanize_condition(&1), &1})
-  end
-
-  defp humanize_condition(value) do
-    value |> String.replace("_", " ") |> String.capitalize()
+    Enum.map(Listings.conditions(), &{Listings.condition_label(&1), &1})
   end
 
   @impl true
