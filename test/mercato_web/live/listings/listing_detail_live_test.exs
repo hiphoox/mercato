@@ -320,6 +320,20 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       assert has_element?(view, "#owner-banner")
     end
 
+    # The trail says where the page sits and belongs to the shell around it; the
+    # banner is about this listing, so it comes after.
+    test "sets the framing below the trail rather than above it", %{
+      conn: conn,
+      seller: seller,
+      listing: listing
+    } do
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+
+      html = render(view)
+
+      assert position_of(html, "owner-banner") > position_of(html, "listing-breadcrumb")
+    end
+
     test "puts edit and pause where the buy action sits for buyers", %{
       conn: conn,
       seller: seller,

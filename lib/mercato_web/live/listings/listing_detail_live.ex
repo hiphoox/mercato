@@ -147,15 +147,20 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
       </.empty_state>
 
       <div :if={@listing} id="listing-detail" class="flex flex-col gap-6">
-        <%!-- The framing comes before the page rather than being scattered through
-              it: the owner has to trust everything below as a faithful preview. --%>
+        <%!-- One level deep, because the catalog is flat. The category is a label
+              rather than a link until there is a page to browse it on. --%>
+        <.breadcrumb
+          id="listing-breadcrumb"
+          items={[%{label: "Home", navigate: ~p"/"}, %{label: @listing.category.name}]}
+        />
+
+        <%!-- Under the trail, which says where the page sits and belongs to the
+              shell around it, and above everything about the listing itself: the
+              owner has to read this before trusting the rest as a faithful
+              preview. --%>
         <.alert :if={@banner} id="owner-banner" kind={@banner.kind} title={@banner.headline}>
           {@banner.body}
         </.alert>
-
-        <%!-- One level deep, because the catalog is flat. The category is a label
-              rather than a link until there is a page to browse it on. --%>
-        <.breadcrumb items={[%{label: "Home", navigate: ~p"/"}, %{label: @listing.category.name}]} />
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_23.75rem] lg:gap-8 lg:items-start">
           <%!-- Only below `lg`, where the panel comes after the photos and its own
