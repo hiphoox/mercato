@@ -42,6 +42,11 @@ defmodule MercatoWeb.Router do
       live "/listings/new", Listings.ListingFormLive, :new
       live "/listings/:id/edit", Listings.ListingFormLive, :edit
       live "/admin/users", Admin.UsersLive
+
+      # Last of the /listings routes, so ":id" never swallows "new". Public, and
+      # the only route here that is: the LiveView mounts with an optional user,
+      # since a listing on offer is readable without an account.
+      live "/listings/:id", Listings.ListingDetailLive
     end
   end
 
