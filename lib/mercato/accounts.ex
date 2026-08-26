@@ -45,4 +45,29 @@ defmodule Mercato.Accounts do
     resource Mercato.Accounts.RolePermission
     resource Mercato.Accounts.UserRole
   end
+
+  @doc """
+  The name an account carries, written out in full.
+
+  Returns `nil` when there is no name to write. An account may legitimately
+  have none — one made by an OAuth sign-up or a magic link starts without — and
+  what to show in its place is the caller's decision rather than this one's.
+  Those decisions differ and must keep differing: a page showing someone their
+  own account may fall back to their email address, and a public page may not.
+
+      iex> Mercato.Accounts.full_name(%{first_name: "Marta", last_name: "Ribeiro"})
+      "Marta Ribeiro"
+  """
+  def full_name(nil), do: nil
+
+  # Map.get/2 rather than account[:field]: `Mercato.Accounts.User` is a struct
+  # and does not implement Access.
+  def full_name(account) do
+    [Map.get(account, :first_name), Map.get(account, :last_name)]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> case do
+      [] -> nil
+      parts -> Enum.join(parts, " ")
+    end
+  end
 end

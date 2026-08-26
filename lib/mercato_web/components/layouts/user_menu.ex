@@ -95,15 +95,10 @@ defmodule MercatoWeb.Layouts.UserMenu do
   # and a user may legitimately have no name yet (OAuth sign-up, magic link).
   defp display_name(nil), do: nil
 
-  # Map.get/2 rather than user[:field]: `Mercato.Accounts.User` is a struct and
-  # does not implement Access.
+  # Falling back as far as the email address is safe only here: this menu shows
+  # a signed-in visitor their own account, never anyone else's.
   defp display_name(user) do
-    [Map.get(user, :first_name), Map.get(user, :last_name)]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(" ")
-    |> case do
-      "" -> to_string(Map.get(user, :handle) || Map.get(user, :email))
-      name -> name
-    end
+    Mercato.Accounts.full_name(user) ||
+      to_string(Map.get(user, :handle) || Map.get(user, :email))
   end
 end

@@ -141,7 +141,7 @@ defmodule MercatoWeb.ProfileLive do
           <form id="avatar-form" phx-change="noop" phx-submit="noop" class="flex items-center gap-5">
             <div class="relative w-[72px] h-[72px] shrink-0">
               <.avatar
-                name={Enum.join(Enum.reject([@user.first_name, @user.last_name], &is_nil/1), " ")}
+                name={Accounts.full_name(@user)}
                 src={@user.avatar_url}
                 size={72}
               />
