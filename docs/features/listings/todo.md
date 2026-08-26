@@ -21,7 +21,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Entity & attributes
 
-1. [x] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `created_at`, `updated_at`
+1. [x] `Listing` resource with `seller_id`, `title`, `description`, `price`, `currency`, `quantity`, `status`, `published_at`, `inserted_at`, `updated_at`
 2. [x] `Listing` belongs to a seller; a seller has many listings
 3. [x] Price stored as a minor-unit integer, never a float
 4. [x] Single currency for the whole instance, set by config
@@ -64,7 +64,7 @@ Publishing blocked on the seller's fulfillment prerequisites has moved to [order
 
 29. [x] Listing detail page: image gallery, title, price, description, seller card, buy action, and condition where configured
 30. [x] Public listing URLs use a slug or short id, stable across edits
-31. [ ] Seller's public profile lists their `active` listings first, `sold` and `unavailable` below
+31. [x] Seller's public profile lists their `active` listings first and `sold` below; `unavailable` appears nowhere, since pausing is how a seller takes a listing out of public view
 
 Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/todo.md).
 

@@ -3,7 +3,7 @@ type: domain
 title: Users
 description: Business rules for the User entity — identity, profile, self-service management, account status, and role membership.
 tags: [domain, users, rbac, profile, account-status]
-timestamp: 2026-08-21T00:00:00Z
+timestamp: 2026-08-26T00:00:00Z
 ---
 
 ## Identity
@@ -12,7 +12,7 @@ A user's account is identified by a unique, case-insensitive email address. Not 
 
 ## Profile fields
 
-A user's first name, last name, handle, avatar, email, and account status are visible to anyone viewing their profile. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
+A user's first name, last name, handle, avatar, email, and account status are visible to anyone viewing their profile. Every account also records when it was opened, which is set by the platform at creation and can never be supplied or changed. First name is required at password registration; last name is always optional. A magic-link account may hold neither name until the user sets one.
 
 ## Handle
 
@@ -44,6 +44,8 @@ Every account has a status of `active`, `restricted`, `banned`, or `deleted`, de
 | `restricted` | Can sign in    | Blocked from some of what the platform offers |
 | `banned`     | Cannot sign in | Shut out of the platform                      |
 | `deleted`    | Cannot sign in | Shut out, with the account's details erased   |
+
+A `banned` or `deleted` account has no public profile: the address its handle named reads as one nobody holds. An `active` or `restricted` account keeps its profile, since a restriction limits what the person may do rather than removing them from the marketplace.
 
 Status is independent of role: a banned admin loses no permission by staying an admin, and an active trader gains none by staying active.
 

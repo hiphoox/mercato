@@ -81,6 +81,8 @@ Being sold is recorded by the platform when a purchase completes. It is not some
 
 A listing on offer is visible to everyone. A listing in any other state is visible only to the seller who owns it, so a draft is private while it is being composed and a paused listing disappears from public view without being lost.
 
+A sold listing is the one exception, and only in one place: it is visible to everyone on its seller's public profile, where the record of what a seller has sold is what a buyer weighs them by. Everywhere else — browsing, and the listing's own page — a sold listing is visible only to its seller, so a sale is evidence about the seller rather than a page anyone can still open.
+
 ## Who may change a listing
 
 Only the seller who owns a listing may edit it, publish it, pause it, resume it, or delete it. Creating a listing requires an account, and the account creating it becomes its seller — ownership is never something the request supplies.

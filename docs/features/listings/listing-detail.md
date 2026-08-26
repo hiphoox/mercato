@@ -74,4 +74,4 @@ The description keeps the blank lines the seller wrote as paragraph breaks, that
 
 ## The seller
 
-Who is selling is shown as a row: their avatar, their name, and their handle.
+Who is selling is shown as a row: their avatar, their name, and their handle. The name opens the seller's own page, which is the only way to reach one — see [seller-profile.md](../users/seller-profile.md). A seller holding no handle has no page, so their name stays plain text.
