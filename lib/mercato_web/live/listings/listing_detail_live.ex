@@ -282,6 +282,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
                 name={seller_name(@listing.seller)}
                 src={@listing.seller.avatar_url}
                 meta={seller_meta(@listing.seller)}
+                navigate={seller_path(@listing.seller)}
               />
             </section>
           </div>
@@ -400,4 +401,10 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   # produce them rather than being invented now.
   defp seller_meta(%{handle: handle}) when handle not in [nil, ""], do: "@#{handle}"
   defp seller_meta(_seller), do: nil
+
+  # A profile is addressed by handle, and an account may hold none, in which
+  # case the name stays plain text rather than linking somewhere that is not
+  # there.
+  defp seller_path(%{handle: handle}) when handle not in [nil, ""], do: ~p"/seller/#{handle}"
+  defp seller_path(_seller), do: nil
 end

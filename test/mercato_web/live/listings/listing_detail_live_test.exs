@@ -553,6 +553,19 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
   end
 
+  describe "the seller" do
+    test "opens the seller's profile from their name", %{conn: conn} do
+      seller = generate(user())
+      listing = publish!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
+
+      assert view
+             |> element("#listing-seller a[href='/seller/#{seller.handle}']")
+             |> has_element?()
+    end
+  end
+
   describe "the public URL" do
     test "names the listing before its public id", %{conn: conn, seller: seller} do
       live = publish!(seller, generate(listing(actor: seller, title: "Vintage Leather Jacket")))

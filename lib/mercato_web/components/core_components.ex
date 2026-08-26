@@ -306,7 +306,7 @@ defmodule MercatoWeb.CoreComponents do
   """
   attr :kind, :string,
     default: "neutral",
-    values: ~w(verified featured warning danger info neutral)
+    values: ~w(verified featured new warning danger info neutral)
 
   attr :class, :any, default: nil
   attr :rest, :global
@@ -316,6 +316,7 @@ defmodule MercatoWeb.CoreComponents do
     kinds = %{
       "verified" => "bg-success-bg text-success-text",
       "featured" => "bg-accent-100 text-accent-600",
+      "new" => "bg-primary-050 text-primary-700",
       "warning" => "bg-warning-bg text-warning-text",
       "danger" => "bg-error-bg text-error-text",
       "info" => "bg-info-bg text-info-text",

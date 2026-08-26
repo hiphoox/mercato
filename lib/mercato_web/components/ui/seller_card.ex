@@ -27,6 +27,7 @@ defmodule MercatoWeb.UI.SellerCard do
   attr :name, :string, required: true, doc: "display name — drives the avatar's initials too"
   attr :src, :string, default: nil, doc: "the seller's photo; initials show without one"
   attr :meta, :string, default: nil, doc: "one caption line under the name"
+  attr :navigate, :string, default: nil, doc: "makes the name a link to the seller's own page"
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -47,8 +48,14 @@ defmodule MercatoWeb.UI.SellerCard do
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
+          <%!-- The name is what a buyer reaches for when they want to know more
+                about who they are dealing with, so it is what carries the link
+                when there is somewhere to go. --%>
           <span data-role="seller-name" class="text-body-md font-bold text-ink-900 dark:text-white">
-            {@name}
+            <.link :if={@navigate} navigate={@navigate} class="no-underline hover:underline">
+              {@name}
+            </.link>
+            <span :if={!@navigate}>{@name}</span>
           </span>
           <span
             :if={@badges != []}

@@ -43,12 +43,13 @@ defmodule MercatoWeb.Router do
       live "/listings/:id/edit", Listings.ListingFormLive, :edit
       live "/admin/users", Admin.UsersLive
 
-      # Last of the /listings routes, so ":slug" never swallows "new". Public,
-      # and the only route here that is: the LiveView mounts with an optional
-      # user, since a listing on offer is readable without an account. The slug
-      # names the listing and ends in its public id, which is the part that
-      # identifies it — see `Mercato.Listings.Listing.Slug`.
+      # Last of the /listings routes, so ":slug" never swallows "new".
       live "/listings/:slug", Listings.ListingDetailLive
+
+      # Public, like the listing page above: a buyer weighing a stranger reaches
+      # it without an account. Addressed by the seller's handle, which is the
+      # only public name an account has.
+      live "/seller/:handle", Sellers.SellerProfileLive
     end
   end
 
