@@ -185,6 +185,9 @@ defmodule MercatoWeb.Listings.PurchasePanel do
   Carries the price as well as the action, so the buyer never has to scroll back
   to check what they are committing to. It is the panel's action and nothing
   else: a listing with no buy path gets no bar rather than a dead one.
+
+  Steps aside while the panel's own buy action is on screen, so the page never
+  shows two of the same button with the pinned one covering the other.
   """
   attr :price, :string, required: true
   attr :quantity, :integer, required: true
@@ -193,13 +196,20 @@ defmodule MercatoWeb.Listings.PurchasePanel do
   def sticky_buy_bar(assigns) do
     ~H"""
     <div
+      id="sticky-buy-bar"
+      phx-hook="DeferToAction"
+      data-defer-to="buy-now"
       class={
         [
           # Floating inside the column's padding rather than pulled flush to its
           # edges: the scrolling column pads itself differently below `md` than
           # above it, so a negative margin tuned to one width is wrong at the other.
           "lg:hidden sticky bottom-0 z-30 flex items-center gap-3 p-3 rounded-lg",
-          "bg-bg dark:bg-ink-900 border border-ink-100 dark:border-ink-700 shadow-md"
+          "bg-bg dark:bg-ink-900 border border-ink-100 dark:border-ink-700 shadow-md",
+          "transition-opacity motion-reduce:transition-none",
+          # Faded out and taken out of the pointer's way rather than removed, so
+          # the layout below it does not jump as it comes and goes.
+          "data-[deferred=true]:opacity-0 data-[deferred=true]:pointer-events-none"
         ]
       }
       {@rest}

@@ -259,6 +259,26 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
   end
 
+  describe "the pinned buy bar" do
+    test "stands aside for the panel's own buy action rather than covering it", %{
+      conn: conn,
+      listing: listing
+    } do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+
+      assert has_element?(view, "#sticky-buy-bar[phx-hook=DeferToAction]")
+      assert has_element?(view, ~s(#sticky-buy-bar[data-defer-to="buy-now"]))
+    end
+
+    test "is not pinned for a listing with no buy path at all", %{conn: conn, seller: seller} do
+      sold = sold!(seller, generate(listing(actor: seller)))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{sold.id}")
+
+      refute has_element?(view, "#sticky-buy-bar")
+    end
+  end
+
   describe "the owner's own view" do
     test "frames the page as a preview of what buyers see", %{
       conn: conn,

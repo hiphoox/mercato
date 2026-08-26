@@ -20,6 +20,8 @@ Who is selling follows the panel at every width — stacked under it on a phone,
 
 The panel stays in view while the rest of the page scrolls past it. Below `lg` it scrolls with everything else, and the price and the action travel pinned to the bottom of the screen instead, so what is being committed to is never scrolled away from the control that commits to it.
 
+The pinned bar stands aside while the panel's own action is on screen, and returns once it is not, so the page never shows the same action twice with one covering the other.
+
 The trail above the page is one level deep, because the catalog is flat.
 
 ## Who may open it
