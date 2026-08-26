@@ -92,6 +92,15 @@ defmodule Mercato.Accounts.User do
       get_by :email
     end
 
+    read :get_seller do
+      description "One account as its public profile is addressed, to whoever may look."
+      get_by :handle
+
+      # A banned account is off the marketplace, so its public page is too, and
+      # it reads as an address nobody holds rather than as a page withheld.
+      filter expr(status in ^Status.has_public_profile())
+    end
+
     read :list_accounts do
       description "Admin listing of every account, searchable and filterable by status."
 
@@ -510,6 +519,11 @@ defmodule Mercato.Accounts.User do
     attribute :confirmed_at, :utc_datetime_usec
 
     attribute :last_active_at, :utc_datetime_usec
+
+    # Public, because how long someone has been here is one of the few things a
+    # buyer can weigh a stranger by. Neither is writable, so an account cannot
+    # claim to have been here longer than it has.
+    timestamps public?: true
   end
 
   relationships do

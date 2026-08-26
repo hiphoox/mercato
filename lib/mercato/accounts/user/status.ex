@@ -18,4 +18,17 @@ defmodule Mercato.Accounts.User.Status do
   out" (or worse, "allowed") wherever a filter was missed.
   """
   def can_sign_in, do: @can_sign_in
+
+  @has_public_profile [:active, :restricted]
+
+  @doc """
+  The statuses an account is still shown to the public under.
+
+  A different question from `can_sign_in/0`, even where the answer currently
+  matches: that one asks whether someone may come in, this one asks whether
+  strangers may still be shown who they are. A banned account is off the
+  marketplace, so its public page goes with it. A deleted one is outside this
+  list too, though archival has already taken it out of every read by then.
+  """
+  def has_public_profile, do: @has_public_profile
 end

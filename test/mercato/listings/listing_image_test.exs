@@ -55,7 +55,7 @@ defmodule Mercato.Listings.ListingImageTest do
     end
 
     test "stamps the created timestamp", %{listing: listing} do
-      assert %DateTime{} = add_image!(listing).created_at
+      assert %DateTime{} = add_image!(listing).inserted_at
     end
   end
 

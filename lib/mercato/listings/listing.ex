@@ -66,6 +66,23 @@ defmodule Mercato.Listings.Listing do
       prepare build(load: [:display_price, :seller, :category, images: :url])
     end
 
+    read :list_for_seller do
+      description "One seller's listings as their public profile shows them."
+
+      argument :seller_id, :uuid do
+        allow_nil? false
+      end
+
+      filter expr(seller_id == ^arg(:seller_id))
+
+      # Which of the seller's listings a visitor may see is the read policy's
+      # business, so the filter here only names whose profile is being read.
+
+      # Newest first within each state; the page groups them, and it draws a
+      # card per listing, so the cover and the formatted price come along.
+      prepare build(sort: [updated_at: :desc], load: [:display_price, images: :url])
+    end
+
     read :list_mine do
       description "Everything the acting seller has listed, whatever state it is in."
 
@@ -223,6 +240,15 @@ defmodule Mercato.Listings.Listing do
       authorize_if expr(seller_id == ^actor(:id))
     end
 
+    # Deliberately narrower than the seller's own view and wider than the detail
+    # page: a public profile shows what is on offer and what has sold, and shows
+    # the same thing to the seller as to a stranger, because it is a preview of
+    # what buyers see. A paused or draft listing appears nowhere — the seller
+    # took it out of public view, or never put it in.
+    policy action(:list_for_seller) do
+      authorize_if expr(status in [:active, :sold])
+    end
+
     # Filtering, like :read above — a signed-out visitor gets an empty list
     # rather than an error, which is what the page can actually render.
     policy action([:list_mine, :get_mine]) do
@@ -334,8 +360,7 @@ defmodule Mercato.Listings.Listing do
       public? true
     end
 
-    create_timestamp :created_at
-    update_timestamp :updated_at
+    timestamps()
   end
 
   relationships do

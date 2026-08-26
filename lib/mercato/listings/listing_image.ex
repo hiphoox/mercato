@@ -145,7 +145,7 @@ defmodule Mercato.Listings.ListingImage do
       public? true
     end
 
-    create_timestamp :created_at
+    timestamps()
   end
 
   relationships do

@@ -12,6 +12,7 @@ defmodule Mercato.Accounts do
     resource Mercato.Accounts.User do
       define :change_status, action: :change_status, args: [:status]
       define :delete_account, action: :delete_account
+      define :get_seller, action: :get_seller, args: [:handle]
       define :list_accounts, action: :list_accounts
       define :sign_in_with_password, action: :sign_in_with_password, args: [:email, :password]
       define :sign_in_with_token, action: :sign_in_with_token, args: [:token]

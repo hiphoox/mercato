@@ -15,6 +15,7 @@ defmodule Mercato.Listings do
       define :list_listings, action: :read
       define :get_listing, action: :get, get_by: [:id]
       define :get_listing_by_public_id, action: :get_by_public_id, get_by: [:public_id]
+      define :list_seller_listings, action: :list_for_seller, args: [:seller_id]
       define :list_my_listings, action: :list_mine
       define :get_my_listing, action: :get_mine, get_by: [:id]
       define :list_listings_for_moderation, action: :list_for_moderation
