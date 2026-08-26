@@ -14,7 +14,7 @@ defmodule Mercato.Listings.Listing do
     extensions: [AshArchival.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
-  alias Mercato.Listings.Listing.Calculations
+  alias Mercato.Listings.Listing.{Calculations, PublicId}
 
   sqlite do
     table "listings"
@@ -54,6 +54,15 @@ defmodule Mercato.Listings.Listing do
 
       # The whole page in one read: the gallery, the seller behind the card, the
       # category the breadcrumb names, and the price already formatted.
+      prepare build(load: [:display_price, :seller, :category, images: :url])
+    end
+
+    read :get_by_public_id do
+      description "One listing as its public URL names it, to whoever may see it."
+      get? true
+
+      # Same load as `:get` above: this is the same page reached the way the
+      # public reaches it, and the two differ only in what they key on.
       prepare build(load: [:display_price, :seller, :category, images: :url])
     end
 
@@ -209,7 +218,7 @@ defmodule Mercato.Listings.Listing do
     # offer instead of an error. A seller sees their own whatever state it is in.
     # Browsing and opening one share the rule: a listing reachable in a grid and
     # a listing reachable by its own URL are the same set.
-    policy action([:read, :get]) do
+    policy action([:read, :get, :get_by_public_id]) do
       authorize_if expr(status == :active)
       authorize_if expr(seller_id == ^actor(:id))
     end
@@ -257,6 +266,16 @@ defmodule Mercato.Listings.Listing do
 
   attributes do
     uuid_primary_key :id
+
+    # The identifier the public URL is built from, distinct from the primary
+    # key so a shared link stays short and the internal key stays internal.
+    # Absent from every action's `accept`, so nothing can supply or change one:
+    # a listing keeps the id it was minted with, and links survive every edit.
+    attribute :public_id, :string do
+      allow_nil? false
+      default &PublicId.generate/0
+      public? true
+    end
 
     attribute :title, :string do
       allow_nil? false
@@ -344,4 +363,17 @@ defmodule Mercato.Listings.Listing do
       public? true
     end
   end
+
+  identities do
+    # A minted id is random rather than checked, so the database is what makes
+    # two listings sharing one an error instead of a silent collision.
+    identity :unique_public_id, [:public_id]
+  end
+end
+
+# Lets `~p"/listings/#{listing}"` be the only thing a caller writes: the slug is
+# the listing's public name, and nowhere outside this file has to know it is not
+# the primary key.
+defimpl Phoenix.Param, for: Mercato.Listings.Listing do
+  defdelegate to_param(listing), to: Mercato.Listings.Listing.Slug, as: :slug
 end
