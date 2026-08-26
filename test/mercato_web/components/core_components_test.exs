@@ -21,6 +21,13 @@ defmodule MercatoWeb.CoreComponentsTest do
     render_component(&CoreComponents.button/1, Map.put_new(assigns, :inner_block, slot("Go")))
   end
 
+  defp render_alert(assigns) do
+    render_component(
+      &CoreComponents.alert/1,
+      assigns |> Map.put_new(:kind, "info") |> Map.put_new(:inner_block, slot("Body text"))
+    )
+  end
+
   describe "button" do
     test "renders a button element when given no navigation target" do
       assert render_button(%{}) =~ "<button"
@@ -51,6 +58,14 @@ defmodule MercatoWeb.CoreComponentsTest do
 
     test "gives a neutral action the ink palette" do
       assert render_button(%{variant: "neutral"}) =~ "bg-ink-100"
+    end
+
+    test "gives the highest-stakes action the non-brand critical palette" do
+      html = render_button(%{variant: "critical"})
+
+      assert html =~ "bg-ink-900"
+      assert html =~ "text-white"
+      refute html =~ "bg-primary-500"
     end
 
     test "gives a secondary action the secondary palette" do
@@ -99,6 +114,44 @@ defmodule MercatoWeb.CoreComponentsTest do
 
       assert html =~ "my-class"
       refute html =~ "bg-primary-500"
+    end
+  end
+
+  describe "alert" do
+    test "renders the headline as bold text beside the body" do
+      html = render_alert(%{title: "Paused by you"})
+
+      assert html =~ "Paused by you"
+      assert html =~ "Body text"
+      assert html =~ "font-bold"
+    end
+
+    test "carries an icon as well as a colour, so colour never states it alone" do
+      html = render_alert(%{kind: "warning", title: "Paused"})
+
+      assert html =~ "bg-warning-bg"
+      assert html =~ "text-warning-text"
+      assert html =~ "hero-"
+    end
+
+    test "gives each kind its own semantic palette" do
+      assert render_alert(%{kind: "info"}) =~ "bg-info-bg"
+      assert render_alert(%{kind: "success"}) =~ "bg-success-bg"
+      assert render_alert(%{kind: "error"}) =~ "bg-error-bg"
+    end
+
+    test "announces itself to a screen reader" do
+      assert render_alert(%{}) =~ ~s(role="alert")
+    end
+
+    test "hides its icon from a screen reader, which the text already tells" do
+      assert render_alert(%{}) =~ ~s(aria-hidden="true")
+    end
+
+    test "renders without a headline, which is optional" do
+      html = render_alert(%{})
+
+      assert html =~ "Body text"
     end
   end
 
