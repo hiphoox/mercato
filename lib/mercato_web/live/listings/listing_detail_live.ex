@@ -157,7 +157,21 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
               rather than a link until there is a page to browse it on. --%>
         <.breadcrumb items={[%{label: "Home", navigate: ~p"/"}, %{label: @listing.category.name}]} />
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_23.75rem] lg:items-start">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_23.75rem] lg:gap-8 lg:items-start">
+          <%!-- Only below `lg`, where the panel comes after the photos and its own
+                title would arrive too late to name what is being looked at. From
+                `lg` up this one goes and the panel's own heads the column, so the
+                listing is named once at either width. --%>
+          <h1
+            id="listing-title-compact"
+            class={[
+              "lg:hidden min-w-0 text-h2 font-extrabold leading-tight",
+              "text-ink-900 dark:text-white text-pretty"
+            ]}
+          >
+            {@listing.title}
+          </h1>
+
           <div class="flex flex-col gap-7 min-w-0">
             <.gallery_viewer
               images={@listing.images}

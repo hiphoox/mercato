@@ -16,6 +16,8 @@ Two columns from `lg` up, one below it, in the same reading order at both widths
 
 The gallery takes the wider column and the largest area, followed by the description. Beside it sits the panel: the listing's title, its category and condition, the price, what is available, and the action. Reading the panel top to bottom answers what it is, whether it is worth it, and whether it can be had.
 
+In one column the panel falls below the photos, where its title would arrive too late to name what is being looked at, so the title moves above the gallery instead. The listing is named once at either width.
+
 Who is selling follows the panel at every width — stacked under it on a phone, sharing its column on a desktop. Trust in the seller is the question that arrives after the price, so it is answered in that order whatever the layout.
 
 The panel stays in view while the rest of the page scrolls past it. Below `lg` it scrolls with everything else, and the price and the action travel pinned to the bottom of the screen instead, so what is being committed to is never scrolled away from the control that commits to it.

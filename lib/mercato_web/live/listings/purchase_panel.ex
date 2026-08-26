@@ -4,7 +4,13 @@ defmodule MercatoWeb.Listings.PurchasePanel do
   and the one action that takes it.
 
   Read top to bottom it answers "what is it, is it worth it, can I get it" in a
-  single pass, which is why the title lives here rather than over the gallery.
+  single pass, which is why the title heads the panel rather than sitting over
+  the gallery.
+
+  Below `lg` the panel comes after the photos, where a title would arrive too
+  late to name what is being looked at, so the page shows its own copy above the
+  gallery and this one steps out. Only ever one of the two is displayed, so a
+  screen reader is never handed the listing's name twice.
 
   One anatomy, two sets of contents. A buyer gets the buy action; the seller
   looking at their own listing gets their seller actions in the same slot, so
@@ -63,9 +69,14 @@ defmodule MercatoWeb.Listings.PurchasePanel do
         <.icon name="hero-exclamation-circle" aria-hidden="true" class="size-3.5" /> Out of stock
       </.badge>
 
+      <%!-- Hidden rather than dropped below `lg`: the page renders the same title
+            above the gallery there, and only one of the two is ever displayed. --%>
       <h1
         id="listing-title"
-        class="text-title-lg font-extrabold leading-tight text-ink-900 dark:text-white text-pretty"
+        class={[
+          "hidden lg:block text-title-lg font-extrabold leading-tight",
+          "text-ink-900 dark:text-white text-pretty"
+        ]}
       >
         {@title}
       </h1>

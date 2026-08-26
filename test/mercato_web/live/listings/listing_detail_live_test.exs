@@ -31,6 +31,10 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     at
   end
 
+  defp classes_of(document, selector) do
+    document |> LazyHTML.query(selector) |> LazyHTML.attribute("class") |> List.first()
+  end
+
   defp gallery_of(seller, count) do
     listing = generate(listing(actor: seller))
     for _ <- 1..count, do: generate(listing_image(listing: listing))
@@ -75,6 +79,32 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
 
       assert has_element?(view, "#listing-detail")
       assert has_element?(view, "#listing-title", "Mid-century teak sideboard")
+    end
+
+    test "names the listing before the photos on a narrow screen", %{conn: conn, listing: listing} do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+
+      html = render(view)
+
+      assert has_element?(view, "#listing-title-compact", "Mid-century teak sideboard")
+      assert position_of(html, "listing-title-compact") < position_of(html, "listing-gallery")
+    end
+
+    test "keeps the title at the head of the panel on a wide one", %{conn: conn, listing: listing} do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+
+      assert has_element?(view, "#purchase-panel #listing-title", "Mid-century teak sideboard")
+    end
+
+    # Both are always in the markup and exactly one is ever displayed, so the
+    # listing is named once at either width and a resize costs no re-render.
+    test "shows only one of the two titles at any width", %{conn: conn, listing: listing} do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+
+      document = view |> render() |> LazyHTML.from_fragment()
+
+      assert classes_of(document, "#listing-title-compact") =~ "lg:hidden"
+      assert classes_of(document, "#purchase-panel #listing-title") =~ "hidden lg:block"
     end
 
     test "shows the price already formatted", %{conn: conn, listing: listing} do
