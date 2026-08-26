@@ -8,7 +8,9 @@ timestamp: 2026-08-26T00:00:00Z
 
 The page a listing has of its own. It carries the whole buying decision — what the thing is, whether the seller can be trusted, what taking it costs — and is also the surface the purchase starts from.
 
-Every listing on offer has one, at a URL built from the listing's own identifier. That URL is public: a visitor with no account reaches it, and no sign-in stands between arriving and starting a purchase.
+Every listing on offer has one, at a URL that names the listing and ends in its public identifier — `/listings/vintage-leather-jacket-7f3k9m2p`. The name is there for whoever reads the link; the identifier is the part that says which listing is meant. A URL carrying a title the seller has since changed still opens the right page and then moves to the current one, so a listing has one address at a time and every address it has ever had keeps working.
+
+That URL is public: a visitor with no account reaches it, and no sign-in stands between arriving and starting a purchase. A URL naming a listing the visitor may not see stays where it is rather than moving anywhere, since moving would confirm the listing exists.
 
 ## What the page holds
 

@@ -63,7 +63,7 @@ Publishing blocked on the seller's fulfillment prerequisites has moved to [order
 ### Public presentation
 
 29. [x] Listing detail page: image gallery, title, price, description, seller card, buy action, and condition where configured
-30. [ ] Public listing URLs use a slug or short id, stable across edits
+30. [x] Public listing URLs use a slug or short id, stable across edits
 31. [ ] Seller's public profile lists their `active` listings first, `sold` and `unavailable` below
 
 Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/todo.md).

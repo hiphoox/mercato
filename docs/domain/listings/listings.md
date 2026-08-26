@@ -2,8 +2,8 @@
 type: domain
 title: Listings
 description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
-tags: [domain, listings, marketplace, pricing, categories]
-timestamp: 2026-08-24T00:00:00Z
+tags: [domain, listings, marketplace, pricing, categories, identifiers]
+timestamp: 2026-08-26T00:00:00Z
 ---
 
 A listing is what a seller publishes for a buyer to buy. The term is deliberately generic: the same entity covers physical goods, services, and rentals.
@@ -11,6 +11,14 @@ A listing is what a seller publishes for a buyer to buy. The term is deliberatel
 ## Ownership
 
 Every listing belongs to exactly one seller, and a seller may hold any number of listings. Ownership is fixed by whoever is acting when the listing is created — it is never supplied as part of the listing's content, so a listing cannot be created in another account's name.
+
+## Public identifier
+
+Every listing carries a short public identifier, separate from the one the platform holds it by internally. It is eight characters drawn from digits and letters, with the characters a reader could mistake for one another left out, so it survives being copied off a screen or read aloud.
+
+The identifier is assigned when the listing is created and never changes. A seller has no say in it and no way to supply one, and no two listings share one.
+
+This is what a listing's public address is built from: the address carries the title as well, for whoever reads the link, but only the identifier says which listing is meant. A seller may retitle freely and every link already shared keeps working.
 
 ## Description
 
