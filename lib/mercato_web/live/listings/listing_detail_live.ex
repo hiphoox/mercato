@@ -24,6 +24,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
 
   alias Mercato.Accounts
   alias Mercato.Listings
+  alias Mercato.Listings.Listing.Slug
 
   # Enough to tell a buyer what the thing is before they decide whether to read
   # the rest. A seller may write up to 5,000 characters, and a wall of them
@@ -33,13 +34,29 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:active_photo, 0)
-     |> assign(:gallery_expanded?, false)
-     |> assign(:description_expanded?, false)
-     |> load_listing(id)}
+  def mount(%{"slug" => slug}, _session, socket) do
+    socket =
+      socket
+      |> assign(:active_photo, 0)
+      |> assign(:gallery_expanded?, false)
+      |> assign(:description_expanded?, false)
+      |> load_listing(slug)
+
+    {:ok, canonicalize(socket, slug)}
+  end
+
+  # Only the public id at the end of the slug identifies anything, so a link
+  # shared before a retitle still lands here. Sending it on to the current slug
+  # keeps one URL for one listing rather than as many as it has ever had titles.
+  # A listing the viewer may not see is left alone: redirecting would confirm it
+  # exists, which is exactly what the page refuses to say.
+  defp canonicalize(%{assigns: %{listing: nil}} = socket, _slug), do: socket
+
+  defp canonicalize(%{assigns: %{listing: listing}} = socket, slug) do
+    case Slug.slug(listing) do
+      ^slug -> socket
+      canonical -> push_navigate(socket, to: ~p"/listings/#{canonical}")
+    end
   end
 
   # Wraps rather than stopping at either end, so neither arrow is ever a control
@@ -53,10 +70,12 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   # Not found and not-allowed are one outcome on purpose: the read policy
   # filters rather than refuses, so a listing the viewer may not see arrives
   # here as an absence, and the page has nothing to say beyond that.
-  defp load_listing(socket, id) do
-    case Listings.get_listing(id, actor: socket.assigns.current_user) do
-      {:ok, listing} -> assign(socket, listing: listing, id: id)
-      {:error, _gone} -> assign(socket, listing: nil, id: id)
+  defp load_listing(socket, slug) do
+    public_id = Slug.public_id(slug)
+
+    case Listings.get_listing_by_public_id(public_id, actor: socket.assigns.current_user) do
+      {:ok, listing} -> assign(socket, listing: listing, path: ~p"/listings/#{listing}")
+      {:error, _gone} -> assign(socket, listing: nil, path: ~p"/listings/#{slug}")
     end
   end
 
@@ -111,7 +130,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
       {:ok, _moved} ->
         {:noreply,
          socket
-         |> load_listing(listing.id)
+         |> load_listing(listing.public_id)
          |> put_flash(:info, "“#{listing.title}” #{said}")}
 
       {:error, _refused} ->
@@ -132,7 +151,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/listings/#{@id}"}
+      current_path={@path}
     >
       <.empty_state
         :if={!@listing}

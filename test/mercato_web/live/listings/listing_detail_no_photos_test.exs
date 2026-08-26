@@ -21,7 +21,7 @@ defmodule MercatoWeb.Listings.ListingDetailNoPhotosTest do
     seller = generate(user())
     bare = Listings.publish_listing!(generate(listing(actor: seller)), actor: seller)
 
-    {:ok, view, _html} = live(conn, ~p"/listings/#{bare.id}")
+    {:ok, view, _html} = live(conn, ~p"/listings/#{bare}")
 
     assert has_element?(view, "#listing-detail")
     assert has_element?(view, "#gallery-no-photos")

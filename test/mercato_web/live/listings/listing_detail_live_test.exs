@@ -75,14 +75,14 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
 
   describe "a listing on offer" do
     test "opens for a visitor with no account", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-detail")
       assert has_element?(view, "#listing-title", "Mid-century teak sideboard")
     end
 
     test "names the listing before the photos on a narrow screen", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       html = render(view)
 
@@ -91,7 +91,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "keeps the title at the head of the panel on a wide one", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#purchase-panel #listing-title", "Mid-century teak sideboard")
     end
@@ -99,7 +99,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     # Both are always in the markup and exactly one is ever displayed, so the
     # listing is named once at either width and a resize costs no re-render.
     test "shows only one of the two titles at any width", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       document = view |> render() |> LazyHTML.from_fragment()
 
@@ -108,25 +108,25 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "shows the price already formatted", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-price", "$347.50")
     end
 
     test "shows what the seller wrote", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-description", "Danish teak")
     end
 
     test "says how many are left", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-availability", "3 available")
     end
 
     test "names the condition the way a person writes it", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-condition", "Good")
     end
@@ -134,19 +134,19 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "leaves the condition chip out when the listing has none", %{conn: conn, seller: seller} do
       bare = publish!(seller, generate(listing(actor: seller, condition: nil)))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{bare.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{bare}")
 
       refute has_element?(view, "#listing-condition")
     end
 
     test "names the category in the breadcrumb", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-detail nav[aria-label='Breadcrumb']", "Furniture")
     end
 
     test "shows who is selling it", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-seller", "Marta Ribeiro")
     end
@@ -155,7 +155,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       html = render(view)
 
@@ -166,7 +166,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#buyer-protection")
     end
@@ -180,14 +180,14 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "shows an opening of it and offers the rest", %{conn: conn, wordy: wordy} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy}")
 
       assert has_element?(view, "#expand-description")
       refute render(view) =~ @long
     end
 
     test "keeps the opening within the preview length", %{conn: conn, wordy: wordy} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy}")
 
       shown = view |> element("#description-text") |> render() |> strip_tags()
 
@@ -195,7 +195,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "reveals the whole thing when asked", %{conn: conn, wordy: wordy} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy}")
 
       html = view |> element("#expand-description") |> render_click()
 
@@ -203,7 +203,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "offers to fold it back up once open", %{conn: conn, wordy: wordy} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{wordy}")
 
       view |> element("#expand-description") |> render_click()
       assert has_element?(view, "#expand-description[aria-expanded=true]")
@@ -217,7 +217,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       refute has_element?(view, "#expand-description")
     end
@@ -225,7 +225,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
 
   describe "the buy action" do
     test "offers a buy action to a visitor", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#buy-now")
     end
@@ -234,7 +234,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert view |> element("#buy-now") |> render_click() =~ "not available yet"
     end
@@ -243,13 +243,13 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#buy-footnote", "without an account")
     end
 
     test "does not offer a signed-in buyer the chance to sign in", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{listing}")
 
       assert has_element?(view, "#buy-footnote")
       refute has_element?(view, "#buy-footnote", "without an account")
@@ -262,8 +262,8 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     } do
       empty = publish!(seller, generate(listing(actor: seller, quantity: 0)))
 
-      {:ok, anon, _html} = live(conn, ~p"/listings/#{empty.id}")
-      {:ok, buyer, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{empty.id}")
+      {:ok, anon, _html} = live(conn, ~p"/listings/#{empty}")
+      {:ok, buyer, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{empty}")
 
       assert has_element?(anon, "#buy-footnote", "Nothing is charged")
       assert has_element?(buyer, "#buy-footnote", "Nothing is charged")
@@ -272,7 +272,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "disables the buy action when the seller has run out", %{conn: conn, seller: seller} do
       empty = publish!(seller, generate(listing(actor: seller, quantity: 0)))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{empty.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{empty}")
 
       assert has_element?(view, "#buy-now[disabled]")
       assert has_element?(view, "#listing-availability", "None left")
@@ -283,7 +283,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       refute has_element?(view, "#buy-now")
     end
@@ -294,7 +294,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#sticky-buy-bar[phx-hook=DeferToAction]")
       assert has_element?(view, ~s(#sticky-buy-bar[data-defer-to="buy-now"]))
@@ -303,7 +303,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "is not pinned for a listing with no buy path at all", %{conn: conn, seller: seller} do
       sold = sold!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{sold.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{sold}")
 
       refute has_element?(view, "#sticky-buy-bar")
     end
@@ -315,7 +315,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       assert has_element?(view, "#owner-banner")
     end
@@ -327,7 +327,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       html = render(view)
 
@@ -339,7 +339,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       assert has_element?(view, "#owner-primary", "Edit listing")
       assert has_element?(view, "#owner-secondary", "Pause listing")
@@ -350,7 +350,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-status", "Active")
     end
@@ -358,7 +358,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "offers publishing on a draft, which was never public", %{conn: conn, seller: seller} do
       draft = generate(listing(actor: seller))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{draft.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{draft}")
 
       assert has_element?(view, "#owner-primary", "Publish listing")
       assert has_element?(view, "#listing-status", "Draft")
@@ -367,7 +367,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "offers resuming on a paused listing", %{conn: conn, seller: seller} do
       paused = paused!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused}")
 
       assert has_element?(view, "#owner-secondary", "Resume listing")
       assert has_element?(view, "#listing-status", "Paused")
@@ -377,7 +377,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       draft = generate(listing(actor: seller))
       generate(listing_image(listing: draft))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{draft.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{draft}")
 
       assert view |> element("#owner-primary") |> render_click() =~ "on offer"
       assert %{status: :active} = Listings.get_listing!(draft.id, actor: seller)
@@ -388,7 +388,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       seller: seller,
       listing: listing
     } do
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing}")
 
       assert view |> element("#owner-secondary") |> render_click() =~ "paused"
       assert %{status: :unavailable} = Listings.get_listing!(listing.id, actor: seller)
@@ -397,7 +397,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "resumes a paused listing from the page", %{conn: conn, seller: seller} do
       paused = paused!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{paused}")
 
       assert view |> element("#owner-secondary") |> render_click() =~ "back on offer"
       assert %{status: :active} = Listings.get_listing!(paused.id, actor: seller)
@@ -409,7 +409,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     } do
       sold = sold!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{sold.id}")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{sold}")
 
       assert has_element?(view, "#listing-status", "Sold")
       assert has_element?(view, "#listing-closed")
@@ -423,7 +423,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       conn: conn,
       listing: listing
     } do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       refute has_element?(view, "#listing-status")
     end
@@ -433,7 +433,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "marks a listing the seller has run out of", %{conn: conn, seller: seller} do
       empty = publish!(seller, generate(listing(actor: seller, quantity: 0)))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{empty.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{empty}")
 
       assert has_element?(view, "#listing-stock", "Out of stock")
       refute has_element?(view, "#listing-status")
@@ -444,7 +444,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "reads as no longer available rather than as an error", %{conn: conn, seller: seller} do
       draft = generate(listing(actor: seller))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{draft.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{draft}")
 
       assert has_element?(view, "#listing-gone")
       refute has_element?(view, "#listing-detail")
@@ -453,7 +453,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "says the same of a paused listing, giving nothing away", %{conn: conn, seller: seller} do
       paused = paused!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{paused.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{paused}")
 
       assert has_element?(view, "#listing-gone")
     end
@@ -461,13 +461,13 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "says the same of a sold listing", %{conn: conn, seller: seller} do
       sold = sold!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{sold.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{sold}")
 
       assert has_element?(view, "#listing-gone")
     end
 
-    test "says the same of an id matching nothing at all", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{Ash.UUID.generate()}")
+    test "says the same of a URL matching nothing at all", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/listings/a-listing-that-never-was-zzzzzzzz")
 
       assert has_element?(view, "#listing-gone")
     end
@@ -479,7 +479,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       for _ <- 1..3, do: generate(listing_image(listing: many))
       many = Listings.publish_listing!(many, actor: seller)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       assert has_element?(view, "#listing-gallery")
       assert has_element?(view, "#gallery-thumbs")
@@ -491,7 +491,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       for _ <- 1..3, do: generate(listing_image(listing: many))
       many = Listings.publish_listing!(many, actor: seller)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       view |> element("#gallery-thumb-2") |> render_click()
 
@@ -499,7 +499,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     end
 
     test "offers no strip, counter, or arrows for a single photo", %{conn: conn, listing: listing} do
-      {:ok, view, _html} = live(conn, ~p"/listings/#{listing.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert has_element?(view, "#listing-gallery")
       refute has_element?(view, "#gallery-thumbs")
@@ -511,7 +511,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "steps forward through the photos", %{conn: conn, seller: seller} do
       many = gallery_of(seller, 3)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       view |> element("#gallery-next") |> render_click()
 
@@ -521,7 +521,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "steps back through the photos", %{conn: conn, seller: seller} do
       many = gallery_of(seller, 3)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       view |> element("#gallery-thumb-2") |> render_click()
       view |> element("#gallery-previous") |> render_click()
@@ -534,7 +534,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "wraps forward off the last photo", %{conn: conn, seller: seller} do
       many = gallery_of(seller, 3)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       view |> element("#gallery-thumb-2") |> render_click()
       view |> element("#gallery-next") |> render_click()
@@ -545,11 +545,58 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
     test "wraps back off the first photo", %{conn: conn, seller: seller} do
       many = gallery_of(seller, 3)
 
-      {:ok, view, _html} = live(conn, ~p"/listings/#{many.id}")
+      {:ok, view, _html} = live(conn, ~p"/listings/#{many}")
 
       view |> element("#gallery-previous") |> render_click()
 
       assert has_element?(view, "#gallery-counter", "3 / 3")
+    end
+  end
+
+  describe "the public URL" do
+    test "names the listing before its public id", %{conn: conn, seller: seller} do
+      live = publish!(seller, generate(listing(actor: seller, title: "Vintage Leather Jacket")))
+
+      path = ~p"/listings/#{live}"
+
+      assert path == "/listings/vintage-leather-jacket-#{live.public_id}"
+      assert {:ok, view, _html} = live(conn, path)
+      assert has_element?(view, "#listing-detail")
+    end
+
+    test "still resolves from a link shared before the seller retitled it", %{
+      conn: conn,
+      seller: seller
+    } do
+      live = publish!(seller, generate(listing(actor: seller, title: "Vintage Leather Jacket")))
+      shared = ~p"/listings/#{live}"
+
+      Listings.update_listing!(live, %{title: "Brown Leather Jacket"}, actor: seller)
+
+      assert {:error, {:live_redirect, %{to: to}}} = live(conn, shared)
+      assert to == "/listings/brown-leather-jacket-#{live.public_id}"
+    end
+
+    test "sends a stale title part on to the canonical URL", %{conn: conn, seller: seller} do
+      live = publish!(seller, generate(listing(actor: seller, title: "Vintage Leather Jacket")))
+
+      assert {:error, {:live_redirect, %{to: to}}} =
+               live(conn, ~p"/listings/whatever-someone-typed-#{live.public_id}")
+
+      assert to == "/listings/vintage-leather-jacket-#{live.public_id}"
+    end
+
+    test "leaves a URL that is already canonical alone", %{conn: conn, seller: seller} do
+      live = publish!(seller, generate(listing(actor: seller, title: "Vintage Leather Jacket")))
+
+      assert {:ok, _view, _html} = live(conn, ~p"/listings/#{live}")
+    end
+
+    test "does not redirect a listing the viewer may not see", %{conn: conn, seller: seller} do
+      draft = generate(listing(actor: seller, title: "Not Yet Published"))
+
+      assert {:ok, view, _html} = live(conn, ~p"/listings/#{draft}")
+      assert has_element?(view, "#listing-gone")
     end
   end
 end

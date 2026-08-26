@@ -6,6 +6,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
 
   alias AshAuthentication.Plug.Helpers
   alias Mercato.Listings
+  alias Mercato.Listings.Listing.Slug
 
   defp log_in(conn, user) do
     conn
@@ -54,7 +55,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
 
       assert has_element?(
                view,
-               ~s(#listing-#{draft.id} [data-role=photo] a[href="/listings/#{draft.id}"])
+               ~s(#listing-#{draft.id} [data-role=photo] a[href="/listings/#{Slug.slug(draft)}"])
              )
     end
 
@@ -63,7 +64,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
 
       assert has_element?(
                view,
-               ~s(#listing-#{draft.id} [data-role=title] a[href="/listings/#{draft.id}"])
+               ~s(#listing-#{draft.id} [data-role=title] a[href="/listings/#{Slug.slug(draft)}"])
              )
     end
   end
