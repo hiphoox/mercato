@@ -26,7 +26,7 @@ Nothing. It cannot sign in by password or by magic link, its status reads `delet
 
 ## Where a deleted account is still visible
 
-A deleted account is hidden from every part of the platform except the admin users dashboard, which keeps its row so an admin can see that an account was there. That row shows no avatar, no name, and no email — see [users-dashboard.md](../../features/admin/users-dashboard.md).
+A deleted account is hidden from every part of the platform except the admin users dashboard, which keeps its row so an admin can see that an account was there. That row shows no avatar, no name, and no email.
 
 ## Who may delete an account
 

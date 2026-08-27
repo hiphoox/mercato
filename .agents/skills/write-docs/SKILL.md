@@ -1,13 +1,13 @@
 ---
 name: write-docs
-description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, features, explore, guides) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
+description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, explore, guides) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
 ---
 
 # Writing OKF Baseline Docs
 
 ## Overview
 
-`docs/` holds this project's baseline knowledge (architecture, domain, features). These are reference files agents pull on demand — none load by default. Every file is a node in a machine-readable knowledge graph: markdown body + OKF YAML frontmatter. The whole design exists so an agent opens **exactly the one doc it needs** and spends no tokens on anything else.
+`docs/` holds this project's baseline knowledge (architecture, domain, explore). These are reference files agents pull on demand — none load by default. Every file is a node in a machine-readable knowledge graph: markdown body + OKF YAML frontmatter. The whole design exists so an agent opens **exactly the one doc it needs** and spends no tokens on anything else.
 
 Four rules make that work: OKF frontmatter, one concern per file, a current index, and updating docs alongside the code they describe. Follow all four on every new or edited doc — automatically, without being asked.
 
@@ -40,15 +40,14 @@ timestamp: 2026-07-23T00:00:00Z   # date added/updated, midnight UTC
 
 ## Where Docs Live
 
-`docs/` has five fixed sections:
+`docs/` has four fixed sections:
 
 - `architecture/` — system shape and cross-cutting standards.
 - `domain/` — entities, business rules, ER diagrams.
-- `features/` — feature decisions, flows, per-feature specs.
-- `explore/` — research/decisions for capabilities not yet built. A file here graduates to the owning section once built, updating `type` and content to match the real implementation.
+- `explore/` — research/decisions for capabilities not yet built, plus the per-area `<area>-todo.md` backlogs tracking what is left to build. A research file graduates to the owning section once built, updating `type` and content to match the real implementation.
 - `guides/` — step-by-step how-tos for occasional tasks (provisioning an environment, adding an adapter). A guide may describe a step that doesn't exist yet, since the procedure is the content — it doesn't need to graduate once the step exists.
 
-This is a closed set — never create a new top-level `docs/<section>/` folder on your own judgment; ask the user first if a doc genuinely doesn't fit any of the five.
+This is a closed set — never create a new top-level `docs/<section>/` folder on your own judgment; ask the user first if a doc genuinely doesn't fit any of the four.
 
 ## One File = One Concern
 
@@ -68,7 +67,7 @@ Each `docs/<section>/` has an `index.md` (`type: index`) mapping its files. When
 
 When code changes, update the doc describing it in the same change — not "eventually." A stale doc (describing removed fields, wrong defaults, capabilities that no longer exist) is read as authoritative and is worse than no doc at all.
 
-This is a doc about the current system, not a roadmap: never write "planned" / "nice to have" / "future extension" scope notes into it — track that wherever this project manages tasks (an issue tracker, a todo file, a project board), not in baseline knowledge. `docs/explore/` is the one exception, since it exists specifically to hold not-yet-built research/decisions.
+This is a doc about the current system, not a roadmap: never write "planned" / "nice to have" / "future extension" scope notes into it — track it in the area's `docs/explore/<area>-todo.md` backlog instead. `docs/explore/` is the one exception to this rule, since it exists specifically to hold not-yet-built research, decisions, and scope.
 
 **ER diagrams and other docs describing an Ash resource are a special case:** once the resource exists in code, the code is authoritative for its specifics (attributes, types, defaults) — reconcile the diagram/doc to match the code, not the other way around.
 

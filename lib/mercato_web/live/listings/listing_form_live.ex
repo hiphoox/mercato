@@ -5,8 +5,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   New and edit are the same page rather than two: a listing is the same set of
   fields either way, and only the wording, the state badge and what the primary
-  action does differ. Behaviour is specified in
-  `docs/features/listings/listing-form.md`.
+  action does differ.
 
   The form validates as the seller types, so a refusal lands on the field that
   caused it, and saving does what the primary action says: a draft goes on

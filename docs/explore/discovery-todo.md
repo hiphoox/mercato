@@ -1,16 +1,16 @@
 ---
-type: feature
+type: explore
 title: Discovery Todo
 description: Backlog of browse, search, filter, and ranking capabilities, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [discovery, search, todo, backlog, mvp]
 timestamp: 2026-08-24T00:00:00Z
 ---
 
-Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings/todo.md](../listings/todo.md).
+Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings-todo.md](listings-todo.md).
 
 The Phase 1 MVP is "list an item, find it, buy it". *Find it* is this file; *list it* is the listings backlog. Neither area's Phase 1 is shippable alone.
 
-Flows referenced here are already specified in [commerce-ux-patterns.md](../../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen.
+Flows referenced here are already specified in [commerce-ux-patterns.md](../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen.
 
 - **MUST** — Phase 1 MVP: enough for a buyer to find a listing that exists.
 - **NICE TO HAVE** — Phase 2: depth, personalization, and a pluggable search engine.
@@ -33,7 +33,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 
 ### Search engine
 
-- [ ] Search port with a SQLite FTS5 default adapter and an external engine as an opt-in adapter — see [full-text-search.md](../../explore/full-text-search.md)
+- [ ] Search port with a SQLite FTS5 default adapter and an external engine as an opt-in adapter — see [full-text-search.md](full-text-search.md)
 - [ ] Saved searches with new-match alerts
 - [ ] Facet result counts on every filter option
 

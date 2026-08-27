@@ -2,10 +2,9 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
   @moduledoc """
   The page a seller has of their own, as a buyer mid-decision reads it.
 
-  Behaviour is specified in `docs/features/users/seller-profile.md`. A buyer
-  arrives from a listing's seller card wanting to know who is on the other side
-  of the transaction, so the identity band frames the page and the listings are
-  what fills it.
+  A buyer arrives from a listing's seller card wanting to know who is on the
+  other side of the transaction, so the identity band frames the page and the
+  listings are what fills it.
 
   Everyone gets the same page, the seller included: it is a storefront rather
   than an account view, and one that differed for its owner could not be used
