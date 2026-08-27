@@ -405,6 +405,6 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   # A profile is addressed by handle, and an account may hold none, in which
   # case the name stays plain text rather than linking somewhere that is not
   # there.
-  defp seller_path(%{handle: handle}) when handle not in [nil, ""], do: ~p"/seller/#{handle}"
+  defp seller_path(%{handle: handle}) when handle not in [nil, ""], do: ~p"/users/#{handle}"
   defp seller_path(_seller), do: nil
 end

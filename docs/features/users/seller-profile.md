@@ -3,14 +3,14 @@ type: feature
 title: Seller Profile
 description: The public page an account has as a seller — how it is reached, what it shows of the person, and which of their listings appear on it.
 tags: [users, sellers, profile, trust, listings]
-timestamp: 2026-08-26T00:00:00Z
+timestamp: 2026-08-27T00:00:00Z
 ---
 
 The page a seller has of their own, read by a buyer partway through deciding on one of their listings. It answers one question — who is on the other side of this, and what else do they have — so it is a trust surface and a second storefront rather than an account view.
 
 It is reached by the seller's name on a listing's seller card, and nowhere else: there is no seller directory and no sidebar entry, so the page is only ever entered sideways. An account with no handle has no address and its name stays plain text.
 
-Its address is the seller's handle — `/seller/martar`. A handle is the only public name an account carries. A handle its owner has since changed stops resolving, so a link shared under an old one no longer opens the page.
+Its address is the seller's handle — `/users/martar`. A handle is the only public name an account carries. A handle its owner has since changed stops resolving, so a link shared under an old one no longer opens the page.
 
 It is public: a visitor with no account reaches it, and no sign-in stands between arriving and opening a listing.
 

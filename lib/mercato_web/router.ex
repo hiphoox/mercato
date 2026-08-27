@@ -37,19 +37,32 @@ defmodule MercatoWeb.Router do
       # If an authenticated user must *not* be present:
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
 
-      live "/profile", ProfileLive
-      live "/my-listings", Listings.MyListingsLive
-      live "/listings/new", Listings.ListingFormLive, :new
-      live "/listings/:id/edit", Listings.ListingFormLive, :edit
-      live "/admin/users", Admin.UsersLive
+      # Grouped by the resource the page is about, so a new page for one of them
+      # can only land inside its own prefix.
+      scope "/users" do
+        # The signed-in user's own pages. "me" never shadows a handle: these are
+        # three segments deep and the public profile below is two.
+        live "/me/profile", ProfileLive
+        live "/me/listings", Listings.MyListingsLive
 
-      # Last of the /listings routes, so ":slug" never swallows "new".
-      live "/listings/:slug", Listings.ListingDetailLive
+        # Public, like the listing page below: a buyer weighing a stranger
+        # reaches it without an account. Addressed by the account's handle,
+        # which is the only public name it has — the account, not the selling
+        # role, since everyone here both buys and sells.
+        live "/:handle", Sellers.SellerProfileLive
+      end
 
-      # Public, like the listing page above: a buyer weighing a stranger reaches
-      # it without an account. Addressed by the seller's handle, which is the
-      # only public name an account has.
-      live "/seller/:handle", Sellers.SellerProfileLive
+      scope "/listings" do
+        live "/new", Listings.ListingFormLive, :new
+        live "/:id/edit", Listings.ListingFormLive, :edit
+
+        # Last, so ":slug" never swallows "new".
+        live "/:slug", Listings.ListingDetailLive
+      end
+
+      scope "/admin" do
+        live "/users", Admin.UsersLive
+      end
     end
   end
 

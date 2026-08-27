@@ -72,7 +72,7 @@ defmodule MercatoWeb.ProfileLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/profile"}
+      current_path={~p"/users/me/profile"}
     >
       <div class="flex flex-col gap-6">
         <.breadcrumb items={[%{label: "Home", navigate: ~p"/"}, %{label: "Account settings"}]} />

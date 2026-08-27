@@ -26,25 +26,25 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
 
   describe "reaching the page" do
     test "opens for a visitor with no account", %{conn: conn, seller: seller} do
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#seller-profile")
     end
 
     test "names the seller as the page's heading", %{conn: conn, seller: seller} do
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert view |> element("#seller-name") |> render() =~ "Marta Ribeiro"
     end
 
     test "shows the handle the profile is addressed by", %{conn: conn, seller: seller} do
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert view |> element("#seller-handle") |> render() =~ "@#{seller.handle}"
     end
 
     test "says nothing exists at a handle nobody holds", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/seller/nobody_at_all")
+      {:ok, view, _html} = live(conn, ~p"/users/nobody_at_all")
 
       assert has_element?(view, "#seller-gone")
       refute has_element?(view, "#seller-profile")
@@ -55,14 +55,14 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       admin = admin_user() |> grant_permission("user:update")
       Mercato.Accounts.change_status!(seller, :banned, actor: admin)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#seller-gone")
       refute has_element?(view, "#seller-profile")
     end
 
     test "trails one level, since a seller sits under nothing", %{conn: conn, seller: seller} do
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "nav[aria-label='Breadcrumb']")
     end
@@ -72,7 +72,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "shows a listing on offer", %{conn: conn, seller: seller} do
       listing = on_offer!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#on-offer-listing-#{listing.id}")
     end
@@ -81,7 +81,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       on_offer = on_offer!(seller)
       sold = sold!(seller)
 
-      {:ok, view, html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#sold-listing-#{sold.id}")
 
@@ -97,7 +97,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       on_offer = on_offer!(seller)
       sold = sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#on-offer-listing-#{on_offer.id} a")
       refute has_element?(view, "#sold-listing-#{sold.id} a")
@@ -106,7 +106,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "leaves out a draft", %{conn: conn, seller: seller} do
       draft = generate(listing(actor: seller))
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       refute has_element?(view, "#on-offer-listing-#{draft.id}")
       refute has_element?(view, "#sold-listing-#{draft.id}")
@@ -115,7 +115,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "leaves out a paused listing", %{conn: conn, seller: seller} do
       paused = Listings.pause_listing!(on_offer!(seller), actor: seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       refute has_element?(view, "#on-offer-listing-#{paused.id}")
     end
@@ -125,7 +125,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       on_offer!(seller)
       sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert view |> element("#count-on-offer") |> render() =~ "2"
       assert view |> element("#count-sold") |> render() =~ "1"
@@ -142,7 +142,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
         conn
         |> Plug.Test.init_test_session(%{})
         |> Helpers.store_in_session(seller)
-        |> live(~p"/seller/#{seller.handle}")
+        |> live(~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#on-offer-listing-#{on_offer.id}")
       refute has_element?(view, "#on-offer-listing-#{draft.id}")
@@ -154,7 +154,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       conn: conn,
       seller: seller
     } do
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#seller-has-nothing")
       refute has_element?(view, "#sold-section")
@@ -166,7 +166,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     } do
       on_offer!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       refute has_element?(view, "#sold-section")
     end
@@ -177,7 +177,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     } do
       sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#everything-sold")
       assert has_element?(view, "#sold-section")
@@ -189,7 +189,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "caps the sold grid and offers the rest", %{conn: conn, seller: seller} do
       for _ <- 1..5, do: sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert view |> element("#sold-section") |> render() |> sold_cards() == 4
       assert has_element?(view, "#show-all-sold")
@@ -198,7 +198,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "opens the rest in place", %{conn: conn, seller: seller} do
       for _ <- 1..5, do: sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       html = view |> element("#show-all-sold") |> render_click()
 
@@ -209,7 +209,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
     test "offers nothing to expand when the whole history fits", %{conn: conn, seller: seller} do
       for _ <- 1..3, do: sold!(seller)
 
-      {:ok, view, _html} = live(conn, ~p"/seller/#{seller.handle}")
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       refute has_element?(view, "#show-all-sold")
     end

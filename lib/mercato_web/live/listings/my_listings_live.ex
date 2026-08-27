@@ -115,13 +115,13 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   end
 
   def handle_event("filter_status", %{"status" => "all"}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/my-listings")}
+    {:noreply, push_patch(socket, to: ~p"/users/me/listings")}
   end
 
   def handle_event("filter_status", %{"status" => status}, socket) do
     case parse_status(status) do
-      nil -> {:noreply, push_patch(socket, to: ~p"/my-listings")}
-      status -> {:noreply, push_patch(socket, to: ~p"/my-listings?status=#{status}")}
+      nil -> {:noreply, push_patch(socket, to: ~p"/users/me/listings")}
+      status -> {:noreply, push_patch(socket, to: ~p"/users/me/listings?status=#{status}")}
     end
   end
 
@@ -153,7 +153,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/my-listings"}
+      current_path={~p"/users/me/listings"}
     >
       <div id="my-listings" class="flex flex-col gap-6">
         <.breadcrumb items={[

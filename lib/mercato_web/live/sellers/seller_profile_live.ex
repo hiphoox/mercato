@@ -80,7 +80,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/seller/#{@handle}"}
+      current_path={~p"/users/#{@handle}"}
     >
       <.seller_gone :if={is_nil(@seller)} />
 

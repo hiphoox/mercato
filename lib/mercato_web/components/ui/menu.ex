@@ -7,11 +7,11 @@ defmodule MercatoWeb.UI.Menu do
   rows without a popup around them, so a nav link and a dropdown entry share one
   set of states (active, destructive, collapsed) instead of drifting apart.
 
-      <.menu_item icon="hero-user" label="Profile" navigate={~p"/profile"} active />
+      <.menu_item icon="hero-user" label="Profile" navigate={~p"/users/me/profile"} active />
 
       <.menu id="user-menu">
         <:trigger><.avatar name="Jane Doe" /></:trigger>
-        <.menu_item icon="hero-user" label="Profile" navigate={~p"/profile"} role="menuitem" />
+        <.menu_item icon="hero-user" label="Profile" navigate={~p"/users/me/profile"} role="menuitem" />
       </.menu>
   """
   use MercatoWeb, :html

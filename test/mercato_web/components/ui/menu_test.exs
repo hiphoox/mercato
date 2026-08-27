@@ -16,12 +16,12 @@ defmodule MercatoWeb.UI.MenuTest do
   describe "menu_item as a link" do
     test "renders an anchor when given a navigate target" do
       hrefs =
-        [label: "Profile", icon: "hero-user", navigate: "/profile"]
+        [label: "Profile", icon: "hero-user", navigate: "/users/me/profile"]
         |> item()
         |> LazyHTML.query("a")
         |> LazyHTML.attribute("href")
 
-      assert hrefs == ["/profile"]
+      assert hrefs == ["/users/me/profile"]
     end
 
     test "renders a button when there is no navigation target" do
@@ -67,7 +67,7 @@ defmodule MercatoWeb.UI.MenuTest do
   describe "menu_item active state" do
     test "marks the active item as the current page" do
       links =
-        [label: "Profile", navigate: "/profile", active: true]
+        [label: "Profile", navigate: "/users/me/profile", active: true]
         |> item()
         |> LazyHTML.query("a")
 
@@ -75,14 +75,14 @@ defmodule MercatoWeb.UI.MenuTest do
     end
 
     test "does not mark an inactive item" do
-      links = [label: "Profile", navigate: "/profile"] |> item() |> LazyHTML.query("a")
+      links = [label: "Profile", navigate: "/users/me/profile"] |> item() |> LazyHTML.query("a")
 
       assert LazyHTML.attribute(links, "aria-current") == []
     end
 
     test "styles the active item with the primary tint" do
       class =
-        [label: "Profile", navigate: "/profile", active: true]
+        [label: "Profile", navigate: "/users/me/profile", active: true]
         |> item()
         |> LazyHTML.query("a")
         |> LazyHTML.attribute("class")

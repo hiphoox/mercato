@@ -53,7 +53,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       other = generate(user())
       theirs = publish!(other, generate(listing(actor: other)))
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{theirs.id}/edit")
     end
 
@@ -66,14 +66,14 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
           authorize?: false
         )
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{sold.id}/edit")
     end
 
     test "sends a seller opening a listing that is not there back to their own", %{conn: conn} do
       seller = generate(user())
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{Ash.UUID.generate()}/edit")
     end
   end
@@ -91,7 +91,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     end
 
     test "trails a breadcrumb back to the seller's own listings", %{view: view} do
-      assert has_element?(view, "nav[aria-label=Breadcrumb] a[href='/my-listings']")
+      assert has_element?(view, "nav[aria-label=Breadcrumb] a[href='/users/me/listings']")
     end
 
     test "offers the fields a listing is made of", %{view: view} do
@@ -1196,7 +1196,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     test "sends the seller back to their own listings, the page being gone", %{view: view} do
       view |> element("#delete-listing") |> render_click()
 
-      assert_redirect(view, "/my-listings")
+      assert_redirect(view, "/users/me/listings")
     end
 
     test "takes the gallery and its files with it", %{listing: listing, view: view} do

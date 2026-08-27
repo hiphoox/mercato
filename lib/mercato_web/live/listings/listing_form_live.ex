@@ -75,7 +75,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:ok, %{status: :sold}} ->
         socket
         |> put_flash(:info, "That listing has sold, so it can no longer be changed.")
-        |> push_navigate(to: ~p"/my-listings")
+        |> push_navigate(to: ~p"/users/me/listings")
 
       {:ok, listing} ->
         socket
@@ -85,7 +85,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:error, _reason} ->
         socket
         |> put_flash(:error, "That listing is not one of yours.")
-        |> push_navigate(to: ~p"/my-listings")
+        |> push_navigate(to: ~p"/users/me/listings")
     end
   end
 
@@ -208,7 +208,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "“#{listing.title}” was removed.")
-         |> push_navigate(to: ~p"/my-listings")}
+         |> push_navigate(to: ~p"/users/me/listings")}
 
       # Almost always a listing sold since the page was opened: a sale outlives
       # the seller's wish to be rid of it, so the listing stays as its record.
@@ -467,12 +467,12 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/my-listings"}
+      current_path={~p"/users/me/listings"}
     >
       <div id="listing-form-page" class="flex flex-col gap-6">
         <.breadcrumb items={[
           %{label: "Home", navigate: ~p"/"},
-          %{label: "Selling", navigate: ~p"/my-listings"},
+          %{label: "Selling", navigate: ~p"/users/me/listings"},
           %{label: page_title(@listing)}
         ]} />
 

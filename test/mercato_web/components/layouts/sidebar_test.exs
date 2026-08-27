@@ -22,7 +22,7 @@ defmodule MercatoWeb.Layouts.SidebarTest do
       hrefs = [current_path: "/"] |> query("nav a") |> LazyHTML.attribute("href")
 
       assert "/" in hrefs
-      assert "/profile" in hrefs
+      assert "/users/me/profile" in hrefs
     end
 
     test "groups account links under a labelled section" do
@@ -59,13 +59,14 @@ defmodule MercatoWeb.Layouts.SidebarTest do
 
   describe "active item" do
     test "marks the item matching the current path" do
-      current = [current_path: "/profile"] |> query("[aria-current=page]")
+      current = [current_path: "/users/me/profile"] |> query("[aria-current=page]")
 
-      assert LazyHTML.attribute(current, "href") == ["/profile"]
+      assert LazyHTML.attribute(current, "href") == ["/users/me/profile"]
     end
 
     test "marks only one item at a time" do
-      assert [current_path: "/profile"] |> query("[aria-current=page]") |> Enum.count() == 1
+      assert [current_path: "/users/me/profile"] |> query("[aria-current=page]") |> Enum.count() ==
+               1
     end
 
     test "marks nothing when the path matches no nav item" do

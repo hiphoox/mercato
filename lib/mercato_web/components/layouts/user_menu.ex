@@ -62,7 +62,7 @@ defmodule MercatoWeb.Layouts.UserMenu do
         role="menuitem"
         label="Profile"
         icon="hero-user"
-        navigate={~p"/profile"}
+        navigate={~p"/users/me/profile"}
       />
       <.menu_item
         :if={@current_user}

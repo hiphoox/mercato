@@ -561,7 +561,7 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
       assert view
-             |> element("#listing-seller a[href='/seller/#{seller.handle}']")
+             |> element("#listing-seller a[href='/users/#{seller.handle}']")
              |> has_element?()
     end
   end
