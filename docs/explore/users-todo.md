@@ -1,12 +1,12 @@
 ---
-type: feature
+type: explore
 title: Users Todo
 description: Backlog of user-account capabilities, split into MUST and NICE TO HAVE.
 tags: [users, todo, backlog, auth, roles]
 timestamp: 2026-08-24T00:00:00Z
 ---
 
-Working backlog for user accounts — signup, login, logout, roles and permissions. Domain rules for what already exists live in [docs/domain/users/](../../domain/users/index.md); this file tracks what is left to build.
+Working backlog for user accounts — signup, login, logout, roles and permissions. Domain rules for what already exists live in [docs/domain/users/](../domain/users/index.md); this file tracks what is left to build.
 
 - **MUST** — required before the feature is complete.
 - **NICE TO HAVE** — the extension surface, built when a real use case asks for it.

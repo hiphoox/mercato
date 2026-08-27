@@ -2,10 +2,9 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   @moduledoc """
   Everything the signed-in trader has listed, grouped by the state it is in.
 
-  Behaviour is specified in `docs/features/listings/my-listings.md`. Editing
-  and composing are pages, so those actions are links, and removing happens
-  here, as do pausing and relisting. Opening the order behind a sold listing
-  waits on there being orders to open.
+  Editing and composing are pages, so those actions are links, and removing
+  happens here, as do pausing and relisting. Opening the order behind a sold
+  listing waits on there being orders to open.
   """
 
   use MercatoWeb, :live_view

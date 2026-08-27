@@ -1,5 +1,5 @@
 ---
-type: feature
+type: explore
 title: Listings Todo
 description: Backlog of listing capabilities split into Phase 1 MVP musts and Phase 2 extension nice-to-haves.
 tags: [listings, todo, backlog, mvp]
@@ -8,11 +8,11 @@ timestamp: 2026-08-26T00:00:00Z
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
 
-This file covers the listing entity itself — its fields, media, lifecycle, authoring, and ownership rules. A capability that introduces a *different* entity pointing at a listing belongs to that entity's area: browsing and search in [discovery/](../discovery/todo.md), favorites and comments in [social/](../social/todo.md), negotiation in [offers/](../offers/todo.md), the purchase itself in [orders/](../orders/todo.md), discounts in [promotions/](../promotions/todo.md), performance metrics in [analytics/](../analytics/todo.md), and reports and moderation in [admin/](../admin/todo.md).
+This file covers the listing entity itself — its fields, media, lifecycle, authoring, and ownership rules. A capability that introduces a *different* entity pointing at a listing belongs to that entity's area: browsing and search in [discovery-todo.md](discovery-todo.md), favorites and comments in [social-todo.md](social-todo.md), negotiation in [offers-todo.md](offers-todo.md), the purchase itself in [orders-todo.md](orders-todo.md), discounts in [promotions-todo.md](promotions-todo.md), performance metrics in [analytics-todo.md](analytics-todo.md), and reports and moderation in [admin-todo.md](admin-todo.md).
 
-The Phase 1 MVP is "list an item, find it, buy it". *List it* is this file; *find it* is the [discovery](../discovery/todo.md) backlog; *buy it* is the [orders](../orders/todo.md) backlog. No area's Phase 1 is shippable alone.
+The Phase 1 MVP is "list an item, find it, buy it". *List it* is this file; *find it* is the [discovery-todo.md](discovery-todo.md) backlog; *buy it* is the [orders-todo.md](orders-todo.md) backlog. No area's Phase 1 is shippable alone.
 
-Flows referenced here are already specified in [commerce-ux-patterns.md](../../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen. Per the minimal-core rule in [AGENTS.md](../../../AGENTS.md), a field lands in MUST only when Phase 1 cannot ship without it.
+Flows referenced here are already specified in [commerce-ux-patterns.md](../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen. Per the minimal-core rule in [AGENTS.md](../../AGENTS.md), a field lands in MUST only when Phase 1 cannot ship without it.
 
 - **MUST** — Phase 1 MVP: list an item, find it, buy it. End-to-end and no further.
 - **NICE TO HAVE** — Phase 2: the extension surface that lets any marketplace be built on top of Mercato.
@@ -33,7 +33,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 ### Media
 
 9. [x] `ListingImage` with `listing_id`, `storage_key`, `position`, `is_cover`
-10. [x] Upload through the existing storage port so the local-disk adapter is the default and Tigris stays opt-in — see [ports.md](../../architecture/ports.md)
+10. [x] Upload through the existing storage port so the local-disk adapter is the default and Tigris stays opt-in — see [ports.md](../architecture/ports.md)
 11. [x] Configurable minimum and maximum image count, defaulting to a minimum of one so a listing without photos is possible where the marketplace allows it
 12. [x] Exactly one cover per listing, enforced at the data layer
 13. [x] Server-side type and size validation on upload
@@ -49,7 +49,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 19. [x] `sold` is set by the system when a purchase completes and is terminal
 20. [x] A listing that reached `sold` cannot be deleted; it is retained as transaction history
 21. [x] Seller-initiated delete on a never-sold listing is a real delete, freeing storage
-22. [x] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../../architecture/data-architecture.md)
+22. [x] Moderation delete is a soft delete keeping an internal backup — see [data-architecture.md](../architecture/data-architecture.md)
 
 ### Create & edit
 
@@ -58,7 +58,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../../a
 26. [x] Edit any field while `draft` or `active`
 27. [x] Publish and unpublish actions
 
-Publishing blocked on the seller's fulfillment prerequisites has moved to [orders/todo.md](../orders/todo.md), which governs fulfillment.
+Publishing blocked on the seller's fulfillment prerequisites has moved to [orders-todo.md](orders-todo.md), which governs fulfillment.
 
 ### Public presentation
 
@@ -66,7 +66,7 @@ Publishing blocked on the seller's fulfillment prerequisites has moved to [order
 30. [x] Public listing URLs use a slug or short id, stable across edits
 31. [x] Seller's public profile lists their `active` listings first and `sold` below; `unavailable` appears nowhere, since pausing is how a seller takes a listing out of public view
 
-Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/todo.md).
+Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo.md).
 
 ### Seller management
 
@@ -88,7 +88,7 @@ Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/t
 39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
 40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
 41. [ ] Listing-created and listing-sold events other features can subscribe to
-58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin/todo.md](../admin/todo.md)
+58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin-todo.md](admin-todo.md)
 
 ### Taxonomy
 
