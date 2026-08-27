@@ -107,3 +107,34 @@ msgstr ""
 
 msgid "must be equal to %{number}"
 msgstr ""
+
+## The messages below come from validations and changes in the core layer.
+## They are written there as templates and translated when the web layer
+## renders them, so extraction — which reads the web layer — cannot see them.
+## Added by hand, per the note at the top of this file.
+msgid "would take the gallery past %{limit} images"
+msgstr ""
+
+msgid "would leave a listing on offer with fewer than %{minimum} images"
+msgstr ""
+
+msgid "must number at least %{minimum} to go on offer"
+msgstr ""
+
+msgid "must be no larger than %{limit} bytes"
+msgstr ""
+
+msgid "could not be uploaded: %{reason}"
+msgstr ""
+
+msgid "is not an accepted image type"
+msgstr ""
+
+msgid "is not a condition this marketplace uses"
+msgstr ""
+
+msgid "must wait before changing handle again"
+msgstr ""
+
+msgid "account is not active"
+msgstr ""

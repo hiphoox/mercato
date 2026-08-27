@@ -27,6 +27,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [liveview-streams.md](liveview-streams.md) — Using LiveView streams for collections. Read it when about to use streams for a collection.
 - [liveview-css.md](liveview-css.md) — Tailwind/CSS asset pipeline. Read it when writing CSS or touching the asset pipeline.
 - [liveview-js.md](liveview-js.md) — LiveView JS interop: hooks, push_event. Read it when writing a JS hook or client/server event.
+- [i18n-copy.md](i18n-copy.md) — Where user-facing copy lives, which layer owns it, and how it is translated. Read it when writing any string a user reads, or an error message in a validation.
 - [ui-guidelines.md](ui-guidelines.md) — Guiding principles for the design system. Read it when starting any UI/design work.
 - [design-tokens.md](design-tokens.md) — Color, typography, and spacing/radius tokens, with code mapping. Read it when styling a component or picking a color/type value.
 - [responsive-layout.md](responsive-layout.md) — Breakpoint regimes for the app layout, sidebar drawer/rail state, and header wrapping. Read it when building a layout that adapts across widths, or touching the sidebar's collapse state.

@@ -28,6 +28,9 @@ config :ash,
 
 config :ash, :custom_expressions, [Mercato.Expressions.ContainsIgnoringCase]
 
+# English is the only locale; see docs/architecture/i18n-copy.md.
+config :mercato, MercatoWeb.Gettext, default_locale: "en", locales: ~w(en)
+
 config :spark,
   formatter: [
     remove_parens?: true,

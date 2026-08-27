@@ -14,7 +14,7 @@ defmodule Mercato.Listings.ListingImage.Validations.ImageWithinSizeLimit do
     if is_nil(image) or byte_size(image) <= limit do
       :ok
     else
-      {:error, field: :image, message: "must be no larger than #{limit} bytes"}
+      {:error, field: :image, message: "must be no larger than %{limit} bytes", limit: limit}
     end
   end
 end

@@ -23,7 +23,8 @@ defmodule Mercato.Listings.ListingImage.Validations.GalleryHasRoom do
     if length(Listings.list_listing_images!(listing_id, authorize?: false)) < limit do
       :ok
     else
-      {:error, field: :image, message: "would take the gallery past #{limit} images"}
+      {:error,
+       field: :image, message: "would take the gallery past %{limit} images", limit: limit}
     end
   end
 end

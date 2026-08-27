@@ -12,18 +12,22 @@ defmodule MercatoWeb.Layouts.Sidebar do
 
   import MercatoWeb.UI.Menu
 
-  @primary [
-    %{label: "Home", icon: "hero-home", navigate: "/"}
-  ]
+  # Built per render rather than held as a module attribute: a label baked in at
+  # compile time is invisible to translation extraction.
+  defp primary do
+    [%{label: gettext("Home"), icon: "hero-home", navigate: "/"}]
+  end
 
-  @account [
-    %{label: "My listings", icon: "hero-tag", navigate: "/users/me/listings"},
-    %{label: "Profile", icon: "hero-user", navigate: "/users/me/profile"}
-  ]
+  defp account do
+    [
+      %{label: gettext("My listings"), icon: "hero-tag", navigate: "/users/me/listings"},
+      %{label: gettext("Profile"), icon: "hero-user", navigate: "/users/me/profile"}
+    ]
+  end
 
-  @admin [
-    %{label: "Users", icon: "hero-users", navigate: "/admin/users"}
-  ]
+  defp admin do
+    [%{label: gettext("Users"), icon: "hero-users", navigate: "/admin/users"}]
+  end
 
   @doc """
   Renders the sidebar.
@@ -40,9 +44,9 @@ defmodule MercatoWeb.Layouts.Sidebar do
   def sidebar(assigns) do
     assigns =
       assigns
-      |> assign(:primary, @primary)
-      |> assign(:account, @account)
-      |> assign(:admin, @admin)
+      |> assign(:primary, primary())
+      |> assign(:account, account())
+      |> assign(:admin, admin())
 
     ~H"""
     <%!-- The scrim only exists below lg, where the sidebar overlays the content.
@@ -61,7 +65,7 @@ defmodule MercatoWeb.Layouts.Sidebar do
 
     <nav
       id="app-sidebar"
-      aria-label="Main navigation"
+      aria-label={gettext("Main navigation")}
       phx-window-keydown={close_drawer()}
       phx-key="escape"
       class={
@@ -89,7 +93,7 @@ defmodule MercatoWeb.Layouts.Sidebar do
           id="sidebar-section-you"
           class="px-3.5 pb-2 text-caption-md font-bold text-ink-500 sidebar-collapsed:hidden"
         >
-          You
+          {gettext("You")}
         </div>
         <.nav_entry :for={entry <- @account} entry={entry} current_path={@current_path} />
       </div>
@@ -105,7 +109,7 @@ defmodule MercatoWeb.Layouts.Sidebar do
             id="sidebar-section-admin"
             class="px-3.5 pb-2 text-caption-md font-bold text-ink-500 sidebar-collapsed:hidden"
           >
-            Admin
+            {gettext("Admin")}
           </div>
           <.nav_entry :for={entry <- @admin} entry={entry} current_path={@current_path} />
         </div>

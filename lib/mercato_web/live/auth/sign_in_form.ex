@@ -80,14 +80,14 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
     <div class="flex flex-col gap-2">
       <.card class="flex flex-col gap-5">
         <div class="flex flex-col gap-1 text-center">
-          <h2 class="text-h2 font-bold text-ink-900">Welcome back</h2>
-          <p class="text-body-md text-ink-500">Sign in to buy and sell on Mercato</p>
+          <h2 class="text-h2 font-bold text-ink-900">{gettext("Welcome back")}</h2>
+          <p class="text-body-md text-ink-500">{gettext("Sign in to buy and sell on Mercato")}</p>
         </div>
 
         <ModeSwitcher.mode_switcher
           myself={@myself}
           active={@mode}
-          options={[{:password, "Password"}, {:magic, "Magic link"}]}
+          options={[{:password, gettext("Password")}, {:magic, gettext("Magic link")}]}
         />
 
         <.form
@@ -108,7 +108,7 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
               id="sign-in-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
@@ -117,20 +117,25 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
                 id="sign-in-password"
                 field={form[:password]}
                 type="password"
-                label="Password"
-                placeholder="Your password"
+                label={gettext("Password")}
+                placeholder={gettext("Your password")}
                 required
               />
               <div class="flex justify-end">
                 <.accent_link patch={~p"/reset"} class="text-caption-lg">
-                  Forgot your password?
+                  {gettext("Forgot your password?")}
                 </.accent_link>
               </div>
             </div>
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Signing in...">
-            Sign in
+          <.button
+            type="submit"
+            variant="primary"
+            full_width
+            phx-disable-with={gettext("Signing in...")}
+          >
+            {gettext("Sign in")}
           </.button>
         </.form>
 
@@ -149,21 +154,24 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
               id="magic-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
-            <p class="text-caption-lg text-ink-500">We'll email you a link to sign in instantly.</p>
+            <p class="text-caption-lg text-ink-500">
+              {gettext("We'll email you a link to sign in instantly.")}
+            </p>
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
-            Send magic link
+          <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Sending...")}>
+            {gettext("Send magic link")}
           </.button>
         </.form>
       </.card>
 
       <p class="text-center text-body-sm text-ink-500">
-        Need an account? <.accent_link patch={~p"/register"}>Sign up</.accent_link>
+        {gettext("Need an account?")}
+        <.accent_link patch={~p"/register"}>{gettext("Sign up")}</.accent_link>
       </p>
     </div>
     """
@@ -241,7 +249,7 @@ defmodule MercatoWeb.Live.Auth.SignInForm do
       )
       |> put_flash!(
         :info,
-        "If this user exists, we've sent a sign-in link to that email address."
+        gettext("If this user exists, we've sent a sign-in link to that email address.")
       )
 
     {:noreply, socket}

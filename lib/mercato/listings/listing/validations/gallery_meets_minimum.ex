@@ -14,7 +14,8 @@ defmodule Mercato.Listings.Listing.Validations.GalleryMeetsMinimum do
     if length(gallery(changeset.data.id)) >= minimum do
       :ok
     else
-      {:error, field: :images, message: "must number at least #{minimum} to go on offer"}
+      {:error,
+       field: :images, message: "must number at least %{minimum} to go on offer", minimum: minimum}
     end
   end
 

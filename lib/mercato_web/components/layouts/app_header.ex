@@ -36,7 +36,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
           type="button"
           id="sidebar-toggle"
           phx-hook="SidebarToggle"
-          aria-label="Toggle navigation"
+          aria-label={gettext("Toggle navigation")}
           aria-controls="app-sidebar"
           class={[
             "flex-none flex items-center justify-center size-11 rounded-md cursor-pointer",
@@ -71,8 +71,8 @@ defmodule MercatoWeb.Layouts.AppHeader do
           type="search"
           id="app-search"
           name="q"
-          aria-label="Search listings"
-          placeholder="Search listings, categories, sellers"
+          aria-label={gettext("Search listings")}
+          placeholder={gettext("Search listings, categories, sellers")}
           autocomplete="off"
           class={[
             "flex-1 min-w-0 border-none bg-transparent outline-none",
@@ -89,13 +89,13 @@ defmodule MercatoWeb.Layouts.AppHeader do
             given to the button replaces its variant outright, and restating
             the fill here is how a vocabulary drifts. --%>
       <div :if={@current_user} class="order-1 md:order-none flex-none">
-        <.button id="sell-cta" navigate={~p"/listings/new"} aria-label="Sell an item">
+        <.button id="sell-cta" navigate={~p"/listings/new"} aria-label={gettext("Sell an item")}>
           <.icon name="hero-tag" aria-hidden="true" class="size-4.5" />
           <%!-- The span carries the responsive display rather than the button, whose
                 own `inline-flex` is an unprefixed display utility and would race
                 `hidden` in Tailwind's output. Below md the bar is already wrapping,
                 so the label goes and the aria-label speaks for it. --%>
-          <span class="hidden md:inline">Sell</span>
+          <span class="hidden md:inline">{gettext("Sell")}</span>
         </.button>
       </div>
 
@@ -103,7 +103,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
         :if={@current_user}
         id="app-cart"
         navigate={~p"/"}
-        aria-label="Cart"
+        aria-label={gettext("Cart")}
         class={[
           "order-3 flex-none flex items-center justify-center size-12 md:size-14 rounded-md no-underline",
           "bg-bg dark:bg-ink-700 shadow-sm transition-[filter] hover:brightness-97",
@@ -126,7 +126,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
               Below md the header is already wrapping two rows, and the same badge sits
               in the account menu, so the indicator is dropped rather than crowded in. --%>
         <span class="hidden md:inline">
-          <.badge :if={@admin?} id="admin-indicator" kind="featured">Admin</.badge>
+          <.badge :if={@admin?} id="admin-indicator" kind="featured">{gettext("Admin")}</.badge>
         </span>
         <.user_menu current_user={@current_user} admin?={@admin?} />
       </div>

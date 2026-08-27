@@ -77,14 +77,14 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
     <div class="flex flex-col gap-2">
       <.card class="flex flex-col gap-5">
         <div class="flex flex-col gap-1 text-center">
-          <h2 class="text-h2 font-bold text-ink-900">Create your account</h2>
-          <p class="text-body-md text-ink-500">Join Mercato to buy and sell</p>
+          <h2 class="text-h2 font-bold text-ink-900">{gettext("Create your account")}</h2>
+          <p class="text-body-md text-ink-500">{gettext("Join Mercato to buy and sell")}</p>
         </div>
 
         <ModeSwitcher.mode_switcher
           myself={@myself}
           active={@mode}
-          options={[{:password, "Password"}, {:magic, "Magic link"}]}
+          options={[{:password, gettext("Password")}, {:magic, gettext("Magic link")}]}
         />
 
         <.form
@@ -104,21 +104,21 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
             <.input
               id="register-first-name"
               field={form[:first_name]}
-              label="First name"
-              placeholder="Jane"
+              label={gettext("First name")}
+              placeholder={gettext("Jane")}
               required
             />
             <.input
               id="register-last-name"
               field={form[:last_name]}
-              label="Last name"
-              placeholder="Doe"
+              label={gettext("Last name")}
+              placeholder={gettext("Doe")}
             />
             <.input
               id="register-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
@@ -126,22 +126,27 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
               id="register-password"
               field={form[:password]}
               type="password"
-              label="Password"
-              placeholder="At least 8 characters"
+              label={gettext("Password")}
+              placeholder={gettext("At least 8 characters")}
               required
             />
             <.input
               id="register-password-confirmation"
               field={form[:password_confirmation]}
               type="password"
-              label="Confirm password"
-              placeholder="Re-enter your password"
+              label={gettext("Confirm password")}
+              placeholder={gettext("Re-enter your password")}
               required
             />
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Creating account...">
-            Create account
+          <.button
+            type="submit"
+            variant="primary"
+            full_width
+            phx-disable-with={gettext("Creating account...")}
+          >
+            {gettext("Create account")}
           </.button>
         </.form>
 
@@ -160,27 +165,30 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
               id="register-magic-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
             <p class="text-caption-lg text-ink-500">
-              We'll email you a link to create your account.
+              {gettext("We'll email you a link to create your account.")}
             </p>
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
-            Send magic link
+          <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Sending...")}>
+            {gettext("Send magic link")}
           </.button>
         </.form>
 
         <p :if={@mode == :password} class="text-caption-md text-ink-500 text-center">
-          By creating an account, you agree to Mercato's Terms of Service and Privacy Policy.
+          {gettext(
+            "By creating an account, you agree to Mercato's Terms of Service and Privacy Policy."
+          )}
         </p>
       </.card>
 
       <p class="text-center text-body-sm text-ink-500">
-        Already have an account? <.accent_link patch={~p"/sign-in"}>Log in</.accent_link>
+        {gettext("Already have an account?")}
+        <.accent_link patch={~p"/sign-in"}>{gettext("Log in")}</.accent_link>
       </p>
     </div>
     """
@@ -258,7 +266,9 @@ defmodule MercatoWeb.Live.Auth.RegisterForm do
       )
       |> put_flash!(
         :info,
-        "If this address doesn't already have an account, we've emailed you a link to create one."
+        gettext(
+          "If this address doesn't already have an account, we've emailed you a link to create one."
+        )
       )
 
     {:noreply, socket}

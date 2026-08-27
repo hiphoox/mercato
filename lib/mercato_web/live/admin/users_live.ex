@@ -26,44 +26,59 @@ defmodule MercatoWeb.Admin.UsersLive do
   # may move an account *into* — how it reads as a menu item. `:deleted` carries
   # no action: deletion is terminal and erases the account, so it gets its own
   # menu item rather than appearing as just another status toggle.
-  @statuses [
-    %{
-      value: :active,
-      label: "Active",
-      badge: "verified",
-      action: "Reactivate account",
-      icon: "hero-check-circle",
-      variant: :default,
-      confirm: nil
-    },
-    %{
-      value: :restricted,
-      label: "Restricted",
-      badge: "warning",
-      action: "Restrict access",
-      icon: "hero-exclamation-triangle",
-      variant: :default,
-      confirm: "will keep their sign-in but lose the actions a restriction blocks."
-    },
-    %{
-      value: :banned,
-      label: "Banned",
-      badge: "danger",
-      action: "Ban account",
-      icon: "hero-no-symbol",
-      variant: :danger,
-      confirm: "will be signed out of the platform and unable to sign back in."
-    },
-    %{
-      value: :deleted,
-      label: "Deleted",
-      badge: "neutral",
-      action: nil,
-      icon: nil,
-      variant: :default,
-      confirm: nil
-    }
-  ]
+  @status_values [:active, :restricted, :banned, :deleted]
+
+  # Built per render rather than held as a module attribute: wording baked in at
+  # compile time is invisible to translation extraction. Each confirmation is a
+  # whole sentence naming the account, so a translator can move the name.
+  defp statuses do
+    [
+      %{
+        value: :active,
+        label: gettext("Active"),
+        badge: "verified",
+        action: gettext("Reactivate account"),
+        icon: "hero-check-circle",
+        variant: :default,
+        confirm: nil
+      },
+      %{
+        value: :restricted,
+        label: gettext("Restricted"),
+        badge: "warning",
+        action: gettext("Restrict access"),
+        icon: "hero-exclamation-triangle",
+        variant: :default,
+        confirm:
+          &gettext(
+            "%{name} will keep their sign-in but lose the actions a restriction blocks.",
+            name: &1
+          )
+      },
+      %{
+        value: :banned,
+        label: gettext("Banned"),
+        badge: "danger",
+        action: gettext("Ban account"),
+        icon: "hero-no-symbol",
+        variant: :danger,
+        confirm:
+          &gettext(
+            "%{name} will be signed out of the platform and unable to sign back in.",
+            name: &1
+          )
+      },
+      %{
+        value: :deleted,
+        label: gettext("Deleted"),
+        badge: "neutral",
+        action: nil,
+        icon: nil,
+        variant: :default,
+        confirm: nil
+      }
+    ]
+  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -101,7 +116,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # Derived from the status list rather than a literal list of strings, so a new
   # status is recognised in the URL and in an action event without a second
   # place to update.
-  @status_strings Map.new(@statuses, &{to_string(&1.value), &1.value})
+  @status_strings Map.new(@status_values, &{to_string(&1), &1})
 
   defp parse_status(value), do: Map.get(@status_strings, to_string(value))
 
@@ -154,7 +169,7 @@ defmodule MercatoWeb.Admin.UsersLive do
     actor = socket.assigns.current_user
 
     counts =
-      Map.new(@statuses, fn %{value: status} ->
+      Map.new(@status_values, fn status ->
         {:ok, page} =
           Accounts.list_accounts(%{status: status},
             actor: actor,
@@ -195,12 +210,19 @@ defmodule MercatoWeb.Admin.UsersLive do
       {:ok, updated} ->
         {:noreply,
          socket
-         |> put_flash(:info, "#{display_name(updated)} is now #{status_label(updated.status)}.")
+         |> put_flash(
+           :info,
+           gettext("%{name} is now %{status}.",
+             name: display_name(updated),
+             status: status_label(updated.status)
+           )
+         )
          |> load_status_counts()
          |> load_accounts()}
 
       :error ->
-        {:noreply, put_flash(socket, :error, "That account's status could not be changed.")}
+        {:noreply,
+         put_flash(socket, :error, gettext("That account's status could not be changed."))}
     end
   end
 
@@ -211,12 +233,12 @@ defmodule MercatoWeb.Admin.UsersLive do
       {:ok, name} ->
         {:noreply,
          socket
-         |> put_flash(:info, "#{name}'s account has been deleted.")
+         |> put_flash(:info, gettext("%{name}'s account has been deleted.", name: name))
          |> load_status_counts()
          |> load_accounts()}
 
       :error ->
-        {:noreply, put_flash(socket, :error, "That account could not be deleted.")}
+        {:noreply, put_flash(socket, :error, gettext("That account could not be deleted."))}
     end
   end
 
@@ -309,11 +331,11 @@ defmodule MercatoWeb.Admin.UsersLive do
       current_path={~p"/admin/users"}
     >
       <div class="flex flex-col gap-6">
-        <.breadcrumb items={[%{label: "Admin"}, %{label: "Users"}]} />
+        <.breadcrumb items={[%{label: gettext("Admin")}, %{label: gettext("Users")}]} />
 
         <.header>
-          Users
-          <:subtitle>Review and manage every account on the platform.</:subtitle>
+          {gettext("Users")}
+          <:subtitle>{gettext("Review and manage every account on the platform.")}</:subtitle>
         </.header>
 
         <div class="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
@@ -327,15 +349,15 @@ defmodule MercatoWeb.Admin.UsersLive do
               type="search"
               name="query"
               value={@query}
-              label="Search users"
-              placeholder="Name, @handle, or email"
+              label={gettext("Search users")}
+              placeholder={gettext("Name, @handle, or email")}
               phx-debounce="300"
             />
           </form>
 
           <div class="flex flex-col gap-1.5">
             <span id="status-filter-label" class="text-caption-lg font-semibold text-ink-700">
-              Status
+              {gettext("Status")}
             </span>
             <div
               role="group"
@@ -344,7 +366,7 @@ defmodule MercatoWeb.Admin.UsersLive do
             >
               <.filter_chip
                 id="status-chip-all"
-                label={"All (#{@status_counts.all})"}
+                label={gettext("All (%{count})", count: @status_counts.all)}
                 selected={is_nil(@status)}
                 phx-click="filter_status"
                 phx-value-status="all"
@@ -352,7 +374,12 @@ defmodule MercatoWeb.Admin.UsersLive do
               <.filter_chip
                 :for={status <- statuses()}
                 id={"status-chip-#{status.value}"}
-                label={"#{status.label} (#{@status_counts[status.value]})"}
+                label={
+                  gettext("%{status} (%{count})",
+                    status: status.label,
+                    count: @status_counts[status.value]
+                  )
+                }
                 selected={@status == status.value}
                 phx-click="filter_status"
                 phx-value-status={status.value}
@@ -365,11 +392,11 @@ defmodule MercatoWeb.Admin.UsersLive do
           :if={filtered?(@query, @status)}
           class="flex flex-wrap items-center gap-2 px-3.5 py-3 rounded-md bg-bg-2 dark:bg-ink-700 border border-ink-100 dark:border-ink-700"
         >
-          <span class="text-caption-lg font-semibold text-ink-500">Applied</span>
+          <span class="text-caption-lg font-semibold text-ink-500">{gettext("Applied")}</span>
           <.filter_chip
             :if={@query != ""}
             id="remove-query-filter"
-            label={"Search: #{@query}"}
+            label={gettext("Search: %{query}", query: @query)}
             removable
             phx-click="filter_status"
             phx-value-status={@status || "all"}
@@ -377,7 +404,7 @@ defmodule MercatoWeb.Admin.UsersLive do
           <.filter_chip
             :if={@status}
             id="remove-status-filter"
-            label={"Status: #{status_label(@status)}"}
+            label={gettext("Status: %{status}", status: status_label(@status))}
             removable
             phx-click="filter_status"
             phx-value-status="all"
@@ -388,7 +415,7 @@ defmodule MercatoWeb.Admin.UsersLive do
             phx-click="clear_filters"
             class="ml-1 px-1.5 py-1 text-body-sm font-semibold text-primary-700 hover:text-primary-600 underline cursor-pointer"
           >
-            Clear filters
+            {gettext("Clear filters")}
           </button>
         </div>
 
@@ -396,7 +423,9 @@ defmodule MercatoWeb.Admin.UsersLive do
           :if={@accounts == [] and not filtered?(@query, @status)}
           class="py-14 px-6 text-center border border-ink-100 dark:border-ink-700 rounded-lg"
         >
-          <p class="text-body-lg text-ink-500">No accounts exist on this platform yet.</p>
+          <p class="text-body-lg text-ink-500">
+            {gettext("No accounts exist on this platform yet.")}
+          </p>
         </div>
 
         <div
@@ -405,7 +434,7 @@ defmodule MercatoWeb.Admin.UsersLive do
         >
           <.icon name="hero-magnifying-glass" class="size-8 text-ink-300" />
           <p class="max-w-[44ch] text-center text-body-md text-ink-700">
-            No accounts match {applied_summary(@query, @status)}.
+            {gettext("No accounts match %{filters}.", filters: applied_summary(@query, @status))}
           </p>
         </div>
 
@@ -421,28 +450,32 @@ defmodule MercatoWeb.Admin.UsersLive do
             <.table
               id="users"
               rows={@accounts}
-              caption="User accounts with status and last activity"
+              caption={gettext("User accounts with status and last activity")}
               row_id={&"user-#{&1.id}"}
               row_class={&dimmed/1}
             >
-              <:col :let={account} label="User" row_header>
+              <:col :let={account} label={gettext("User")} row_header>
                 <.identity account={account} size={40} />
               </:col>
               <:col
                 :let={account}
-                label="Email"
+                label={gettext("Email")}
                 class="hidden xl:table-cell"
                 cell_class={&["break-words", email_tone(&1)]}
               >
                 {email(account)}
               </:col>
-              <:col :let={account} label="Status">
+              <:col :let={account} label={gettext("Status")}>
                 <.badge kind={status_badge(account.status)}>{status_label(account.status)}</.badge>
               </:col>
-              <:col :let={account} label="Role" cell_class="whitespace-nowrap">
+              <:col :let={account} label={gettext("Role")} cell_class="whitespace-nowrap">
                 {role_label(account)}
               </:col>
-              <:col :let={account} label="Last active" cell_class="whitespace-nowrap text-ink-500">
+              <:col
+                :let={account}
+                label={gettext("Last active")}
+                cell_class="whitespace-nowrap text-ink-500"
+              >
                 {last_active(account)}
               </:col>
               <:action :let={account}>
@@ -477,11 +510,11 @@ defmodule MercatoWeb.Admin.UsersLive do
 
               <dl class="flex flex-col gap-2 text-body-sm text-ink-700 dark:text-ink-100">
                 <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">Email</dt>
+                  <dt class="min-w-[88px] text-ink-500">{gettext("Email")}</dt>
                   <dd class={["min-w-0 break-words", email_tone(account)]}>{email(account)}</dd>
                 </div>
                 <div class="flex items-center gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">Status</dt>
+                  <dt class="min-w-[88px] text-ink-500">{gettext("Status")}</dt>
                   <dd>
                     <.badge kind={status_badge(account.status)}>
                       {status_label(account.status)}
@@ -489,11 +522,11 @@ defmodule MercatoWeb.Admin.UsersLive do
                   </dd>
                 </div>
                 <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">Role</dt>
+                  <dt class="min-w-[88px] text-ink-500">{gettext("Role")}</dt>
                   <dd>{role_label(account)}</dd>
                 </div>
                 <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">Last active</dt>
+                  <dt class="min-w-[88px] text-ink-500">{gettext("Last active")}</dt>
                   <dd>{last_active(account)}</dd>
                 </div>
               </dl>
@@ -562,7 +595,7 @@ defmodule MercatoWeb.Admin.UsersLive do
         id={"delete-account-#{@prefix}#{@account.id}"}
         role="menuitem"
         icon="hero-trash"
-        label="Delete account"
+        label={gettext("Delete account")}
         variant={:danger}
         phx-click="delete_account"
         phx-value-id={@account.id}
@@ -573,8 +606,11 @@ defmodule MercatoWeb.Admin.UsersLive do
   end
 
   defp delete_confirm_text(account) do
-    "#{display_name(account)} will be signed out for good, and the account's " <>
-      "details erased. This cannot be undone."
+    gettext(
+      "%{name} will be signed out for good, and the account's details erased. " <>
+        "This cannot be undone.",
+      name: display_name(account)
+    )
   end
 
   # Every status the account could be moved into — i.e. every actionable one it
@@ -582,11 +618,11 @@ defmodule MercatoWeb.Admin.UsersLive do
   # hard-coding a ban/reactivate pair means a new status shows up here on its
   # own, with no second place to remember.
   defp assignable_statuses(account) do
-    Enum.filter(@statuses, &(&1.action && &1.value != account.status))
+    Enum.filter(statuses(), &(&1.action && &1.value != account.status))
   end
 
   defp confirm_text(account, status) do
-    "#{display_name(account)} #{status.confirm}"
+    status.confirm.(display_name(account))
   end
 
   attr :account, :map, required: true
@@ -625,9 +661,9 @@ defmodule MercatoWeb.Admin.UsersLive do
         {page_label(@page, @last_page, @total, @page_size)}
       </span>
       <div class="flex items-center gap-2">
-        <.page_button id="prev-page" to={@page - 1} disabled={@page <= 1}>Previous</.page_button>
+        <.page_button id="prev-page" to={@page - 1} disabled={@page <= 1}>{gettext("Previous")}</.page_button>
         <.page_button id="next-page" to={@page + 1} disabled={@page >= @last_page}>
-          Next
+          {gettext("Next")}
         </.page_button>
       </div>
     </div>
@@ -658,14 +694,12 @@ defmodule MercatoWeb.Admin.UsersLive do
     """
   end
 
-  defp statuses, do: @statuses
-
   defp status_label(status) do
-    Enum.find_value(@statuses, "Unknown", &(&1.value == status && &1.label))
+    Enum.find_value(statuses(), gettext("Unknown"), &(&1.value == status && &1.label))
   end
 
   defp status_badge(status) do
-    Enum.find_value(@statuses, "neutral", &(&1.value == status && &1.badge))
+    Enum.find_value(statuses(), "neutral", &(&1.value == status && &1.badge))
   end
 
   # Plain text rather than a badge: the status badge beside it is the row's one
@@ -684,7 +718,10 @@ defmodule MercatoWeb.Admin.UsersLive do
   defp filtered?(query, status), do: query not in [nil, ""] or not is_nil(status)
 
   defp applied_summary(query, status) do
-    [query != "" && "Search: #{query}", status && "Status: #{status_label(status)}"]
+    [
+      query != "" && gettext("Search: %{query}", query: query),
+      status && gettext("Status: %{status}", status: status_label(status))
+    ]
     |> Enum.filter(& &1)
     |> Enum.join(" · ")
   end
@@ -698,9 +735,9 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   defp display_name(account) do
     cond do
-      deleted?(account) -> "Deleted user"
+      deleted?(account) -> gettext("Deleted user")
       name = name_of(account) -> name
-      true -> "Name not provided"
+      true -> gettext("Name not provided")
     end
   end
 
@@ -714,9 +751,9 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   defp email(account) do
     cond do
-      deleted?(account) -> "Erased on deletion"
+      deleted?(account) -> gettext("Erased on deletion")
       account.email -> to_string(account.email)
-      true -> "None on record"
+      true -> gettext("None on record")
     end
   end
 
@@ -724,17 +761,26 @@ defmodule MercatoWeb.Admin.UsersLive do
     if deleted?(account), do: "text-ink-500", else: "text-ink-700 dark:text-ink-100"
   end
 
-  defp last_active(%{last_active_at: nil}), do: "Never"
+  defp last_active(%{last_active_at: nil}), do: gettext("Never")
 
   defp last_active(%{last_active_at: at}) do
     seconds = DateTime.diff(DateTime.utc_now(), at, :second)
 
     cond do
-      seconds < 60 -> "Just now"
-      seconds < 3_600 -> "#{div(seconds, 60)} minutes ago"
-      seconds < 86_400 -> "#{div(seconds, 3_600)} hours ago"
-      seconds < 2_592_000 -> "#{div(seconds, 86_400)} days ago"
-      true -> Calendar.strftime(at, "%d %b %Y")
+      seconds < 60 ->
+        gettext("Just now")
+
+      seconds < 3_600 ->
+        ngettext("1 minute ago", "%{count} minutes ago", div(seconds, 60))
+
+      seconds < 86_400 ->
+        ngettext("1 hour ago", "%{count} hours ago", div(seconds, 3_600))
+
+      seconds < 2_592_000 ->
+        ngettext("1 day ago", "%{count} days ago", div(seconds, 86_400))
+
+      true ->
+        Calendar.strftime(at, "%d %b %Y")
     end
   end
 
@@ -744,7 +790,14 @@ defmodule MercatoWeb.Admin.UsersLive do
     first = (page - 1) * page_size + 1
     last = min(page * page_size, total)
 
-    "Showing #{first}–#{last} of #{total} · page #{page} of #{last_page}"
+    gettext(
+      "Showing %{first}–%{last} of %{total} · page %{page} of %{last_page}",
+      first: first,
+      last: last,
+      total: total,
+      page: page,
+      last_page: last_page
+    )
   end
 
   defp dimmed(account), do: deleted?(account) && "opacity-55"

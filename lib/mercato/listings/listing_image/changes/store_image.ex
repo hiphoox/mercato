@@ -19,7 +19,8 @@ defmodule Mercato.Listings.ListingImage.Changes.StoreImage do
         {:error, reason} ->
           Ash.Changeset.add_error(changeset,
             field: :image,
-            message: "could not be uploaded: #{inspect(reason)}"
+            message: "could not be uploaded: %{reason}",
+            reason: inspect(reason)
           )
       end
     end)

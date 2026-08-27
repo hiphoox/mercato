@@ -77,14 +77,16 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
     <div>
       <.card class="flex flex-col gap-5">
         <div class="flex flex-col gap-1 text-center">
-          <h2 class="text-h2 font-bold text-ink-900">Reset your password</h2>
-          <p class="text-body-md text-ink-500">We'll help you get back into your account</p>
+          <h2 class="text-h2 font-bold text-ink-900">{gettext("Reset your password")}</h2>
+          <p class="text-body-md text-ink-500">
+            {gettext("We'll help you get back into your account")}
+          </p>
         </div>
 
         <ModeSwitcher.mode_switcher
           myself={@myself}
           active={@mode}
-          options={[{:reset, "Reset password"}, {:magic, "Magic link"}]}
+          options={[{:reset, gettext("Reset password")}, {:magic, gettext("Magic link")}]}
         />
 
         <.form
@@ -104,17 +106,17 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
               id="reset-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
             <p class="text-caption-lg text-ink-500">
-              We'll email you a link to set a new password.
+              {gettext("We'll email you a link to set a new password.")}
             </p>
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
-            Send reset instructions
+          <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Sending...")}>
+            {gettext("Send reset instructions")}
           </.button>
         </.form>
 
@@ -133,17 +135,17 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
               id="reset-magic-email"
               field={form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               placeholder="you@example.com"
               required
             />
             <p class="text-caption-lg text-ink-500">
-              Skip the password reset — we'll email you a one-time sign-in link instead.
+              {gettext("Skip the password reset — we'll email you a one-time sign-in link instead.")}
             </p>
           </div>
 
-          <.button type="submit" variant="primary" full_width phx-disable-with="Sending...">
-            Send magic link
+          <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Sending...")}>
+            {gettext("Send magic link")}
           </.button>
         </.form>
       </.card>
@@ -199,7 +201,9 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
       socket.assigns.strategy,
       socket.assigns.strategy.resettable.request_password_reset_action_name,
       params,
-      "If this user exists in our system, you will be contacted with password reset instructions shortly."
+      gettext(
+        "If this user exists in our system, you will be contacted with password reset instructions shortly."
+      )
     )
   end
 
@@ -212,7 +216,7 @@ defmodule MercatoWeb.Live.Auth.ResetForm do
       socket.assigns.magic_strategy,
       socket.assigns.magic_strategy.request_action_name,
       params,
-      "If this user exists, we've sent a sign-in link to that email address."
+      gettext("If this user exists, we've sent a sign-in link to that email address.")
     )
   end
 

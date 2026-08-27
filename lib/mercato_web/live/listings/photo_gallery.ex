@@ -58,7 +58,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
             id={"#{@id}-heading"}
             class="text-title-lg font-bold text-ink-900 dark:text-white"
           >
-            Photos
+            {gettext("Photos")}
           </h2>
           <span class="text-caption-lg text-ink-500">{count(@images, @waiting, @max)}</span>
         </div>
@@ -105,7 +105,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
                 :if={image.is_cover}
                 class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-ink-900 text-white text-caption-sm font-bold uppercase tracking-wide"
               >
-                Cover
+                {gettext("Cover")}
               </span>
             </div>
 
@@ -118,16 +118,16 @@ defmodule MercatoWeb.Listings.PhotoGallery do
                 phx-value-id={image.id}
                 class="px-0.5 py-1 text-caption-md font-bold text-primary-700 cursor-pointer hover:text-primary-600"
               >
-                Make cover
+                {gettext("Make cover")}
               </button>
-              <span :if={image.is_cover} class="text-caption-md text-ink-500">Cover photo</span>
+              <span :if={image.is_cover} class="text-caption-md text-ink-500">{gettext("Cover photo")}</span>
 
               <button
                 type="button"
                 id={"remove-photo-#{image.id}"}
                 phx-click="remove_photo"
                 phx-value-id={image.id}
-                aria-label="Remove this photo"
+                aria-label={gettext("Remove this photo")}
                 class={[
                   "flex flex-none items-center justify-center size-8 cursor-pointer",
                   "rounded-sm border border-ink-100 dark:border-ink-700 text-ink-500",
@@ -153,13 +153,13 @@ defmodule MercatoWeb.Listings.PhotoGallery do
             </div>
 
             <figcaption class="flex items-center justify-between gap-1.5 py-2 pl-2.5 pr-2">
-              <span class="text-caption-md text-ink-500">Waiting</span>
+              <span class="text-caption-md text-ink-500">{gettext("Waiting")}</span>
 
               <button
                 type="button"
                 phx-click="cancel_photo"
                 phx-value-ref={entry.ref}
-                aria-label={"Take back #{entry.client_name}"}
+                aria-label={gettext("Take back %{name}", name: entry.client_name)}
                 class={[
                   "flex flex-none items-center justify-center size-8 cursor-pointer",
                   "rounded-sm border border-ink-100 dark:border-ink-700 text-ink-500",
@@ -189,13 +189,15 @@ defmodule MercatoWeb.Listings.PhotoGallery do
           >
             <.live_file_input :if={@open?} upload={@upload} class="sr-only" />
             <.icon name="hero-camera" aria-hidden="true" class="size-6" />
-            <span class="text-body-sm font-bold">Add photos</span>
+            <span class="text-body-sm font-bold">{gettext("Add photos")}</span>
             <%!-- What the gallery takes is named whether or not it can take one
                   now, so the tile still answers the question it is asked. --%>
             <span class={["text-caption-md", @open? && "text-ink-500", !@open? && "text-ink-300"]}>
               {accepted(@max)}
             </span>
-            <span :if={!@open?} class="text-caption-md font-bold">That is all {@max} of them</span>
+            <span :if={!@open?} class="text-caption-md font-bold">
+              {gettext("That is all %{max} of them", max: @max)}
+            </span>
           </label>
         </div>
       </section>
@@ -207,21 +209,25 @@ defmodule MercatoWeb.Listings.PhotoGallery do
   # simply photos on the listing, whatever the gallery has managed to keep.
   defp count(images, waiting, max) do
     case length(images) + length(waiting) do
-      0 -> "None yet"
-      held -> "#{held} of #{max} added"
+      0 -> gettext("None yet")
+      held -> gettext("%{held} of %{max} added", held: held, max: max)
     end
   end
 
   # A marketplace of services or digital goods sets the minimum to none, and
   # telling those sellers a photo is required would simply be wrong.
   defp advice(0) do
-    "Optional here, but a photo is the first thing a buyer looks at. " <>
-      "The first one is the cover shown everywhere else."
+    gettext(
+      "Optional here, but a photo is the first thing a buyer looks at. " <>
+        "The first one is the cover shown everywhere else."
+    )
   end
 
   defp advice(_min) do
-    "The first photo is the cover buyers see everywhere. " <>
-      "Daylight and a plain background sell faster."
+    gettext(
+      "The first photo is the cover buyers see everywhere. " <>
+        "Daylight and a plain background sell faster."
+    )
   end
 
   # Types come from the same config the upload checks against, so the promise
@@ -232,7 +238,7 @@ defmodule MercatoWeb.Listings.PhotoGallery do
         type |> String.split("/") |> List.last() |> String.upcase()
       end)
 
-    "#{types}, up to #{max}"
+    gettext("%{types}, up to %{max}", types: types, max: max)
   end
 
   # Nowhere to put another once the gallery is full, counting the ones waiting.
@@ -242,8 +248,14 @@ defmodule MercatoWeb.Listings.PhotoGallery do
 
   # The upload refuses a file before the gallery ever sees it, so these are the
   # limits restated for the person rather than the ones the resource enforces.
-  defp refused(:too_large, _max), do: "That file is too large."
-  defp refused(:not_accepted, _max), do: "That file is not one of the types accepted here."
-  defp refused(:too_many_files, max), do: "No more than #{max} photos at a time."
-  defp refused(_refusal, _max), do: "That file could not be added."
+  defp refused(:too_large, _max), do: gettext("That file is too large.")
+
+  defp refused(:not_accepted, _max),
+    do: gettext("That file is not one of the types accepted here.")
+
+  defp refused(:too_many_files, max),
+    do:
+      ngettext("No more than 1 photo at a time.", "No more than %{count} photos at a time.", max)
+
+  defp refused(_refusal, _max), do: gettext("That file could not be added.")
 end
