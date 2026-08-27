@@ -29,7 +29,8 @@ defmodule Mercato.Accounts.User.Changes.UploadAvatar do
         {:error, reason} ->
           Ash.Changeset.add_error(changeset,
             field: :avatar,
-            message: "could not be uploaded: #{inspect(reason)}"
+            message: "could not be uploaded: %{reason}",
+            reason: inspect(reason)
           )
       end
     end)

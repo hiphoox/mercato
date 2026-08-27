@@ -25,6 +25,10 @@ Commands in this list produce a deterministic, correct result for their task. Us
 - `mix ash.extend <Resource> graphql` — generate a GraphQL schema from an Ash resource.
 - `mix ash.extend <Resource> json_api` — generate a JSON API schema from an Ash resource.
 
+## Copy & translations
+
+- `mix gettext.extract --merge` — rescan the source for translatable strings and fold the result into every locale's `.po`. Run it after changing copy; see [i18n-copy.md](i18n-copy.md).
+
 ## Setup & lifecycle (mix.exs aliases)
 
 - `mix setup` — full project setup: `deps.get`, `ecto.setup`, `assets.setup`, `assets.build`.

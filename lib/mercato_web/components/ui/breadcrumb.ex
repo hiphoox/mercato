@@ -33,7 +33,7 @@ defmodule MercatoWeb.UI.Breadcrumb do
 
     ~H"""
     <nav
-      aria-label="Breadcrumb"
+      aria-label={gettext("Breadcrumb")}
       class={["text-body-sm text-ink-500", @class]}
       {@rest}
     >

@@ -21,7 +21,9 @@ defmodule Mercato.Listings.ListingImage.Validations.GalleryKeepsMinimum do
     # being composed, and publishing is where the minimum is checked.
     if on_offer?(image) and length(gallery) <= minimum do
       {:error,
-       field: :id, message: "would leave a listing on offer with fewer than #{minimum} images"}
+       field: :id,
+       message: "would leave a listing on offer with fewer than %{minimum} images",
+       minimum: minimum}
     else
       :ok
     end

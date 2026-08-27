@@ -73,7 +73,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       # the record of a sale rather than something still being offered.
       {:ok, %{status: :sold}} ->
         socket
-        |> put_flash(:info, "That listing has sold, so it can no longer be changed.")
+        |> put_flash(:info, gettext("That listing has sold, so it can no longer be changed."))
         |> push_navigate(to: ~p"/users/me/listings")
 
       {:ok, listing} ->
@@ -83,7 +83,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
       {:error, _reason} ->
         socket
-        |> put_flash(:error, "That listing is not one of yours.")
+        |> put_flash(:error, gettext("That listing is not one of yours."))
         |> push_navigate(to: ~p"/users/me/listings")
     end
   end
@@ -169,7 +169,10 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         {:noreply,
          socket
          |> assign(:form, form)
-         |> put_flash(:error, "This listing is not ready yet — see what is marked below.")}
+         |> put_flash(
+           :error,
+           gettext("This listing is not ready yet — see what is marked below.")
+         )}
     end
   end
 
@@ -183,7 +186,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
            Listings.set_listing_image_cover(image, actor: socket.assigns.current_user) do
       {:noreply, still_writing(socket, socket.assigns.listing)}
     else
-      _refused -> {:noreply, put_flash(socket, :error, "That photo could not be made the cover.")}
+      _refused ->
+        {:noreply, put_flash(socket, :error, gettext("That photo could not be made the cover."))}
     end
   end
 
@@ -206,13 +210,13 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       :ok ->
         {:noreply,
          socket
-         |> put_flash(:info, "“#{listing.title}” was removed.")
+         |> put_flash(:info, gettext("“%{title}” was removed.", title: listing.title))
          |> push_navigate(to: ~p"/users/me/listings")}
 
       # Almost always a listing sold since the page was opened: a sale outlives
       # the seller's wish to be rid of it, so the listing stays as its record.
       {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "That listing could not be removed.")}
+        {:noreply, put_flash(socket, :error, gettext("That listing could not be removed."))}
     end
   end
 
@@ -222,7 +226,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         {:noreply,
          socket
          |> still_writing(resumed)
-         |> put_flash(:info, "This listing is back on offer.")}
+         |> put_flash(:info, gettext("This listing is back on offer."))}
 
       # Most often a gallery stripped below the minimum while the listing was
       # off offer, which is the gallery's refusal to make rather than the page's.
@@ -237,12 +241,15 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         {:noreply,
          socket
          |> still_writing(paused)
-         |> put_flash(:info, "This listing is paused. Buyers cannot see it until you relist it.")}
+         |> put_flash(
+           :info,
+           gettext("This listing is paused. Buyers cannot see it until you relist it.")
+         )}
 
       # Almost always a listing that moved on elsewhere between the page being
       # opened and the control being pressed, so what is on screen is stale.
       {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "That listing could not be paused.")}
+        {:noreply, put_flash(socket, :error, gettext("That listing could not be paused."))}
     end
   end
 
@@ -252,7 +259,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     {:noreply,
      socket
      |> reload(socket.assigns.listing)
-     |> put_flash(:info, "Changes discarded.")}
+     |> put_flash(:info, gettext("Changes discarded."))}
   end
 
   # A draft goes on offer when it is saved, whether it was opened fresh or
@@ -274,7 +281,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:ok, published} ->
         socket
         |> reload(published)
-        |> put_flash(:info, "Your listing is on offer.")
+        |> put_flash(:info, gettext("Your listing is on offer."))
         |> at_its_own_address(published)
 
       {:error, error} ->
@@ -288,12 +295,12 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   # A draft is worth saying was saved, since nothing else on the page shows it
   # happened; an edit to a listing already on offer is just a change.
-  defp kept(%{status: :draft}), do: "Draft saved."
-  defp kept(_listing), do: "Changes saved."
+  defp kept(%{status: :draft}), do: gettext("Draft saved.")
+  defp kept(_listing), do: gettext("Changes saved.")
 
   defp relist_refused(socket, error) do
     case gallery_error(error) do
-      nil -> put_flash(socket, :error, "That listing could not go back on offer.")
+      nil -> put_flash(socket, :error, gettext("That listing could not go back on offer."))
       message -> assign(socket, :gallery_error, message)
     end
   end
@@ -302,7 +309,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # the offering of it is refused, and the gallery is where that is said.
   defp refused(socket, error) do
     case gallery_error(error) do
-      nil -> put_flash(socket, :error, "That listing could not go on offer.")
+      nil -> put_flash(socket, :error, gettext("That listing could not go on offer."))
       message -> assign(socket, :gallery_error, message)
     end
   end
@@ -414,13 +421,16 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   # The domain writes these to follow a field name, so they are given a subject
   # rather than restated here: a sentence invented at this layer would drift
-  # from what the gallery actually refuses.
-  defp about_the_photo(%Ash.Error.Invalid{errors: [%{message: message} | _]})
+  # from what the gallery actually refuses. Translating first fills in whatever
+  # value the refusal names, which the message carries separately.
+  defp about_the_photo(%Ash.Error.Invalid{errors: [%{message: message} = error | _]})
        when is_binary(message) do
-    "That photo #{message}."
+    gettext("That photo %{problem}.",
+      problem: translate_error({message, Map.get(error, :vars, [])})
+    )
   end
 
-  defp about_the_photo(_error), do: "That photo could not be added."
+  defp about_the_photo(_error), do: gettext("That photo could not be added.")
 
   # Pausing changes what the listing is, not what the seller is part-way through
   # writing. Reading it back rebuilds the form, so whatever was typed is put
@@ -501,29 +511,29 @@ defmodule MercatoWeb.Listings.ListingFormLive do
             <.card class="flex flex-col gap-3.5">
               <section aria-labelledby="about-heading" class="flex flex-col gap-3.5">
                 <h2 id="about-heading" class="text-title-lg font-bold text-ink-900 dark:text-white">
-                  About the item
+                  {gettext("About the item")}
                 </h2>
 
                 <.input
                   field={@form[:title]}
                   type="text"
-                  label="Title"
+                  label={gettext("Title")}
                   required
-                  placeholder="e.g. Eames-style lounge chair, walnut"
+                  placeholder={gettext("e.g. Eames-style lounge chair, walnut")}
                 />
                 <p class="-mt-1 text-caption-md text-ink-500">
-                  Say what it is first, then the detail that matters most.
+                  {gettext("Say what it is first, then the detail that matters most.")}
                 </p>
 
                 <.input
                   field={@form[:description]}
                   type="textarea"
-                  label="Description"
+                  label={gettext("Description")}
                   rows="6"
-                  placeholder="Age, materials, dimensions, any marks or repairs."
+                  placeholder={gettext("Age, materials, dimensions, any marks or repairs.")}
                 />
                 <p class="-mt-1 text-caption-md text-ink-500">
-                  Optional, but buyers ask fewer questions when this is thorough.
+                  {gettext("Optional, but buyers ask fewer questions when this is thorough.")}
                 </p>
               </section>
             </.card>
@@ -533,12 +543,12 @@ defmodule MercatoWeb.Listings.ListingFormLive do
             <.card class="flex flex-col gap-3.5">
               <section aria-labelledby="price-heading" class="flex flex-col gap-3.5">
                 <h2 id="price-heading" class="text-title-lg font-bold text-ink-900 dark:text-white">
-                  Price and stock
+                  {gettext("Price and stock")}
                 </h2>
 
                 <div id="listing-price-field" class="flex flex-col">
                   <span class="text-body-sm font-medium text-ink-700 mb-1">
-                    Price ({Money.symbol(Listings.currency())})
+                    {gettext("Price (%{symbol})", symbol: Money.symbol(Listings.currency()))}
                   </span>
                   <%!-- Shown in major units because that is how a seller
                         thinks of a price; the listing stores minor units. --%>
@@ -552,30 +562,30 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   />
                 </div>
 
-                <.input field={@form[:quantity]} type="number" label="Quantity" min="0" />
+                <.input field={@form[:quantity]} type="number" label={gettext("Quantity")} min="0" />
                 <p class="-mt-1 text-caption-md text-ink-500">
-                  Most sellers list one of a kind.
+                  {gettext("Most sellers list one of a kind.")}
                 </p>
 
                 <.input
                   field={@form[:category_id]}
                   type="select"
-                  label="Category"
+                  label={gettext("Category")}
                   prompt="Choose a category"
                   options={@categories}
                 />
 
                 <.choice_chips
                   field={@form[:condition]}
-                  label="Condition"
+                  label={gettext("Condition")}
                   options={@conditions}
-                  clear_label="Not stated"
+                  clear_label={gettext("Not stated")}
                 />
               </section>
             </.card>
 
             <.card class="flex flex-col gap-3 bg-bg-2 dark:bg-ink-900">
-              <section aria-label="Save or publish" class="flex flex-col gap-3">
+              <section aria-label={gettext("Save or publish")} class="flex flex-col gap-3">
                 <.button id="publish-listing" type="submit" name="intent" value="offer" full_width>
                   {primary_label(@listing)}
                 </.button>
@@ -592,24 +602,24 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   variant="neutral"
                   full_width
                 >
-                  Save and finish later
+                  {gettext("Save and finish later")}
                 </.button>
                 <.button
                   :if={!offering?(@listing)}
                   id="save-draft"
                   type="button"
                   phx-click="discard"
-                  data-confirm="Throw away everything you have changed here?"
+                  data-confirm={gettext("Throw away everything you have changed here?")}
                   variant="neutral"
                   full_width
                 >
-                  Discard changes
+                  {gettext("Discard changes")}
                 </.button>
 
                 <p class="text-caption-lg text-ink-500 text-pretty">{action_help(@listing)}</p>
 
                 <p :if={draft?(@listing)} class="text-caption-lg text-ink-500 text-pretty">
-                  Saved automatically as you type, so you can leave whenever you like.
+                  {gettext("Saved automatically as you type, so you can leave whenever you like.")}
                 </p>
 
                 <%!-- Offered only where it can be taken: relisting is
@@ -624,7 +634,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   phx-click="resume"
                 >
                   <.icon name="hero-arrow-path" aria-hidden="true" class="size-4" />
-                  Relist this listing
+                  {gettext("Relist this listing")}
                 </.button>
 
                 <%!-- Offered only where it can be taken: pausing is reachable
@@ -638,7 +648,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                   full_width
                   phx-click="pause"
                 >
-                  <.icon name="hero-pause" aria-hidden="true" class="size-4" /> Pause this listing
+                  <.icon name="hero-pause" aria-hidden="true" class="size-4" /> {gettext(
+                    "Pause this listing"
+                  )}
                 </.button>
 
                 <%!-- Set apart by a rule, because everything above it keeps the
@@ -651,9 +663,15 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                     size="sm"
                     full_width
                     phx-click="delete"
-                    data-confirm={"“#{@listing.title}” will be taken off Mercato, along with its photos. This cannot be undone."}
+                    data-confirm={
+                      gettext(
+                        "“%{title}” will be taken off Mercato, along with its photos. " <>
+                          "This cannot be undone.",
+                        title: @listing.title
+                      )
+                    }
                   >
-                    Delete this listing
+                    {gettext("Delete this listing")}
                   </.button>
                 </div>
               </section>
@@ -682,39 +700,43 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # and linked, so they can read which one they are changing and step back to it
   # without saving. A listing that does not exist yet has no name to give and
   # nowhere to step back to, so the trail ends at what the page is for.
-  defp trail(nil), do: selling() ++ [%{label: "New listing"}]
+  defp trail(nil), do: selling() ++ [%{label: page_title(nil)}]
 
   defp trail(listing) do
-    selling() ++ [%{label: listing.title, navigate: ~p"/listings/#{listing}"}, %{label: "Edit"}]
+    selling() ++
+      [%{label: listing.title, navigate: ~p"/listings/#{listing}"}, %{label: gettext("Edit")}]
   end
 
   defp selling do
-    [%{label: "Home", navigate: ~p"/"}, %{label: "Selling", navigate: ~p"/users/me/listings"}]
+    [
+      %{label: gettext("Home"), navigate: ~p"/"},
+      %{label: gettext("Selling"), navigate: ~p"/users/me/listings"}
+    ]
   end
 
-  defp page_title(nil), do: "New listing"
-  defp page_title(_listing), do: "Edit listing"
+  defp page_title(nil), do: gettext("New listing")
+  defp page_title(_listing), do: gettext("Edit listing")
 
   defp page_subtitle(nil) do
-    "Everything on one page. Leave whenever you like — a draft keeps your place."
+    gettext("Everything on one page. Leave whenever you like — a draft keeps your place.")
   end
 
   defp page_subtitle(%{status: :active}) do
-    "This listing is on offer, so saved changes are visible to buyers immediately."
+    gettext("This listing is on offer, so saved changes are visible to buyers immediately.")
   end
 
   defp page_subtitle(%{status: :unavailable}) do
-    "This listing is paused. Changes are saved, and buyers see them when you relist."
+    gettext("This listing is paused. Changes are saved, and buyers see them when you relist.")
   end
 
-  defp page_subtitle(_listing), do: "Only you can see this listing until you publish it."
+  defp page_subtitle(_listing), do: gettext("Only you can see this listing until you publish it.")
 
   # Publishing is the draft's action alone, whether the draft was opened fresh
   # or picked up again. A listing that has been published before saves changes,
   # even while paused — the button names what happens, not which page it is on.
-  defp primary_label(%{status: :draft}), do: "Publish listing"
-  defp primary_label(nil), do: "Publish listing"
-  defp primary_label(_listing), do: "Save changes"
+  defp primary_label(%{status: :draft}), do: gettext("Publish listing")
+  defp primary_label(nil), do: gettext("Publish listing")
+  defp primary_label(_listing), do: gettext("Save changes")
 
   defp action_help(%{status: :active}) do
     "Buyers who saved this listing are not notified of a change."

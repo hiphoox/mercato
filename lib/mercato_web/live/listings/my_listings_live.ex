@@ -18,44 +18,50 @@ defmodule MercatoWeb.Listings.MyListingsLive do
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
 
-  @states [
-    %{
-      value: :draft,
-      section: "Drafts",
-      help: "Not visible to buyers yet.",
-      icon: "hero-pencil-square",
-      actions: [%{label: "Continue editing", variant: "primary", event: "edit"}]
-    },
-    %{
-      value: :active,
-      section: "Active",
-      help: "On offer to buyers now.",
-      icon: "hero-photo",
-      actions: [
-        %{label: "Edit", variant: "neutral", event: "edit"},
-        %{label: "Pause", variant: "neutral", event: "pause"}
-      ]
-    },
-    %{
-      value: :unavailable,
-      section: "Paused",
-      help: "Hidden from search until you relist.",
-      icon: "hero-photo",
-      actions: [
-        %{label: "Relist", variant: "primary", event: "resume"},
-        %{label: "Edit", variant: "neutral", event: "edit"}
-      ]
-    },
-    %{
-      value: :sold,
-      section: "Sold",
-      help: "Kept for your records.",
-      icon: "hero-photo",
-      actions: [%{label: "View order", variant: "neutral", event: "view_order"}]
-    }
-  ]
+  @state_values [:draft, :active, :unavailable, :sold]
 
-  @status_strings Map.new(@states, &{to_string(&1.value), &1.value})
+  @status_strings Map.new(@state_values, &{to_string(&1), &1})
+
+  # Built per render rather than held as a module attribute: wording baked in at
+  # compile time is invisible to translation extraction.
+  defp states do
+    [
+      %{
+        value: :draft,
+        section: gettext("Drafts"),
+        help: gettext("Not visible to buyers yet."),
+        icon: "hero-pencil-square",
+        actions: [%{label: gettext("Continue editing"), variant: "primary", event: "edit"}]
+      },
+      %{
+        value: :active,
+        section: gettext("Active"),
+        help: gettext("On offer to buyers now."),
+        icon: "hero-photo",
+        actions: [
+          %{label: gettext("Edit"), variant: "neutral", event: "edit"},
+          %{label: gettext("Pause"), variant: "neutral", event: "pause"}
+        ]
+      },
+      %{
+        value: :unavailable,
+        section: gettext("Paused"),
+        help: gettext("Hidden from search until you relist."),
+        icon: "hero-photo",
+        actions: [
+          %{label: gettext("Relist"), variant: "primary", event: "resume"},
+          %{label: gettext("Edit"), variant: "neutral", event: "edit"}
+        ]
+      },
+      %{
+        value: :sold,
+        section: gettext("Sold"),
+        help: gettext("Kept for your records."),
+        icon: "hero-photo",
+        actions: [%{label: gettext("View order"), variant: "neutral", event: "view_order"}]
+      }
+    ]
+  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -81,7 +87,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     socket
     |> assign(:listings, listings)
     |> assign(:grouped, grouped)
-    |> assign(:counts, Map.new(@states, &{&1.value, length(Map.get(grouped, &1.value, []))}))
+    |> assign(:counts, Map.new(@state_values, &{&1, length(Map.get(grouped, &1, []))}))
   end
 
   @impl true
@@ -91,16 +97,23 @@ defmodule MercatoWeb.Listings.MyListingsLive do
       {:noreply,
        socket
        |> load_listings()
-       |> put_flash(:info, "“#{listing.title}” was removed.")}
+       |> put_flash(:info, gettext("“%{title}” was removed.", title: listing.title))}
     else
       # Almost always a listing sold between this page being drawn and the
       # control being pressed: a sale outlives the seller's wish to be rid of it.
-      _refused -> {:noreply, put_flash(socket, :error, "That listing could not be removed.")}
+      _refused ->
+        {:noreply, put_flash(socket, :error, gettext("That listing could not be removed."))}
     end
   end
 
   def handle_event("pause", %{"id" => id}, socket) do
-    moved(socket, id, &Listings.pause_listing/2, "was paused.", "could not be paused.")
+    moved(
+      socket,
+      id,
+      &Listings.pause_listing/2,
+      fn title -> gettext("“%{title}” was paused.", title: title) end,
+      gettext("That listing could not be paused.")
+    )
   end
 
   def handle_event("resume", %{"id" => id}, socket) do
@@ -108,8 +121,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
       socket,
       id,
       &Listings.resume_listing/2,
-      "is back on offer.",
-      "could not go back on offer."
+      fn title -> gettext("“%{title}” is back on offer.", title: title) end,
+      gettext("That listing could not go back on offer.")
     )
   end
 
@@ -133,9 +146,9 @@ defmodule MercatoWeb.Listings.MyListingsLive do
       {:noreply,
        socket
        |> load_listings()
-       |> put_flash(:info, "“#{listing.title}” #{said}")}
+       |> put_flash(:info, said.(listing.title))}
     else
-      _refused -> {:noreply, put_flash(socket, :error, "That listing #{refused}")}
+      _refused -> {:noreply, put_flash(socket, :error, refused)}
     end
   end
 
@@ -143,7 +156,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   def render(assigns) do
     assigns =
       assigns
-      |> assign(:states, @states)
+      |> assign(:states, states())
       |> assign(:sections, sections(assigns))
 
     ~H"""
@@ -156,17 +169,17 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     >
       <div id="my-listings" class="flex flex-col gap-6">
         <.breadcrumb items={[
-          %{label: "Home", navigate: ~p"/"},
-          %{label: "Selling"},
-          %{label: "My listings"}
+          %{label: gettext("Home"), navigate: ~p"/"},
+          %{label: gettext("Selling")},
+          %{label: gettext("My listings")}
         ]} />
 
         <.header>
-          My listings
+          {gettext("My listings")}
           <:subtitle>{subtitle(@listings, @counts)}</:subtitle>
           <:actions>
             <.button id="new-listing" size="md" navigate={~p"/listings/new"}>
-              <.icon name="hero-plus" aria-hidden="true" class="size-4.5" /> New listing
+              <.icon name="hero-plus" aria-hidden="true" class="size-4.5" /> {gettext("New listing")}
             </.button>
           </:actions>
         </.header>
@@ -176,12 +189,12 @@ defmodule MercatoWeb.Listings.MyListingsLive do
         <div
           :if={@listings != []}
           role="group"
-          aria-label="Filter by state"
+          aria-label={gettext("Filter by state")}
           class="flex flex-wrap gap-2"
         >
           <.filter_chip
             id="status-chip-all"
-            label={"All (#{length(@listings)})"}
+            label={gettext("All (%{count})", count: length(@listings))}
             selected={is_nil(@status)}
             phx-click="filter_status"
             phx-value-status="all"
@@ -189,7 +202,9 @@ defmodule MercatoWeb.Listings.MyListingsLive do
           <.filter_chip
             :for={state <- @states}
             id={"status-chip-#{state.value}"}
-            label={"#{state.section} (#{@counts[state.value]})"}
+            label={
+              gettext("%{section} (%{count})", section: state.section, count: @counts[state.value])
+            }
             selected={@status == state.value}
             phx-click="filter_status"
             phx-value-status={state.value}
@@ -210,7 +225,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
               {state.section}
             </h2>
             <span class="text-body-sm font-semibold text-ink-500">
-              {pluralize(@counts[state.value], "listing")}
+              {listing_count(@counts[state.value])}
             </span>
             <span class="text-body-sm text-ink-500">{state.help}</span>
           </div>
@@ -225,7 +240,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
               price={listing.display_price}
               navigate={~p"/listings/#{listing}"}
               image_src={cover_url(listing)}
-              image_alt={"Cover photo of #{listing.title}"}
+              image_alt={gettext("Cover photo of %{title}", title: listing.title)}
               placeholder_icon={state.icon}
               dimmed={state.value == :sold}
             >
@@ -254,8 +269,13 @@ defmodule MercatoWeb.Listings.MyListingsLive do
                   id={"remove-#{listing.id}"}
                   phx-click="remove"
                   phx-value-id={listing.id}
-                  aria-label={"Remove #{listing.title}"}
-                  data-confirm={"“#{listing.title}” will be taken off Mercato. This cannot be undone."}
+                  aria-label={gettext("Remove %{title}", title: listing.title)}
+                  data-confirm={
+                    gettext(
+                      "“%{title}” will be taken off Mercato. This cannot be undone.",
+                      title: listing.title
+                    )
+                  }
                   class={[
                     "ml-auto flex-none flex items-center justify-center size-9 cursor-pointer",
                     "rounded-md border border-ink-100 dark:border-ink-700 text-ink-500",
@@ -274,8 +294,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
           :if={@listings != [] and @sections == []}
           id="no-matching-listings"
           icon="hero-archive-box"
-          headline={"Nothing in #{section_label(@status)} right now."}
-          description="Every listing you have is in another state."
+          headline={gettext("Nothing in %{section} right now.", section: section_label(@status))}
+          description={gettext("Every listing you have is in another state.")}
         >
           <:actions>
             <.button
@@ -284,7 +304,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
               phx-click="filter_status"
               phx-value-status="all"
             >
-              Show all listings
+              {gettext("Show all listings")}
             </.button>
           </:actions>
         </.empty_state>
@@ -293,8 +313,8 @@ defmodule MercatoWeb.Listings.MyListingsLive do
           <.empty_state
             id="no-listings"
             icon="hero-square-3-stack-3d"
-            headline="Your first listing starts here"
-            description="Photos, a price, and a short description are all it takes."
+            headline={gettext("Your first listing starts here")}
+            description={gettext("Photos, a price, and a short description are all it takes.")}
           />
 
           <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -322,7 +342,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   # The states with something in them, narrowed to the chosen one when there is
   # a filter. An empty result is what the "nothing here" state keys off.
   defp sections(%{status: status, counts: counts}) do
-    Enum.filter(@states, fn state ->
+    Enum.filter(states(), fn state ->
       counts[state.value] > 0 and (is_nil(status) or state.value == status)
     end)
   end
@@ -338,21 +358,32 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   defp action_event(%{event: event}), do: event
 
   defp section_label(status) do
-    case Enum.find(@states, &(&1.value == status)) do
-      nil -> "that state"
+    case Enum.find(states(), &(&1.value == status)) do
+      nil -> gettext("that state")
       state -> String.downcase(state.section)
     end
   end
 
-  defp subtitle([], _counts), do: "Everything you sell on Mercato lives here."
+  defp subtitle([], _counts), do: gettext("Everything you sell on Mercato lives here.")
 
   defp subtitle(listings, counts) do
-    "#{pluralize(length(listings), "listing")} · #{counts.active} on offer · " <>
-      "#{counts.draft} unfinished"
+    gettext(
+      "%{listings} · %{active} on offer · %{drafts} unfinished",
+      listings: listing_count(length(listings)),
+      active: counts.active,
+      drafts: counts.draft
+    )
   end
 
-  defp pluralize(1, noun), do: "1 #{noun}"
-  defp pluralize(count, noun), do: "#{count} #{noun}s"
+  # A count and its noun are one string, so a language that inflects the noun
+  # with the number can say so.
+  defp listing_count(count) do
+    ngettext("1 listing", "%{count} listings", count)
+  end
+
+  defp photo_count(count) do
+    ngettext("1 photo", "%{count} photos", count)
+  end
 
   defp cover_url(%{images: images}) when is_list(images) do
     case Enum.find(images, & &1.is_cover) do
@@ -368,33 +399,49 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   defp meta(listing, %{value: :draft}) do
     photos =
       case length(listing.images) do
-        0 -> "needs a photo"
-        count -> pluralize(count, "photo")
+        0 -> gettext("needs a photo")
+        count -> photo_count(count)
       end
 
-    "Saved #{relative_time(listing.updated_at)} · #{photos}"
+    gettext("Saved %{when} · %{photos}", when: relative_time(listing.updated_at), photos: photos)
   end
 
   defp meta(listing, %{value: :active}) do
-    "Listed #{relative_time(listing.published_at || listing.updated_at)}"
+    gettext("Listed %{when}", when: relative_time(listing.published_at || listing.updated_at))
   end
 
-  defp meta(listing, %{value: :unavailable}), do: "Paused #{relative_time(listing.updated_at)}"
-  defp meta(listing, %{value: :sold}), do: "Sold #{relative_time(listing.updated_at)}"
+  defp meta(listing, %{value: :unavailable}) do
+    gettext("Paused %{when}", when: relative_time(listing.updated_at))
+  end
+
+  defp meta(listing, %{value: :sold}) do
+    gettext("Sold %{when}", when: relative_time(listing.updated_at))
+  end
 
   # Coarse on purpose: the trader wants to know whether a listing is fresh or
   # stale, not the minute it changed. Past a week the date says more than a
   # growing number of days would.
-  defp relative_time(nil), do: "at some point"
+  defp relative_time(nil), do: gettext("at some point")
 
   defp relative_time(at) do
     case DateTime.diff(DateTime.utc_now(), at, :second) do
-      seconds when seconds < 60 -> "just now"
-      seconds when seconds < 3_600 -> "#{div(seconds, 60)} minutes ago"
-      seconds when seconds < 86_400 -> "#{div(seconds, 3_600)} hours ago"
-      seconds when seconds < 172_800 -> "yesterday"
-      seconds when seconds < 604_800 -> "#{div(seconds, 86_400)} days ago"
-      _ -> "on #{Calendar.strftime(at, "%-d %b %Y")}"
+      seconds when seconds < 60 ->
+        gettext("just now")
+
+      seconds when seconds < 3_600 ->
+        ngettext("1 minute ago", "%{count} minutes ago", div(seconds, 60))
+
+      seconds when seconds < 86_400 ->
+        ngettext("1 hour ago", "%{count} hours ago", div(seconds, 3_600))
+
+      seconds when seconds < 172_800 ->
+        gettext("yesterday")
+
+      seconds when seconds < 604_800 ->
+        ngettext("1 day ago", "%{count} days ago", div(seconds, 86_400))
+
+      _ ->
+        gettext("on %{date}", date: Calendar.strftime(at, "%-d %b %Y"))
     end
   end
 
@@ -402,18 +449,18 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     [
       %{
         icon: "hero-camera",
-        title: "Photograph it",
-        body: "Daylight, plain background, four or five angles."
+        title: gettext("Photograph it"),
+        body: gettext("Daylight, plain background, four or five angles.")
       },
       %{
         icon: "hero-tag",
-        title: "Set a price",
-        body: "Buyers compare, so price it against what similar items went for."
+        title: gettext("Set a price"),
+        body: gettext("Buyers compare, so price it against what similar items went for.")
       },
       %{
         icon: "hero-paper-airplane",
-        title: "Publish",
-        body: "Buyers see it straight away and can make offers."
+        title: gettext("Publish"),
+        body: gettext("Buyers see it straight away and can make offers.")
       }
     ]
   end

@@ -1,0 +1,1356 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:213
+#, elixir-autogen, elixir-format
+msgid "%{held} of %{max} added"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:370
+#, elixir-autogen, elixir-format
+msgid "%{listings} · %{active} on offer · %{drafts} unfinished"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:215
+#, elixir-autogen, elixir-format
+msgid "%{name} is now %{status}."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:609
+#, elixir-autogen, elixir-format
+msgid "%{name} will be signed out for good, and the account's details erased. This cannot be undone."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:66
+#, elixir-autogen, elixir-format
+msgid "%{name} will be signed out of the platform and unable to sign back in."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:53
+#, elixir-autogen, elixir-format
+msgid "%{name} will keep their sign-in but lose the actions a restriction blocks."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:236
+#, elixir-autogen, elixir-format
+msgid "%{name}'s account has been deleted."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:206
+#, elixir-autogen, elixir-format
+msgid "%{section} (%{count})"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:378
+#, elixir-autogen, elixir-format
+msgid "%{status} (%{count})"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:241
+#, elixir-autogen, elixir-format
+msgid "%{types}, up to %{max}"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:780
+#: lib/mercato_web/live/listings/my_listings_live.ex:441
+#, elixir-autogen, elixir-format
+msgid "1 day ago"
+msgid_plural "%{count} days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/admin/users_live.ex:777
+#: lib/mercato_web/live/listings/my_listings_live.ex:435
+#, elixir-autogen, elixir-format
+msgid "1 hour ago"
+msgid_plural "%{count} hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:381
+#, elixir-autogen, elixir-format
+msgid "1 listing"
+msgid_plural "%{count} listings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/admin/users_live.ex:774
+#: lib/mercato_web/live/listings/my_listings_live.ex:432
+#, elixir-autogen, elixir-format
+msgid "1 minute ago"
+msgid_plural "%{count} minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:385
+#, elixir-autogen, elixir-format
+msgid "1 photo"
+msgid_plural "%{count} photos"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:514
+#, elixir-autogen, elixir-format
+msgid "About the item"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:80
+#: lib/mercato_web/live/profile/profile_live.ex:84
+#, elixir-autogen, elixir-format
+msgid "Account settings"
+msgstr ""
+
+#: lib/mercato_web/components/core_components.ex:695
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/mercato_web/components/ui/listing_status_badge.ex:54
+#: lib/mercato_web/live/admin/users_live.ex:38
+#: lib/mercato_web/live/listings/my_listings_live.ex:38
+#, elixir-autogen, elixir-format
+msgid "Active"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:192
+#, elixir-autogen, elixir-format
+msgid "Add photos"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:129
+#: lib/mercato_web/components/layouts/sidebar.ex:112
+#: lib/mercato_web/components/layouts/user_menu.ex:53
+#: lib/mercato_web/live/admin/users_live.ex:334
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:533
+#, elixir-autogen, elixir-format
+msgid "Age, materials, dimensions, any marks or repairs."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:369
+#: lib/mercato_web/live/listings/my_listings_live.ex:197
+#, elixir-autogen, elixir-format
+msgid "All (%{count})"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:190
+#, elixir-autogen, elixir-format
+msgid "Already have an account?"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:395
+#, elixir-autogen, elixir-format
+msgid "Applied"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:130
+#, elixir-autogen, elixir-format
+msgid "At least 8 characters"
+msgstr ""
+
+#: lib/mercato_web/components/layouts.ex:98
+#: lib/mercato_web/components/layouts.ex:113
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:139
+#, elixir-autogen, elixir-format
+msgid "Avatar"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:385
+#, elixir-autogen, elixir-format
+msgid "Avatar updated."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:62
+#, elixir-autogen, elixir-format
+msgid "Ban account"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:60
+#, elixir-autogen, elixir-format
+msgid "Banned"
+msgstr ""
+
+#: lib/mercato_web/components/ui/breadcrumb.ex:36
+#, elixir-autogen, elixir-format
+msgid "Breadcrumb"
+msgstr ""
+
+#: lib/mercato_web/controllers/page_html/home.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Browse"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:458
+#, elixir-autogen, elixir-format
+msgid "Buyers compare, so price it against what similar items went for."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:463
+#, elixir-autogen, elixir-format
+msgid "Buyers see it straight away and can make offers."
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:183
+#, elixir-autogen, elixir-format
+msgid "By creating an account, you agree to Mercato's Terms of Service and Privacy Policy."
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:106
+#, elixir-autogen, elixir-format
+msgid "Cart"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:573
+#, elixir-autogen, elixir-format
+msgid "Category"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:400
+#, elixir-autogen, elixir-format
+msgid "Change photo"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:262
+#, elixir-autogen, elixir-format
+msgid "Changes discarded."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:299
+#, elixir-autogen, elixir-format
+msgid "Changes saved."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:180
+#, elixir-autogen, elixir-format
+msgid "Choose a strong password you don't use anywhere else."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:418
+#, elixir-autogen, elixir-format
+msgid "Clear filters"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:580
+#, elixir-autogen, elixir-format
+msgid "Condition"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:200
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:137
+#, elixir-autogen, elixir-format
+msgid "Confirm password"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Continue editing"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:394
+#, elixir-autogen, elixir-format
+msgid "Could not upload this image."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:108
+#, elixir-autogen, elixir-format
+msgid "Cover"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:123
+#, elixir-autogen, elixir-format
+msgid "Cover photo"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:243
+#, elixir-autogen, elixir-format
+msgid "Cover photo of %{title}"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/user_menu.ex:86
+#: lib/mercato_web/live/auth/register_form.ex:149
+#, elixir-autogen, elixir-format
+msgid "Create account"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:80
+#, elixir-autogen, elixir-format
+msgid "Create your account"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:147
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:193
+#, elixir-autogen, elixir-format
+msgid "Current password"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:453
+#, elixir-autogen, elixir-format
+msgid "Daylight, plain background, four or five angles."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:598
+#: lib/mercato_web/live/profile/profile_live.ex:218
+#, elixir-autogen, elixir-format
+msgid "Delete account"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:250
+#, elixir-autogen, elixir-format
+msgid "Delete my account"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:674
+#, elixir-autogen, elixir-format
+msgid "Delete this listing"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "Deleted"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:738
+#, elixir-autogen, elixir-format
+msgid "Deleted user"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:222
+#, elixir-autogen, elixir-format
+msgid "Deleting your account signs you out for good and erases your name, handle, email, and photo. Your past orders stay on record, without your details attached. This cannot be undone."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:248
+#, elixir-autogen, elixir-format
+msgid "Deleting…"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:531
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:616
+#, elixir-autogen, elixir-format
+msgid "Discard changes"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:115
+#, elixir-autogen, elixir-format
+msgid "Doe"
+msgstr ""
+
+#: lib/mercato_web/components/ui/listing_status_badge.ex:53
+#, elixir-autogen, elixir-format
+msgid "Draft"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:298
+#, elixir-autogen, elixir-format
+msgid "Draft saved."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:31
+#, elixir-autogen, elixir-format
+msgid "Drafts"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:707
+#: lib/mercato_web/live/listings/my_listings_live.ex:42
+#: lib/mercato_web/live/listings/my_listings_live.ex:53
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:718
+#, elixir-autogen, elixir-format
+msgid "Edit listing"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:462
+#: lib/mercato_web/live/admin/users_live.ex:513
+#: lib/mercato_web/live/auth/register_form.ex:121
+#: lib/mercato_web/live/auth/register_form.ex:168
+#: lib/mercato_web/live/auth/reset_form.ex:109
+#: lib/mercato_web/live/auth/reset_form.ex:138
+#: lib/mercato_web/live/auth/sign_in_form.ex:111
+#: lib/mercato_web/live/auth/sign_in_form.ex:157
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:754
+#, elixir-autogen, elixir-format
+msgid "Erased on deletion"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:298
+#, elixir-autogen, elixir-format
+msgid "Every listing you have is in another state."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:721
+#, elixir-autogen, elixir-format
+msgid "Everything on one page. Leave whenever you like — a draft keeps your place."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:367
+#, elixir-autogen, elixir-format
+msgid "Everything you sell on Mercato lives here."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:192
+#, elixir-autogen, elixir-format
+msgid "Filter by state"
+msgstr ""
+
+#: lib/mercato_web/controllers/page_html/home.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Find something worth buying, or list something worth selling."
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:107
+#: lib/mercato_web/live/profile/profile_live.ex:106
+#, elixir-autogen, elixir-format
+msgid "First name"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:126
+#, elixir-autogen, elixir-format
+msgid "Forgot your password?"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:117
+#: lib/mercato_web/live/profile/profile_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "Handle"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:300
+#, elixir-autogen, elixir-format
+msgid "Handle updated."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "Hidden from search until you relist."
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:18
+#: lib/mercato_web/live/listings/listing_form_live.ex:712
+#: lib/mercato_web/live/listings/my_listings_live.ex:172
+#: lib/mercato_web/live/profile/profile_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:269
+#, elixir-autogen, elixir-format
+msgid "If this address doesn't already have an account, we've emailed you a link to create one."
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:204
+#, elixir-autogen, elixir-format
+msgid "If this user exists in our system, you will be contacted with password reset instructions shortly."
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:219
+#: lib/mercato_web/live/auth/sign_in_form.ex:252
+#, elixir-autogen, elixir-format
+msgid "If this user exists, we've sent a sign-in link to that email address."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:391
+#, elixir-autogen, elixir-format
+msgid "Image is too large (max 5MB)."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:141
+#, elixir-autogen, elixir-format
+msgid "JPG or PNG, up to 5MB. Saves automatically."
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:108
+#, elixir-autogen, elixir-format
+msgid "Jane"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:81
+#, elixir-autogen, elixir-format
+msgid "Join Mercato to buy and sell"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:771
+#, elixir-autogen, elixir-format
+msgid "Just now"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:59
+#, elixir-autogen, elixir-format
+msgid "Kept for your records."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:476
+#: lib/mercato_web/live/admin/users_live.ex:529
+#, elixir-autogen, elixir-format
+msgid "Last active"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:114
+#: lib/mercato_web/live/profile/profile_live.ex:107
+#, elixir-autogen, elixir-format
+msgid "Last name"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:410
+#, elixir-autogen, elixir-format
+msgid "Listed %{when}"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:191
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:87
+#: lib/mercato_web/live/auth/reset_form.ex:89
+#: lib/mercato_web/live/auth/sign_in_form.ex:90
+#, elixir-autogen, elixir-format
+msgid "Magic link"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:68
+#, elixir-autogen, elixir-format
+msgid "Main navigation"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:121
+#, elixir-autogen, elixir-format
+msgid "Make cover"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Manage your profile and security"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:567
+#, elixir-autogen, elixir-format
+msgid "Most sellers list one of a kind."
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:23
+#: lib/mercato_web/live/listings/my_listings_live.ex:174
+#: lib/mercato_web/live/listings/my_listings_live.ex:178
+#, elixir-autogen, elixir-format
+msgid "My listings"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:92
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:740
+#, elixir-autogen, elixir-format
+msgid "Name not provided"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:281
+#, elixir-autogen, elixir-format
+msgid "Name updated."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:353
+#, elixir-autogen, elixir-format
+msgid "Name, @handle, or email"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:173
+#, elixir-autogen, elixir-format
+msgid "Need an account?"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:764
+#, elixir-autogen, elixir-format
+msgid "Never"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:717
+#: lib/mercato_web/live/listings/my_listings_live.ex:182
+#, elixir-autogen, elixir-format
+msgid "New listing"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:196
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:666
+#, elixir-autogen, elixir-format
+msgid "Next"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:427
+#, elixir-autogen, elixir-format
+msgid "No accounts exist on this platform yet."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:437
+#, elixir-autogen, elixir-format
+msgid "No accounts match %{filters}."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:258
+#, elixir-autogen, elixir-format
+msgid "No more than 1 photo at a time."
+msgid_plural "No more than %{count} photos at a time."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/admin/users_live.ex:756
+#, elixir-autogen, elixir-format
+msgid "None on record"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:212
+#, elixir-autogen, elixir-format
+msgid "None yet"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:582
+#, elixir-autogen, elixir-format
+msgid "Not stated"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:32
+#, elixir-autogen, elixir-format
+msgid "Not visible to buyers yet."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:297
+#, elixir-autogen, elixir-format
+msgid "Nothing in %{section} right now."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "On offer to buyers now."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:392
+#, elixir-autogen, elixir-format
+msgid "Only JPG or PNG images are accepted."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:393
+#, elixir-autogen, elixir-format
+msgid "Only one image at a time."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:732
+#, elixir-autogen, elixir-format
+msgid "Only you can see this listing until you publish it."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:220
+#, elixir-autogen, elixir-format
+msgid "Optional here, but a photo is the first thing a buyer looks at. The first one is the cover shown everywhere else."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:536
+#, elixir-autogen, elixir-format
+msgid "Optional, but buyers ask fewer questions when this is thorough."
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:87
+#: lib/mercato_web/live/auth/register_form.ex:129
+#: lib/mercato_web/live/auth/sign_in_form.ex:90
+#: lib/mercato_web/live/auth/sign_in_form.ex:120
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:323
+#, elixir-autogen, elixir-format
+msgid "Password updated."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:43
+#, elixir-autogen, elixir-format
+msgid "Pause"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:651
+#, elixir-autogen, elixir-format
+msgid "Pause this listing"
+msgstr ""
+
+#: lib/mercato_web/components/ui/listing_status_badge.ex:55
+#: lib/mercato_web/live/listings/my_listings_live.ex:48
+#, elixir-autogen, elixir-format
+msgid "Paused"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:414
+#, elixir-autogen, elixir-format
+msgid "Paused %{when}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:452
+#, elixir-autogen, elixir-format
+msgid "Photograph it"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:61
+#, elixir-autogen, elixir-format
+msgid "Photos"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:317
+#, elixir-autogen, elixir-format
+msgid "Photos, a price, and a short description are all it takes."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:664
+#, elixir-autogen, elixir-format
+msgid "Previous"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:551
+#, elixir-autogen, elixir-format
+msgid "Price (%{symbol})"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:546
+#, elixir-autogen, elixir-format
+msgid "Price and stock"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:24
+#: lib/mercato_web/components/layouts/user_menu.ex:63
+#, elixir-autogen, elixir-format
+msgid "Profile"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:462
+#, elixir-autogen, elixir-format
+msgid "Publish"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:737
+#: lib/mercato_web/live/listings/listing_form_live.ex:738
+#, elixir-autogen, elixir-format
+msgid "Publish listing"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:565
+#, elixir-autogen, elixir-format
+msgid "Quantity"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:138
+#, elixir-autogen, elixir-format
+msgid "Re-enter your password"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:40
+#, elixir-autogen, elixir-format
+msgid "Reactivate account"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:52
+#, elixir-autogen, elixir-format
+msgid "Relist"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:637
+#, elixir-autogen, elixir-format
+msgid "Relist this listing"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:272
+#, elixir-autogen, elixir-format
+msgid "Remove %{title}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:130
+#, elixir-autogen, elixir-format
+msgid "Remove this photo"
+msgstr ""
+
+#: lib/mercato_web/components/ui/listing_status_badge.ex:57
+#, elixir-autogen, elixir-format
+msgid "Removed"
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:89
+#, elixir-autogen, elixir-format
+msgid "Reset password"
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:80
+#, elixir-autogen, elixir-format
+msgid "Reset your password"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "Restrict access"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:47
+#, elixir-autogen, elixir-format
+msgid "Restricted"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:338
+#, elixir-autogen, elixir-format
+msgid "Review and manage every account on the platform."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:471
+#: lib/mercato_web/live/admin/users_live.ex:525
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:605
+#, elixir-autogen, elixir-format
+msgid "Save and finish later"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:739
+#, elixir-autogen, elixir-format
+msgid "Save changes"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:132
+#, elixir-autogen, elixir-format
+msgid "Save handle"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:110
+#, elixir-autogen, elixir-format
+msgid "Save name"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:588
+#, elixir-autogen, elixir-format
+msgid "Save or publish"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:406
+#, elixir-autogen, elixir-format
+msgid "Saved %{when} · %{photos}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:622
+#, elixir-autogen, elixir-format
+msgid "Saved automatically as you type, so you can leave whenever you like."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:109
+#: lib/mercato_web/live/profile/profile_live.ex:131
+#, elixir-autogen, elixir-format
+msgid "Saving…"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:525
+#, elixir-autogen, elixir-format
+msgid "Say what it is first, then the detail that matters most."
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:74
+#, elixir-autogen, elixir-format
+msgid "Search listings"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:75
+#, elixir-autogen, elixir-format
+msgid "Search listings, categories, sellers"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:352
+#, elixir-autogen, elixir-format
+msgid "Search users"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:399
+#: lib/mercato_web/live/admin/users_live.ex:722
+#, elixir-autogen, elixir-format
+msgid "Search: %{query}"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:174
+#, elixir-autogen, elixir-format
+msgid "Security"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:98
+#, elixir-autogen, elixir-format
+msgid "Sell"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:92
+#, elixir-autogen, elixir-format
+msgid "Sell an item"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:713
+#: lib/mercato_web/live/listings/my_listings_live.ex:173
+#, elixir-autogen, elixir-format
+msgid "Selling"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:178
+#: lib/mercato_web/live/auth/reset_form.ex:148
+#: lib/mercato_web/live/auth/sign_in_form.ex:167
+#, elixir-autogen, elixir-format
+msgid "Send magic link"
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:119
+#, elixir-autogen, elixir-format
+msgid "Send reset instructions"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:177
+#: lib/mercato_web/live/auth/reset_form.ex:118
+#: lib/mercato_web/live/auth/reset_form.ex:147
+#: lib/mercato_web/live/auth/sign_in_form.ex:166
+#, elixir-autogen, elixir-format
+msgid "Sending..."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:176
+#, elixir-autogen, elixir-format
+msgid "Sensitive"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:457
+#, elixir-autogen, elixir-format
+msgid "Set a price"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:307
+#, elixir-autogen, elixir-format
+msgid "Show all listings"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:793
+#, elixir-autogen, elixir-format
+msgid "Showing %{first}–%{last} of %{total} · page %{page} of %{last_page}"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/user_menu.ex:79
+#: lib/mercato_web/live/auth/sign_in_form.ex:138
+#, elixir-autogen, elixir-format
+msgid "Sign in"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:84
+#, elixir-autogen, elixir-format
+msgid "Sign in to buy and sell on Mercato"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/user_menu.ex:70
+#: lib/mercato_web/live/profile/profile_live.ex:261
+#, elixir-autogen, elixir-format
+msgid "Sign out"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:174
+#, elixir-autogen, elixir-format
+msgid "Sign up"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:136
+#, elixir-autogen, elixir-format
+msgid "Signing in..."
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:143
+#, elixir-autogen, elixir-format
+msgid "Skip the password reset — we'll email you a one-time sign-in link instead."
+msgstr ""
+
+#: lib/mercato_web/components/ui/listing_status_badge.ex:56
+#: lib/mercato_web/live/listings/my_listings_live.ex:58
+#, elixir-autogen, elixir-format
+msgid "Sold"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:418
+#, elixir-autogen, elixir-format
+msgid "Sold %{when}"
+msgstr ""
+
+#: lib/mercato_web/components/layouts.ex:105
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:163
+#, elixir-autogen, elixir-format
+msgid "Square images look best."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:360
+#: lib/mercato_web/live/admin/users_live.ex:468
+#: lib/mercato_web/live/admin/users_live.ex:517
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:407
+#: lib/mercato_web/live/admin/users_live.ex:723
+#, elixir-autogen, elixir-format
+msgid "Status: %{status}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:162
+#, elixir-autogen, elixir-format
+msgid "Take back %{name}"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:241
+#, elixir-autogen, elixir-format
+msgid "That account could not be deleted."
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:225
+#, elixir-autogen, elixir-format
+msgid "That account's status could not be changed."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:356
+#, elixir-autogen, elixir-format
+msgid "That does not match your handle."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:260
+#, elixir-autogen, elixir-format
+msgid "That file could not be added."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:254
+#, elixir-autogen, elixir-format
+msgid "That file is not one of the types accepted here."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:251
+#, elixir-autogen, elixir-format
+msgid "That file is too large."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:199
+#, elixir-autogen, elixir-format
+msgid "That is all %{max} of them"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:252
+#: lib/mercato_web/live/listings/my_listings_live.ex:115
+#, elixir-autogen, elixir-format
+msgid "That listing could not be paused."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:219
+#: lib/mercato_web/live/listings/my_listings_live.ex:105
+#, elixir-autogen, elixir-format
+msgid "That listing could not be removed."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:303
+#: lib/mercato_web/live/listings/my_listings_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "That listing could not go back on offer."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:312
+#, elixir-autogen, elixir-format
+msgid "That listing could not go on offer."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:76
+#, elixir-autogen, elixir-format
+msgid "That listing has sold, so it can no longer be changed."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:86
+#, elixir-autogen, elixir-format
+msgid "That listing is not one of yours."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:428
+#, elixir-autogen, elixir-format
+msgid "That photo %{problem}."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:433
+#, elixir-autogen, elixir-format
+msgid "That photo could not be added."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:190
+#, elixir-autogen, elixir-format
+msgid "That photo could not be made the cover."
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:227
+#, elixir-autogen, elixir-format
+msgid "The first photo is the cover buyers see everywhere. Daylight and a plain background sell faster."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:229
+#, elixir-autogen, elixir-format
+msgid "This listing is back on offer."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:174
+#, elixir-autogen, elixir-format
+msgid "This listing is not ready yet — see what is marked below."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:725
+#, elixir-autogen, elixir-format
+msgid "This listing is on offer, so saved changes are visible to buyers immediately."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:246
+#, elixir-autogen, elixir-format
+msgid "This listing is paused. Buyers cannot see it until you relist it."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:729
+#, elixir-autogen, elixir-format
+msgid "This listing is paused. Changes are saved, and buyers see them when you relist."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:612
+#, elixir-autogen, elixir-format
+msgid "Throw away everything you have changed here?"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:520
+#, elixir-autogen, elixir-format
+msgid "Title"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/app_header.ex:39
+#, elixir-autogen, elixir-format
+msgid "Toggle navigation"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:238
+#, elixir-autogen, elixir-format
+msgid "Type @%{handle} to confirm"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:698
+#, elixir-autogen, elixir-format
+msgid "Unknown"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:209
+#, elixir-autogen, elixir-format
+msgid "Update password"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:207
+#, elixir-autogen, elixir-format
+msgid "Updating…"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:399
+#, elixir-autogen, elixir-format
+msgid "Upload photo"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:398
+#, elixir-autogen, elixir-format
+msgid "Uploading…"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:457
+#, elixir-autogen, elixir-format
+msgid "User"
+msgstr ""
+
+#: lib/mercato_web/live/admin/users_live.ex:453
+#, elixir-autogen, elixir-format
+msgid "User accounts with status and last activity"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:29
+#: lib/mercato_web/live/admin/users_live.ex:334
+#: lib/mercato_web/live/admin/users_live.ex:337
+#, elixir-autogen, elixir-format
+msgid "Users"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:61
+#, elixir-autogen, elixir-format
+msgid "View order"
+msgstr ""
+
+#: lib/mercato_web/live/listings/photo_gallery.ex:156
+#, elixir-autogen, elixir-format
+msgid "Waiting"
+msgstr ""
+
+#: lib/mercato_web/components/layouts.ex:90
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr ""
+
+#: lib/mercato_web/live/auth/register_form.ex:173
+#, elixir-autogen, elixir-format
+msgid "We'll email you a link to create your account."
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:114
+#, elixir-autogen, elixir-format
+msgid "We'll email you a link to set a new password."
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:162
+#, elixir-autogen, elixir-format
+msgid "We'll email you a link to sign in instantly."
+msgstr ""
+
+#: lib/mercato_web/live/auth/reset_form.ex:82
+#, elixir-autogen, elixir-format
+msgid "We'll help you get back into your account"
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:83
+#, elixir-autogen, elixir-format
+msgid "Welcome back"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:96
+#, elixir-autogen, elixir-format
+msgid "You"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:349
+#, elixir-autogen, elixir-format
+msgid "Your account could not be deleted."
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "Your first and last name as shown to other members."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:316
+#, elixir-autogen, elixir-format
+msgid "Your first listing starts here"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:284
+#, elixir-autogen, elixir-format
+msgid "Your listing is on offer."
+msgstr ""
+
+#: lib/mercato_web/live/auth/sign_in_form.ex:121
+#, elixir-autogen, elixir-format
+msgid "Your password"
+msgstr ""
+
+#: lib/mercato_web/live/profile/profile_live.ex:119
+#, elixir-autogen, elixir-format
+msgid "Your public @handle, used across Mercato."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:424
+#, elixir-autogen, elixir-format
+msgid "at some point"
+msgstr ""
+
+#: lib/mercato_web/components/core_components.ex:79
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:522
+#, elixir-autogen, elixir-format
+msgid "e.g. Eames-style lounge chair, walnut"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:429
+#, elixir-autogen, elixir-format
+msgid "just now"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:402
+#, elixir-autogen, elixir-format
+msgid "needs a photo"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:444
+#, elixir-autogen, elixir-format
+msgid "on %{date}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:362
+#, elixir-autogen, elixir-format
+msgid "that state"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:438
+#, elixir-autogen, elixir-format
+msgid "yesterday"
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:124
+#, elixir-autogen, elixir-format
+msgid "“%{title}” is back on offer."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:114
+#, elixir-autogen, elixir-format
+msgid "“%{title}” was paused."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:213
+#: lib/mercato_web/live/listings/my_listings_live.ex:100
+#, elixir-autogen, elixir-format
+msgid "“%{title}” was removed."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:667
+#, elixir-autogen, elixir-format
+msgid "“%{title}” will be taken off Mercato, along with its photos. This cannot be undone."
+msgstr ""
+
+#: lib/mercato_web/live/listings/my_listings_live.ex:274
+#, elixir-autogen, elixir-format
+msgid "“%{title}” will be taken off Mercato. This cannot be undone."
+msgstr ""

@@ -13,14 +13,16 @@ defmodule MercatoWeb.UI.ListingStatusBadge do
   # Keyed on the states in `Mercato.Listings.Listing.Status`. `deleted` is here
   # for completeness — only moderation ever sees one — and reads as danger
   # because it is the state that stops a listing.
+  #
   # Each state carries an icon as well as a colour, so the state is never told
-  # by colour alone.
+  # by colour alone. How it reads is not held here: a label built at compile
+  # time is invisible to translation extraction, so it is a clause below.
   @states %{
-    draft: {"neutral", "Draft", "hero-pencil-square"},
-    active: {"verified", "Active", "hero-check-badge"},
-    unavailable: {"warning", "Paused", "hero-pause-circle"},
-    sold: {"info", "Sold", "hero-check-circle"},
-    deleted: {"danger", "Removed", "hero-archive-box-x-mark"}
+    draft: {"neutral", "hero-pencil-square"},
+    active: {"verified", "hero-check-badge"},
+    unavailable: {"warning", "hero-pause-circle"},
+    sold: {"info", "hero-check-circle"},
+    deleted: {"danger", "hero-archive-box-x-mark"}
   }
 
   @doc """
@@ -34,9 +36,9 @@ defmodule MercatoWeb.UI.ListingStatusBadge do
   attr :rest, :global
 
   def listing_status_badge(assigns) do
-    {kind, label, icon} = Map.fetch!(@states, assigns.status)
+    {kind, icon} = Map.fetch!(@states, assigns.status)
 
-    assigns = assign(assigns, kind: kind, label: label, icon: icon)
+    assigns = assign(assigns, kind: kind, icon: icon, label: label(assigns.status))
 
     ~H"""
     <.badge kind={@kind} class={["gap-1.5", @class]} {@rest}>
@@ -46,8 +48,14 @@ defmodule MercatoWeb.UI.ListingStatusBadge do
   end
 
   @doc "How `status` reads to a trader, without the badge around it."
-  def label(status), do: @states |> Map.fetch!(status) |> elem(1)
+  # A clause each rather than a lookup table: extraction reads the source, and
+  # a label built at compile time is invisible to it.
+  def label(:draft), do: gettext("Draft")
+  def label(:active), do: gettext("Active")
+  def label(:unavailable), do: gettext("Paused")
+  def label(:sold), do: gettext("Sold")
+  def label(:deleted), do: gettext("Removed")
 
   @doc "The icon marking `status`, without the badge around it."
-  def status_icon(status), do: @states |> Map.fetch!(status) |> elem(2)
+  def status_icon(status), do: @states |> Map.fetch!(status) |> elem(1)
 end

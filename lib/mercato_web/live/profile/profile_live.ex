@@ -75,20 +75,23 @@ defmodule MercatoWeb.ProfileLive do
       current_path={~p"/users/me/profile"}
     >
       <div class="flex flex-col gap-6">
-        <.breadcrumb items={[%{label: "Home", navigate: ~p"/"}, %{label: "Account settings"}]} />
+        <.breadcrumb items={[
+          %{label: gettext("Home"), navigate: ~p"/"},
+          %{label: gettext("Account settings")}
+        ]} />
 
         <.header>
-          Account settings
-          <:subtitle>Manage your profile and security</:subtitle>
+          {gettext("Account settings")}
+          <:subtitle>{gettext("Manage your profile and security")}</:subtitle>
         </.header>
       </div>
 
       <div class="flex flex-col items-center gap-8 max-w-[560px] mx-auto py-8">
         <.card class="w-full flex flex-col gap-5">
           <div>
-            <h2 class="text-title-lg font-bold text-ink-900">Name</h2>
+            <h2 class="text-title-lg font-bold text-ink-900">{gettext("Name")}</h2>
             <p class="text-caption-lg text-ink-500 mt-0.5">
-              Your first and last name as shown to other members.
+              {gettext("Your first and last name as shown to other members.")}
             </p>
           </div>
           <.form
@@ -100,20 +103,20 @@ defmodule MercatoWeb.ProfileLive do
             class="flex flex-col gap-5"
           >
             <div class="grid grid-cols-2 gap-3">
-              <.input field={form[:first_name]} label="First name" required />
-              <.input field={form[:last_name]} label="Last name" required />
+              <.input field={form[:first_name]} label={gettext("First name")} required />
+              <.input field={form[:last_name]} label={gettext("Last name")} required />
             </div>
-            <.button type="submit" variant="primary" full_width phx-disable-with="Saving…">
-              Save name
+            <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Saving…")}>
+              {gettext("Save name")}
             </.button>
           </.form>
         </.card>
 
         <.card class="w-full flex flex-col gap-5">
           <div>
-            <h2 class="text-title-lg font-bold text-ink-900">Handle</h2>
+            <h2 class="text-title-lg font-bold text-ink-900">{gettext("Handle")}</h2>
             <p class="text-caption-lg text-ink-500 mt-0.5">
-              Your public @handle, used across Mercato.
+              {gettext("Your public @handle, used across Mercato.")}
             </p>
           </div>
           <.form
@@ -124,18 +127,18 @@ defmodule MercatoWeb.ProfileLive do
             phx-submit="save_handle"
             class="flex flex-col gap-5"
           >
-            <.input field={form[:handle]} label="Handle" required />
-            <.button type="submit" variant="primary" full_width phx-disable-with="Saving…">
-              Save handle
+            <.input field={form[:handle]} label={gettext("Handle")} required />
+            <.button type="submit" variant="primary" full_width phx-disable-with={gettext("Saving…")}>
+              {gettext("Save handle")}
             </.button>
           </.form>
         </.card>
 
         <.card class="w-full flex flex-col gap-5">
           <div>
-            <h2 class="text-title-lg font-bold text-ink-900">Avatar</h2>
+            <h2 class="text-title-lg font-bold text-ink-900">{gettext("Avatar")}</h2>
             <p class="text-caption-lg text-ink-500 mt-0.5">
-              JPG or PNG, up to 5MB. Saves automatically.
+              {gettext("JPG or PNG, up to 5MB. Saves automatically.")}
             </p>
           </div>
           <form id="avatar-form" phx-change="noop" phx-submit="noop" class="flex items-center gap-5">
@@ -154,12 +157,10 @@ defmodule MercatoWeb.ProfileLive do
             </div>
             <div class="flex flex-col gap-2">
               <label class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-ink-100 text-ink-700 font-semibold text-body-sm cursor-pointer w-fit">
-                {if @uploads.avatar.entries != [],
-                  do: "Uploading…",
-                  else: if(@user.avatar_url, do: "Change photo", else: "Upload photo")}
+                {avatar_button_label(@uploads.avatar.entries, @user.avatar_url)}
                 <.live_file_input upload={@uploads.avatar} class="hidden" />
               </label>
-              <p class="text-caption-md text-ink-500">Square images look best.</p>
+              <p class="text-caption-md text-ink-500">{gettext("Square images look best.")}</p>
               <p :for={err <- upload_errors(@uploads.avatar)} class="text-caption-md text-error">
                 {error_to_string(err)}
               </p>
@@ -170,13 +171,13 @@ defmodule MercatoWeb.ProfileLive do
         <.card class="w-full flex flex-col gap-5 border-[1.5px] border-ink-300 shadow-md">
           <div class="flex items-center gap-2.5">
             <.icon name="hero-shield-check" class="size-5 text-ink-900" />
-            <h2 class="text-title-lg font-bold text-ink-900 flex-1">Security</h2>
+            <h2 class="text-title-lg font-bold text-ink-900 flex-1">{gettext("Security")}</h2>
             <span class="inline-flex items-center h-6 px-2 rounded-full bg-ink-100 text-ink-700 text-caption-md font-semibold">
-              Sensitive
+              {gettext("Sensitive")}
             </span>
           </div>
           <p class="text-caption-lg text-ink-500 -mt-3">
-            Choose a strong password you don't use anywhere else.
+            {gettext("Choose a strong password you don't use anywhere else.")}
           </p>
           <.form
             :let={form}
@@ -189,18 +190,23 @@ defmodule MercatoWeb.ProfileLive do
             <.input
               field={form[:current_password]}
               type="password"
-              label="Current password"
+              label={gettext("Current password")}
               required
             />
-            <.input field={form[:password]} type="password" label="New password" required />
+            <.input field={form[:password]} type="password" label={gettext("New password")} required />
             <.input
               field={form[:password_confirmation]}
               type="password"
-              label="Confirm new password"
+              label={gettext("Confirm new password")}
               required
             />
-            <.button type="submit" variant="primary" full_width phx-disable-with="Updating…">
-              Update password
+            <.button
+              type="submit"
+              variant="primary"
+              full_width
+              phx-disable-with={gettext("Updating…")}
+            >
+              {gettext("Update password")}
             </.button>
           </.form>
         </.card>
@@ -208,12 +214,16 @@ defmodule MercatoWeb.ProfileLive do
         <.card class="w-full flex flex-col gap-5 border-[1.5px] border-error/40 shadow-md">
           <div class="flex items-center gap-2.5">
             <.icon name="hero-exclamation-triangle" class="size-5 text-error-text" />
-            <h2 class="text-title-lg font-bold text-error-text flex-1">Delete account</h2>
+            <h2 class="text-title-lg font-bold text-error-text flex-1">
+              {gettext("Delete account")}
+            </h2>
           </div>
           <p class="text-caption-lg text-ink-500 -mt-3">
-            Deleting your account signs you out for good and erases your name, handle, email,
-            and photo. Your past orders stay on record, without your details attached. This
-            cannot be undone.
+            {gettext(
+              "Deleting your account signs you out for good and erases your name, handle, " <>
+                "email, and photo. Your past orders stay on record, without your details " <>
+                "attached. This cannot be undone."
+            )}
           </p>
           <.form
             :let={form}
@@ -225,7 +235,7 @@ defmodule MercatoWeb.ProfileLive do
           >
             <.input
               field={form[:handle]}
-              label={"Type @#{@user.handle} to confirm"}
+              label={gettext("Type @%{handle} to confirm", handle: @user.handle)}
               autocomplete="off"
             />
             <p :if={@delete_error} class="text-caption-md text-error-text">{@delete_error}</p>
@@ -235,9 +245,9 @@ defmodule MercatoWeb.ProfileLive do
               variant="danger"
               full_width
               disabled={!@delete_confirmed?}
-              phx-disable-with="Deleting…"
+              phx-disable-with={gettext("Deleting…")}
             >
-              Delete my account
+              {gettext("Delete my account")}
             </.button>
           </.form>
         </.card>
@@ -248,7 +258,7 @@ defmodule MercatoWeb.ProfileLive do
           method="delete"
           class="text-error-text hover:text-error font-medium text-body-sm"
         >
-          Sign out
+          {gettext("Sign out")}
         </.link>
       </div>
     </Layouts.app>
@@ -268,7 +278,7 @@ defmodule MercatoWeb.ProfileLive do
          socket
          |> assign(:user, user)
          |> assign(:name_form, name_form(user))
-         |> put_flash(:info, "Name updated.")}
+         |> put_flash(:info, gettext("Name updated."))}
 
       {:error, form} ->
         {:noreply, assign(socket, :name_form, form)}
@@ -287,7 +297,7 @@ defmodule MercatoWeb.ProfileLive do
          socket
          |> assign(:user, user)
          |> assign(:handle_form, handle_form(user))
-         |> put_flash(:info, "Handle updated.")}
+         |> put_flash(:info, gettext("Handle updated."))}
 
       {:error, form} ->
         {:noreply, assign(socket, :handle_form, form)}
@@ -310,7 +320,7 @@ defmodule MercatoWeb.ProfileLive do
          socket
          |> assign(:user, user)
          |> assign(:security_form, security_form(user))
-         |> put_flash(:info, "Password updated.")}
+         |> put_flash(:info, gettext("Password updated."))}
 
       {:error, form} ->
         {:noreply, assign(socket, :security_form, form)}
@@ -336,14 +346,14 @@ defmodule MercatoWeb.ProfileLive do
           {:noreply, redirect(socket, to: ~p"/sign-out")}
 
         {:error, _} ->
-          {:noreply, assign(socket, :delete_error, "Your account could not be deleted.")}
+          {:noreply, assign(socket, :delete_error, gettext("Your account could not be deleted."))}
       end
     else
       {:noreply,
        socket
        |> assign(:delete_form, delete_form(params))
        |> assign(:delete_confirmed?, false)
-       |> assign(:delete_error, "That does not match your handle.")}
+       |> assign(:delete_error, gettext("That does not match your handle."))}
     end
   end
 
@@ -372,14 +382,20 @@ defmodule MercatoWeb.ProfileLive do
       {:noreply,
        socket
        |> assign(:user, user)
-       |> put_flash(:info, "Avatar updated.")}
+       |> put_flash(:info, gettext("Avatar updated."))}
     else
       {:noreply, socket}
     end
   end
 
-  defp error_to_string(:too_large), do: "Image is too large (max 5MB)."
-  defp error_to_string(:not_accepted), do: "Only JPG or PNG images are accepted."
-  defp error_to_string(:too_many_files), do: "Only one image at a time."
-  defp error_to_string(_), do: "Could not upload this image."
+  defp error_to_string(:too_large), do: gettext("Image is too large (max 5MB).")
+  defp error_to_string(:not_accepted), do: gettext("Only JPG or PNG images are accepted.")
+  defp error_to_string(:too_many_files), do: gettext("Only one image at a time.")
+  defp error_to_string(_), do: gettext("Could not upload this image.")
+
+  # A clause each rather than a nested conditional in the template: extraction
+  # reads the source, and each state is its own message.
+  defp avatar_button_label([_ | _], _avatar_url), do: gettext("Uploading…")
+  defp avatar_button_label([], nil), do: gettext("Upload photo")
+  defp avatar_button_label([], _avatar_url), do: gettext("Change photo")
 end

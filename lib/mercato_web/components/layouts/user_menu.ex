@@ -50,7 +50,7 @@ defmodule MercatoWeb.Layouts.UserMenu do
             <div class="text-body-sm font-semibold text-ink-900 dark:text-white truncate">
               {@display_name}
             </div>
-            <.badge :if={@admin?} kind="featured" class="flex-none">Admin</.badge>
+            <.badge :if={@admin?} kind="featured" class="flex-none">{gettext("Admin")}</.badge>
           </div>
           <div class="text-caption-md text-ink-500 truncate">{@current_user.email}</div>
         </div>
@@ -60,14 +60,14 @@ defmodule MercatoWeb.Layouts.UserMenu do
       <.menu_item
         :if={@current_user}
         role="menuitem"
-        label="Profile"
+        label={gettext("Profile")}
         icon="hero-user"
         navigate={~p"/users/me/profile"}
       />
       <.menu_item
         :if={@current_user}
         role="menuitem"
-        label="Sign out"
+        label={gettext("Sign out")}
         icon="hero-arrow-right-start-on-rectangle"
         href={~p"/sign-out"}
         variant={:danger}
@@ -76,14 +76,14 @@ defmodule MercatoWeb.Layouts.UserMenu do
       <.menu_item
         :if={!@current_user}
         role="menuitem"
-        label="Sign in"
+        label={gettext("Sign in")}
         icon="hero-arrow-right-end-on-rectangle"
         navigate={~p"/sign-in"}
       />
       <.menu_item
         :if={!@current_user}
         role="menuitem"
-        label="Create account"
+        label={gettext("Create account")}
         icon="hero-user-plus"
         navigate={~p"/register"}
       />
