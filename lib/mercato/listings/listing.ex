@@ -14,7 +14,8 @@ defmodule Mercato.Listings.Listing do
     extensions: [AshArchival.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
-  alias Mercato.Listings.Listing.Calculations
+  alias Mercato.Accounts.User.Status, as: SellerStatus
+  alias Mercato.Listings.Listing.{Calculations, PublicId}
 
   sqlite do
     table "listings"
@@ -41,6 +42,46 @@ defmodule Mercato.Listings.Listing do
 
     read :list_for_moderation do
       description "Every listing including those moderation has taken down."
+    end
+
+    read :get do
+      description "One listing as its detail page shows it, to whoever may see it."
+      get? true
+
+      # No filter of its own: who may see which listing is the read policy's
+      # business, and stating it twice would let the two drift apart. A listing
+      # the caller may not see comes back as not found rather than as refused,
+      # which is what a public page can honestly say.
+
+      # The whole page in one read: the gallery, the seller behind the card, the
+      # category the breadcrumb names, and the price already formatted.
+      prepare build(load: [:display_price, :seller, :category, images: :url])
+    end
+
+    read :get_by_public_id do
+      description "One listing as its public URL names it, to whoever may see it."
+      get? true
+
+      # Same load as `:get` above: this is the same page reached the way the
+      # public reaches it, and the two differ only in what they key on.
+      prepare build(load: [:display_price, :seller, :category, images: :url])
+    end
+
+    read :list_for_seller do
+      description "One seller's listings as their public profile shows them."
+
+      argument :seller_id, :uuid do
+        allow_nil? false
+      end
+
+      filter expr(seller_id == ^arg(:seller_id))
+
+      # Which of the seller's listings a visitor may see is the read policy's
+      # business, so the filter here only names whose profile is being read.
+
+      # Newest first within each state; the page groups them, and it draws a
+      # card per listing, so the cover and the formatted price come along.
+      prepare build(sort: [updated_at: :desc], load: [:display_price, images: :url])
     end
 
     read :list_mine do
@@ -193,9 +234,34 @@ defmodule Mercato.Listings.Listing do
   policies do
     # Filtering rather than refusing, so a public browse gets the listings on
     # offer instead of an error. A seller sees their own whatever state it is in.
-    policy action(:read) do
-      authorize_if expr(status == :active)
+    # Browsing and opening one share the rule: a listing reachable in a grid and
+    # a listing reachable by its own URL are the same set.
+    #
+    # A listing is only as public as the account behind it: a seller the
+    # marketplace no longer shows to strangers takes their listings out of
+    # public view with them, without anything per-listing changing. The list of
+    # statuses is the one the seller's own profile page is gated on, read from
+    # where it is declared rather than restated, so the two can never disagree
+    # about whether a seller is still on the marketplace.
+    policy action([:read, :get, :get_by_public_id]) do
+      authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
       authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Deliberately narrower than the seller's own view and wider than the detail
+    # page: a public profile shows what is on offer and what has sold, and shows
+    # the same thing to the seller as to a stranger, because it is a preview of
+    # what buyers see. A paused or draft listing appears nowhere — the seller
+    # took it out of public view, or never put it in.
+    #
+    # Gated on the seller's status like the reads above, so a profile page that
+    # somehow gets rendered for an account off the marketplace has nothing to
+    # show — the listings go when the profile does.
+    policy action(:list_for_seller) do
+      authorize_if expr(
+                     status in [:active, :sold] and
+                       seller.status in ^SellerStatus.has_public_profile()
+                   )
     end
 
     # Filtering, like :read above — a signed-out visitor gets an empty list
@@ -241,6 +307,16 @@ defmodule Mercato.Listings.Listing do
 
   attributes do
     uuid_primary_key :id
+
+    # The identifier the public URL is built from, distinct from the primary
+    # key so a shared link stays short and the internal key stays internal.
+    # Absent from every action's `accept`, so nothing can supply or change one:
+    # a listing keeps the id it was minted with, and links survive every edit.
+    attribute :public_id, :string do
+      allow_nil? false
+      default &PublicId.generate/0
+      public? true
+    end
 
     attribute :title, :string do
       allow_nil? false
@@ -299,8 +375,7 @@ defmodule Mercato.Listings.Listing do
       public? true
     end
 
-    create_timestamp :created_at
-    update_timestamp :updated_at
+    timestamps()
   end
 
   relationships do
@@ -328,4 +403,17 @@ defmodule Mercato.Listings.Listing do
       public? true
     end
   end
+
+  identities do
+    # A minted id is random rather than checked, so the database is what makes
+    # two listings sharing one an error instead of a silent collision.
+    identity :unique_public_id, [:public_id]
+  end
+end
+
+# Lets `~p"/listings/#{listing}"` be the only thing a caller writes: the slug is
+# the listing's public name, and nowhere outside this file has to know it is not
+# the primary key.
+defimpl Phoenix.Param, for: Mercato.Listings.Listing do
+  defdelegate to_param(listing), to: Mercato.Listings.Listing.Slug, as: :slug
 end

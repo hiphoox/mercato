@@ -43,7 +43,7 @@ defmodule Mercato.Listings.ListingTest do
     test "stamps the created and updated timestamps", %{seller: seller} do
       listing = create_listing!(seller)
 
-      assert %DateTime{} = listing.created_at
+      assert %DateTime{} = listing.inserted_at
       assert %DateTime{} = listing.updated_at
     end
 

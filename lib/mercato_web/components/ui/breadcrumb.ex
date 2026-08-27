@@ -5,7 +5,8 @@ defmodule MercatoWeb.UI.Breadcrumb do
   The final crumb is always the current page: it is never a link, and carries
   `aria-current="page"`. Earlier crumbs link when given a `:navigate` target and
   render as plain text when not, so a trail can include a grouping level that
-  has no page of its own.
+  has no page of its own. A crumb naming something a person wrote is clipped
+  rather than allowed to wrap, and offers the rest of the label on hover.
 
       <.breadcrumb items={[
         %{label: "Home", navigate: ~p"/"},
@@ -55,24 +56,42 @@ defmodule MercatoWeb.UI.Breadcrumb do
   attr :item, :map, required: true
   attr :current?, :boolean, required: true
 
+  # A crumb can name something a person wrote, and a listing title runs to 140
+  # characters — long enough to wrap the trail over the page it sits above.
+  # Clipped in CSS rather than cut from the string, so the whole label stays in
+  # the document for a screen reader and only the sighted reader sees it short.
+  # `title` offers them the rest on hover.
+  @clip "block max-w-[14rem] sm:max-w-xs truncate"
+
   defp crumb(%{current?: true} = assigns) do
+    assigns = assign(assigns, :clip, @clip)
+
     ~H"""
-    <span aria-current="page" class="font-semibold text-ink-900 dark:text-white">
+    <span
+      aria-current="page"
+      title={@item.label}
+      class={["font-semibold text-ink-900 dark:text-white", @clip]}
+    >
       {@item.label}
     </span>
     """
   end
 
   defp crumb(assigns) do
+    assigns = assign(assigns, :clip, @clip)
+
     ~H"""
     <.link
       :if={@item[:navigate]}
       navigate={@item.navigate}
-      class="font-medium text-ink-500 no-underline hover:text-ink-900 transition-colors"
+      title={@item.label}
+      class={["font-medium text-ink-500 no-underline hover:text-ink-900 transition-colors", @clip]}
     >
       {@item.label}
     </.link>
-    <span :if={!@item[:navigate]} class="font-medium text-ink-500">{@item.label}</span>
+    <span :if={!@item[:navigate]} title={@item.label} class={["font-medium text-ink-500", @clip]}>
+      {@item.label}
+    </span>
     """
   end
 end

@@ -78,6 +78,49 @@ defmodule MercatoWeb.UI.BreadcrumbTest do
     end
   end
 
+  # A crumb can name something a person wrote — a listing title runs to 140
+  # characters — so the trail clips rather than letting one crumb wrap away the
+  # whole page. The full text stays in the document, so nothing is lost to a
+  # screen reader, and it is offered on hover for whoever sees it cut short.
+  describe "a crumb naming something long" do
+    @long "A genuinely enormous mid-century teak sideboard with three deep drawers and a sliding door"
+
+    test "keeps the whole label in the document" do
+      current = query([items: [%{label: "Home", navigate: "/"}, %{label: @long}]], "nav")
+
+      assert LazyHTML.text(current) =~ @long
+    end
+
+    test "offers the whole label on hover" do
+      titles =
+        [items: [%{label: "Home", navigate: "/"}, %{label: @long}]]
+        |> query("[aria-current=page]")
+        |> LazyHTML.attribute("title")
+
+      assert titles == [@long]
+    end
+
+    test "clips it rather than letting it wrap" do
+      classes =
+        [items: [%{label: "Home", navigate: "/"}, %{label: @long}]]
+        |> query("[aria-current=page]")
+        |> LazyHTML.attribute("class")
+        |> List.first()
+
+      assert classes =~ "truncate"
+    end
+
+    test "clips a linked crumb the same way" do
+      classes =
+        [items: [%{label: @long, navigate: "/"}, %{label: "Here"}]]
+        |> query("nav a")
+        |> LazyHTML.attribute("class")
+        |> List.first()
+
+      assert classes =~ "truncate"
+    end
+  end
+
   describe "empty trail" do
     test "renders nothing at all rather than an empty nav landmark" do
       assert [items: []] |> query("nav") |> Enum.count() == 0

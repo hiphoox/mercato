@@ -6,6 +6,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
 
   alias AshAuthentication.Plug.Helpers
   alias Mercato.Listings
+  alias Mercato.Listings.Listing.Slug
 
   defp log_in(conn, user) do
     conn
@@ -29,15 +30,42 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
 
   describe "access" do
     test "redirects a signed-out visitor to sign-in", %{conn: conn} do
-      assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, ~p"/my-listings")
+      assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, ~p"/users/me/listings")
     end
 
     test "lets a signed-in seller in", %{conn: conn} do
       seller = generate(user())
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
 
       assert has_element?(view, "#my-listings")
+    end
+  end
+
+  describe "opening a listing" do
+    setup %{conn: conn} do
+      seller = generate(user())
+      draft = generate(listing(actor: seller, title: "A draft chair"))
+
+      %{conn: log_in(conn, seller), draft: draft}
+    end
+
+    test "the photo opens the listing's own page", %{conn: conn, draft: draft} do
+      {:ok, view, _html} = live(conn, ~p"/users/me/listings")
+
+      assert has_element?(
+               view,
+               ~s(#listing-#{draft.id} [data-role=photo] a[href="/listings/#{Slug.slug(draft)}"])
+             )
+    end
+
+    test "the title opens it too", %{conn: conn, draft: draft} do
+      {:ok, view, _html} = live(conn, ~p"/users/me/listings")
+
+      assert has_element?(
+               view,
+               ~s(#listing-#{draft.id} [data-role=title] a[href="/listings/#{Slug.slug(draft)}"])
+             )
     end
   end
 
@@ -61,7 +89,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
     end
 
     test "shows a card for every listing the seller owns", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       for listing <- [ctx.draft, ctx.live, ctx.paused, ctx.sold] do
         assert has_element?(view, "#listing-#{listing.id}")
@@ -69,7 +97,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
     end
 
     test "groups them into a section per state", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       for status <- ~w(draft active unavailable sold) do
         assert has_element?(view, "#section-#{status}")
@@ -80,20 +108,20 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       other = generate(user())
       theirs = publish!(other, generate(listing(actor: other)))
 
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       refute has_element?(view, "#listing-#{theirs.id}")
     end
 
     test "offers no way to remove a sold listing, which is a sales record", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       assert has_element?(view, "#remove-#{ctx.live.id}")
       refute has_element?(view, "#remove-#{ctx.sold.id}")
     end
 
     test "asks the browser to confirm before removing", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       assert view |> element("#remove-#{ctx.live.id}") |> render() =~ "data-confirm"
     end
@@ -110,37 +138,37 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
     end
 
     test "narrows to one state from the URL", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings?status=draft")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings?status=draft")
 
       assert has_element?(view, "#listing-#{ctx.draft.id}")
       refute has_element?(view, "#listing-#{ctx.live.id}")
     end
 
     test "a chip puts its state in the URL, so a filtered view is shareable", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
 
       view |> element("#status-chip-draft") |> render_click()
 
-      assert_patched(view, ~p"/my-listings?status=draft")
+      assert_patched(view, ~p"/users/me/listings?status=draft")
     end
 
     test "the All chip clears the filter", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings?status=draft")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings?status=draft")
 
       view |> element("#status-chip-all") |> render_click()
 
-      assert_patched(view, ~p"/my-listings")
+      assert_patched(view, ~p"/users/me/listings")
     end
 
     test "an unknown state in the URL falls back to showing everything", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings?status=nonsense")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings?status=nonsense")
 
       assert has_element?(view, "#listing-#{ctx.draft.id}")
       assert has_element?(view, "#listing-#{ctx.live.id}")
     end
 
     test "says so when the chosen state holds nothing", ctx do
-      {:ok, view, _html} = live(ctx.conn, ~p"/my-listings?status=sold")
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings?status=sold")
 
       assert has_element?(view, "#no-matching-listings")
       refute has_element?(view, "#no-listings")
@@ -153,19 +181,19 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
     end
 
     test "gets the first-listing empty state", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/my-listings")
+      {:ok, view, _html} = live(conn, ~p"/users/me/listings")
 
       assert has_element?(view, "#no-listings")
     end
 
     test "is not offered filter chips there is nothing to filter", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/my-listings")
+      {:ok, view, _html} = live(conn, ~p"/users/me/listings")
 
       refute has_element?(view, "#status-chip-all")
     end
 
     test "can still start a listing from there", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/my-listings")
+      {:ok, view, _html} = live(conn, ~p"/users/me/listings")
 
       assert has_element?(view, "#new-listing")
     end
@@ -176,7 +204,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       seller = generate(user())
       listing = generate(listing(actor: seller, title: "Eames-style lounge chair"))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
 
       %{seller: seller, listing: listing, view: view}
     end
@@ -204,7 +232,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       listing = generate(listing(actor: seller))
       image = generate(listing_image(listing: listing))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
       view |> element("#remove-#{listing.id}") |> render_click()
 
       storage = Application.fetch_env!(:mercato, :storage_adapter)
@@ -215,7 +243,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       seller = generate(user())
       sold = sold!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
 
       refute has_element?(view, "#remove-#{sold.id}")
     end
@@ -230,7 +258,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       seller = generate(user())
       listing = publish!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
       view |> element("#pause-#{listing.id}") |> render_click()
 
       assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(listing.id, actor: seller)
@@ -241,7 +269,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       seller = generate(user())
       listing = publish!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
       view |> element("#pause-#{listing.id}") |> render_click()
 
       assert has_element?(view, "#resume-#{listing.id}")
@@ -252,7 +280,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       seller = generate(user())
       listing = paused!(seller, generate(listing(actor: seller)))
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
       view |> element("#resume-#{listing.id}") |> render_click()
 
       assert {:ok, %{status: :active}} = Listings.get_my_listing(listing.id, actor: seller)
@@ -267,7 +295,7 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
         :ok = Listings.delete_listing_image(image, actor: seller)
       end
 
-      {:ok, view, _html} = live(log_in(conn, seller), ~p"/my-listings")
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
       view |> element("#resume-#{listing.id}") |> render_click()
 
       assert {:ok, %{status: :unavailable}} = Listings.get_my_listing(listing.id, actor: seller)

@@ -53,7 +53,7 @@ defmodule MercatoWeb.Layouts.UserMenuTest do
     test "links to the profile page" do
       hrefs = [current_user: @user] |> query("[role=menu] a") |> LazyHTML.attribute("href")
 
-      assert "/profile" in hrefs
+      assert "/users/me/profile" in hrefs
     end
 
     test "offers a sign out link" do

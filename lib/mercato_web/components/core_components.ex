@@ -105,7 +105,7 @@ defmodule MercatoWeb.CoreComponents do
 
   attr :variant, :string,
     default: "primary",
-    values: ~w(primary secondary tertiary neutral danger)
+    values: ~w(critical primary secondary tertiary neutral danger)
 
   attr :size, :string,
     default: "lg",
@@ -121,6 +121,10 @@ defmodule MercatoWeb.CoreComponents do
     # one sits on the page rather than above it, and two competing shadow
     # utilities would be settled by the order Tailwind happened to emit them in.
     variants = %{
+      # The one non-brand-coloured fill, so the single highest-stakes action on
+      # a screen outranks the primary CTA without borrowing its colour. Inverted
+      # on dark, where ink-900 is the page rather than the mark on it.
+      "critical" => "shadow-sm bg-ink-900 text-white dark:bg-white dark:text-ink-900",
       "primary" => "shadow-sm bg-primary-500 text-white",
       "secondary" => "shadow-sm bg-secondary-500 text-white dark:bg-secondary-600",
       "tertiary" =>
@@ -218,6 +222,65 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   @doc """
+  Renders an alert: an icon, a headline, and the supporting text under it.
+
+  A standing statement about the state a page or a record is in, which is what
+  separates it from a flash — a flash reports what just happened and dismisses
+  itself, an alert stays as long as the state it describes does.
+
+  Every kind carries an icon as well as a colour, so the state is never told by
+  colour alone.
+
+  | Kind | Use |
+  |---|---|
+  | `success` | Something completed and needs no further action |
+  | `info` | A neutral fact about the state a record is in |
+  | `warning` | A state that limits the record without ending it |
+  | `error` | A state that stops the record |
+
+  ## Examples
+
+      <.alert kind="warning" title="Paused — nobody else can open this page">
+        Resume when you want it back in search.
+      </.alert>
+  """
+  attr :kind, :string, default: "info", values: ~w(success info warning error)
+  attr :title, :string, default: nil, doc: "the headline; the body alone reads fine without one"
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def alert(assigns) do
+    kinds = %{
+      "success" => {"bg-success-bg text-success-text", "hero-check-circle"},
+      "info" => {"bg-info-bg text-info-text", "hero-information-circle"},
+      "warning" => {"bg-warning-bg text-warning-text", "hero-pause-circle"},
+      "error" => {"bg-error-bg text-error-text", "hero-exclamation-circle"}
+    }
+
+    {kind_class, icon} = Map.fetch!(kinds, assigns.kind)
+
+    assigns = assign(assigns, kind_class: kind_class, icon: icon)
+
+    ~H"""
+    <div
+      role="alert"
+      class={["flex items-start gap-3 px-4 py-3.5 rounded-lg", @kind_class, @class]}
+      {@rest}
+    >
+      <.icon name={@icon} aria-hidden="true" class="size-5 flex-none mt-px" />
+      <div class="min-w-0">
+        <p :if={@title} class="text-body-md font-bold text-pretty">{@title}</p>
+        <div class={["text-body-sm text-pretty", @title && "mt-0.5 opacity-90"]}>
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a status badge.
 
   Badges label a record's state; they never carry an action, which is why this
@@ -243,7 +306,7 @@ defmodule MercatoWeb.CoreComponents do
   """
   attr :kind, :string,
     default: "neutral",
-    values: ~w(verified featured warning danger info neutral)
+    values: ~w(verified featured new warning danger info neutral)
 
   attr :class, :any, default: nil
   attr :rest, :global
@@ -253,6 +316,7 @@ defmodule MercatoWeb.CoreComponents do
     kinds = %{
       "verified" => "bg-success-bg text-success-text",
       "featured" => "bg-accent-100 text-accent-600",
+      "new" => "bg-primary-050 text-primary-700",
       "warning" => "bg-warning-bg text-warning-text",
       "danger" => "bg-error-bg text-error-text",
       "info" => "bg-info-bg text-info-text",

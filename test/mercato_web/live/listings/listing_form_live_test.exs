@@ -53,7 +53,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       other = generate(user())
       theirs = publish!(other, generate(listing(actor: other)))
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{theirs.id}/edit")
     end
 
@@ -66,14 +66,14 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
           authorize?: false
         )
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{sold.id}/edit")
     end
 
     test "sends a seller opening a listing that is not there back to their own", %{conn: conn} do
       seller = generate(user())
 
-      assert {:error, {:live_redirect, %{to: "/my-listings"}}} =
+      assert {:error, {:live_redirect, %{to: "/users/me/listings"}}} =
                live(log_in(conn, seller), ~p"/listings/#{Ash.UUID.generate()}/edit")
     end
   end
@@ -91,7 +91,13 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     end
 
     test "trails a breadcrumb back to the seller's own listings", %{view: view} do
-      assert has_element?(view, "nav[aria-label=Breadcrumb] a[href='/my-listings']")
+      assert has_element?(view, "nav[aria-label=Breadcrumb] a[href='/users/me/listings']")
+    end
+
+    # There is no listing to name yet, so the trail ends at what the page is for.
+    test "ends the breadcrumb at the page itself while there is nothing to name",
+         %{view: view} do
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "New listing")
     end
 
     test "offers the fields a listing is made of", %{view: view} do
@@ -188,6 +194,19 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
 
     test "names the page for what it is doing", %{view: view} do
       assert view |> element("h1") |> render() =~ "Edit listing"
+    end
+
+    # The listing is a level of its own in the trail, so the seller can read
+    # which one they are changing and step back to it without saving.
+    test "names the listing in the breadcrumb, and ends at what is being done",
+         %{view: view, listing: listing} do
+      assert has_element?(
+               view,
+               "nav[aria-label=Breadcrumb] a[href='#{~p"/listings/#{listing}"}']",
+               "Eames-style lounge chair"
+             )
+
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "Edit")
     end
 
     test "says what state the listing is in", %{view: view} do
@@ -1196,7 +1215,7 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
     test "sends the seller back to their own listings, the page being gone", %{view: view} do
       view |> element("#delete-listing") |> render_click()
 
-      assert_redirect(view, "/my-listings")
+      assert_redirect(view, "/users/me/listings")
     end
 
     test "takes the gallery and its files with it", %{listing: listing, view: view} do
@@ -1370,6 +1389,17 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
 
       [listing] = Listings.list_my_listings!(actor: seller)
       assert_patched(view, "/listings/#{listing.id}/edit")
+    end
+
+    # The trail was composing a listing a moment ago and is now editing one, so
+    # it names it as soon as there is a name to give.
+    test "names the listing in the trail once there is one", %{category: category, view: view} do
+      refute has_element?(view, "nav[aria-label=Breadcrumb]", "Eames-style lounge chair")
+
+      fill(view, category)
+
+      assert has_element?(view, "nav[aria-label=Breadcrumb]", "Eames-style lounge chair")
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "Edit")
     end
 
     test "leaves the gallery open throughout, having nothing to wait for", %{

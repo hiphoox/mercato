@@ -41,6 +41,24 @@ defmodule MercatoWeb.UI.ListingStatusBadgeTest do
     end
   end
 
+  describe "icon" do
+    test "carries an icon as well as a colour, so colour never states it alone" do
+      for status <- Status.values() do
+        assert badge_for(status) =~ "hero-"
+      end
+    end
+
+    test "gives each state its own icon" do
+      icons = Enum.map(Status.values(), &ListingStatusBadge.status_icon/1)
+
+      assert Enum.uniq(icons) == icons
+    end
+
+    test "hides the icon from a screen reader, which the wording already tells" do
+      assert badge_for(:sold) =~ ~s(aria-hidden="true")
+    end
+  end
+
   describe "label/1" do
     test "gives the wording without the badge around it" do
       assert ListingStatusBadge.label(:unavailable) == "Paused"

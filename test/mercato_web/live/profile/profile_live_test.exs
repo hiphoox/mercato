@@ -14,14 +14,14 @@ defmodule MercatoWeb.ProfileLiveTest do
 
   describe "access" do
     test "redirects a signed-out visitor to sign-in", %{conn: conn} do
-      assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, ~p"/profile")
+      assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, ~p"/users/me/profile")
     end
 
     test "renders all four sections for a signed-in user", %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
       conn = log_in(conn, user)
 
-      {:ok, view, _html} = live(conn, ~p"/profile")
+      {:ok, view, _html} = live(conn, ~p"/users/me/profile")
 
       assert has_element?(view, "#name-form")
       assert has_element?(view, "#handle-form")
@@ -31,7 +31,7 @@ defmodule MercatoWeb.ProfileLiveTest do
 
     test "shows a direct-logout sign-out link at the end of the page", %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
 
       assert has_element?(
                view,
@@ -44,7 +44,7 @@ defmodule MercatoWeb.ProfileLiveTest do
   describe "app layout" do
     setup %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 
@@ -53,7 +53,7 @@ defmodule MercatoWeb.ProfileLiveTest do
     end
 
     test "marks the profile entry as the current page", %{view: view} do
-      assert has_element?(view, "#app-sidebar a[href='/profile'][aria-current='page']")
+      assert has_element?(view, "#app-sidebar a[href='/users/me/profile'][aria-current='page']")
     end
 
     test "does not mark the home entry as current", %{view: view} do
@@ -62,7 +62,9 @@ defmodule MercatoWeb.ProfileLiveTest do
 
     test "shows the admin section to an admin, on a page that isn't the admin area" do
       admin = admin_user(first_name: "Rita")
-      {:ok, view, _html} = live(log_in(Phoenix.ConnTest.build_conn(), admin), ~p"/profile")
+
+      {:ok, view, _html} =
+        live(log_in(Phoenix.ConnTest.build_conn(), admin), ~p"/users/me/profile")
 
       assert has_element?(view, "#app-sidebar a[href='/admin/users']")
     end
@@ -103,7 +105,7 @@ defmodule MercatoWeb.ProfileLiveTest do
   describe "name section" do
     setup %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 
@@ -129,7 +131,7 @@ defmodule MercatoWeb.ProfileLiveTest do
   describe "handle section" do
     setup %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 
@@ -169,7 +171,7 @@ defmodule MercatoWeb.ProfileLiveTest do
       end)
 
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 
@@ -194,7 +196,7 @@ defmodule MercatoWeb.ProfileLiveTest do
       user =
         generate(user(password: "password1234", password_confirmation: "password1234"))
 
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 
@@ -231,7 +233,7 @@ defmodule MercatoWeb.ProfileLiveTest do
   describe "delete account section" do
     setup %{conn: conn} do
       user = generate(user(first_name: "Jane", last_name: "Doe"))
-      {:ok, view, _html} = live(log_in(conn, user), ~p"/profile")
+      {:ok, view, _html} = live(log_in(conn, user), ~p"/users/me/profile")
       %{view: view, user: user}
     end
 

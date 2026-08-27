@@ -3,7 +3,7 @@ type: feature
 title: Listing Form
 description: The one page a trader composes a listing on, whether it is new or already theirs.
 tags: [listings, trader, ui, form, authoring]
-timestamp: 2026-08-25T00:00:00Z
+timestamp: 2026-08-27T00:00:00Z
 ---
 
 A listing comes into being as soon as the trader has typed what a listing needs — a title, a price and a category — rather than when they press anything. From that moment it is a draft that keeps itself, so the page can be left at any point and nothing typed after it is lost.
@@ -11,6 +11,8 @@ A listing comes into being as soon as the trader has typed what a listing needs 
 The page a signed-in trader reaches to compose a listing. New and edit are one page: a listing is the same set of fields either way, so only the wording, the state badge, and what the primary action does differ. The rules governing the fields themselves are in [listings.md](../../domain/listings/listings.md), and the gallery's in [listing-images.md](../../domain/listings/listing-images.md).
 
 Composing takes one page with no steps. A trader reaches it from the listing management view ([my-listings.md](my-listings.md)) — new from the page's own action, edit from a listing's.
+
+The trail above the page runs from the marketplace through the trader's own listings to what the page is doing. A listing that already exists is a level of its own in it, named and linking to its page, so the trader can read which listing they are changing and step back to it without saving; the trail then ends at the editing itself. A listing that does not exist yet has no name to give and nowhere to step back to, so the trail ends at the composing. A title too long for the trail is cut short there rather than allowed to wrap over the page.
 
 ## Who reaches it
 

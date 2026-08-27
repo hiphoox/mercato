@@ -205,6 +205,13 @@ defmodule Mercato.Listings.ListingLifecycleTest do
       assert {:error, %Ash.Error.Forbidden{}} = Listings.pause_listing(listing, actor: other)
     end
 
+    test "only the seller may resume", %{seller: seller, listing: listing} do
+      paused = listing |> publish!(seller) |> Listings.pause_listing!(actor: seller)
+      other = generate(user())
+
+      assert {:error, %Ash.Error.Forbidden{}} = Listings.resume_listing(paused, actor: other)
+    end
+
     test "only the seller may delete", %{seller: seller, listing: listing} do
       listing = publish!(seller, listing)
       other = generate(user())

@@ -75,7 +75,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:ok, %{status: :sold}} ->
         socket
         |> put_flash(:info, "That listing has sold, so it can no longer be changed.")
-        |> push_navigate(to: ~p"/my-listings")
+        |> push_navigate(to: ~p"/users/me/listings")
 
       {:ok, listing} ->
         socket
@@ -85,7 +85,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:error, _reason} ->
         socket
         |> put_flash(:error, "That listing is not one of yours.")
-        |> push_navigate(to: ~p"/my-listings")
+        |> push_navigate(to: ~p"/users/me/listings")
     end
   end
 
@@ -143,11 +143,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # and one selling services or digital goods empties it, which renders no
   # condition control at all.
   defp conditions do
-    Enum.map(Listings.conditions(), &{humanize_condition(&1), &1})
-  end
-
-  defp humanize_condition(value) do
-    value |> String.replace("_", " ") |> String.capitalize()
+    Enum.map(Listings.conditions(), &{Listings.condition_label(&1), &1})
   end
 
   @impl true
@@ -212,7 +208,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
         {:noreply,
          socket
          |> put_flash(:info, "“#{listing.title}” was removed.")
-         |> push_navigate(to: ~p"/my-listings")}
+         |> push_navigate(to: ~p"/users/me/listings")}
 
       # Almost always a listing sold since the page was opened: a sale outlives
       # the seller's wish to be rid of it, so the listing stays as its record.
@@ -471,14 +467,10 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       current_scope={assigns[:current_scope]}
       current_user={@current_user}
       admin?={@admin?}
-      current_path={~p"/my-listings"}
+      current_path={~p"/users/me/listings"}
     >
       <div id="listing-form-page" class="flex flex-col gap-6">
-        <.breadcrumb items={[
-          %{label: "Home", navigate: ~p"/"},
-          %{label: "Selling", navigate: ~p"/my-listings"},
-          %{label: page_title(@listing)}
-        ]} />
+        <.breadcrumb items={trail(@listing)} />
 
         <.header>
           <span class="inline-flex items-center gap-2.5 flex-wrap">
@@ -686,6 +678,20 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   defp images(nil), do: []
   defp images(%{images: images}) when is_list(images), do: images
   defp images(_listing), do: []
+
+  # A listing the seller already has is a level of its own in the trail, named
+  # and linked, so they can read which one they are changing and step back to it
+  # without saving. A listing that does not exist yet has no name to give and
+  # nowhere to step back to, so the trail ends at what the page is for.
+  defp trail(nil), do: selling() ++ [%{label: "New listing"}]
+
+  defp trail(listing) do
+    selling() ++ [%{label: listing.title, navigate: ~p"/listings/#{listing}"}, %{label: "Edit"}]
+  end
+
+  defp selling do
+    [%{label: "Home", navigate: ~p"/"}, %{label: "Selling", navigate: ~p"/users/me/listings"}]
+  end
 
   defp page_title(nil), do: "New listing"
   defp page_title(_listing), do: "Edit listing"

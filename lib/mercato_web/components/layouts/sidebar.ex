@@ -17,8 +17,8 @@ defmodule MercatoWeb.Layouts.Sidebar do
   ]
 
   @account [
-    %{label: "My listings", icon: "hero-tag", navigate: "/my-listings"},
-    %{label: "Profile", icon: "hero-user", navigate: "/profile"}
+    %{label: "My listings", icon: "hero-tag", navigate: "/users/me/listings"},
+    %{label: "Profile", icon: "hero-user", navigate: "/users/me/profile"}
   ]
 
   @admin [

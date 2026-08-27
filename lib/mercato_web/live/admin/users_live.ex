@@ -704,12 +704,10 @@ defmodule MercatoWeb.Admin.UsersLive do
     end
   end
 
-  defp name_of(account) do
-    case [account.first_name, account.last_name] |> Enum.reject(&(&1 in [nil, ""])) do
-      [] -> nil
-      parts -> Enum.join(parts, " ")
-    end
-  end
+  # No fallback to the handle or the email on purpose: an account with no name
+  # is reported as having none, which is what keeps a deleted account's former
+  # owner unfindable by name.
+  defp name_of(account), do: Accounts.full_name(account)
 
   defp avatar_name(account), do: if(deleted?(account), do: nil, else: name_of(account))
   defp avatar_src(account), do: if(deleted?(account), do: nil, else: account.avatar_url)

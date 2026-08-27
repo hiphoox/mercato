@@ -3,7 +3,7 @@ type: architecture
 title: Seeds
 description: How seed data is organised and what belongs in it.
 tags: [architecture, data, seeds, database]
-timestamp: 2026-08-21T00:00:00Z
+timestamp: 2026-08-27T00:00:00Z
 ---
 
 Seed data is the baseline records a fresh database needs before anyone signs in — the roles and permissions the authorization model is built on, and the reference catalogs features look up by name.
@@ -11,7 +11,7 @@ Seed data is the baseline records a fresh database needs before anyone signs in 
 ## Layout
 
 - `priv/repo/seeds.exs` is the single entry point. It contains no seed data itself; it lists the concern files and the order they run in.
-- `priv/repo/seeds/<concern>.exs` holds the data for one concern. Today that is `accounts.exs` — roles, permissions, the grants between them, and sample users.
+- `priv/repo/seeds/<concern>.exs` holds the data for one concern. Today that is `accounts.exs` — roles, permissions, the grants between them, and sample traders — and `listings.exs` — the category catalog, and a stock of listings for those traders to have on offer.
 
 A new concern gets its own file and one added line in the entry point. When a concern depends on another's records — a listing needing a seller — the dependency is expressed by ordering the list, and the dependent file looks its prerequisites up rather than receiving them.
 
@@ -28,4 +28,10 @@ Both live in the same concern file. The environment guard is what separates them
 
 Seeds run as part of database setup and reset — see [cli-commands.md](cli-commands.md) for the commands. They are never run against production data as a routine step.
 
-Only the required-in-every-environment data is safe to re-run; seeding an already-seeded database fails on the duplicate. Sample development users are skipped when they already exist.
+Only the required-in-every-environment data is safe to re-run; seeding an already-seeded database fails on the duplicate. Sample development data is skipped when it already exists — a trader who is already registered, and a trader who already has listings.
+
+## Sample development data
+
+Dev gets six accounts, all with the password `password1234`: an admin, and five traders who between them have twenty listings spread across every lifecycle state, so browsing, a seller's profile, the listing management view and the moderation view all have something in them.
+
+A listing reaches its state the way a seller would reach it, so a paused one here has genuinely been published and paused. Photos are drawn rather than shipped: a flat-colour image is generated per photo and uploaded through the same gallery the app uploads with, which keeps binary files out of the repository and leaves a listing publishable.

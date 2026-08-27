@@ -2,8 +2,8 @@
 type: domain
 title: Listings
 description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
-tags: [domain, listings, marketplace, pricing, categories]
-timestamp: 2026-08-24T00:00:00Z
+tags: [domain, listings, marketplace, pricing, categories, identifiers, visibility]
+timestamp: 2026-08-27T00:00:00Z
 ---
 
 A listing is what a seller publishes for a buyer to buy. The term is deliberately generic: the same entity covers physical goods, services, and rentals.
@@ -11,6 +11,14 @@ A listing is what a seller publishes for a buyer to buy. The term is deliberatel
 ## Ownership
 
 Every listing belongs to exactly one seller, and a seller may hold any number of listings. Ownership is fixed by whoever is acting when the listing is created — it is never supplied as part of the listing's content, so a listing cannot be created in another account's name.
+
+## Public identifier
+
+Every listing carries a short public identifier, separate from the one the platform holds it by internally. It is eight characters drawn from digits and letters, with the characters a reader could mistake for one another left out, so it survives being copied off a screen or read aloud.
+
+The identifier is assigned when the listing is created and never changes. A seller has no say in it and no way to supply one, and no two listings share one.
+
+This is what a listing's public address is built from: the address carries the title as well, for whoever reads the link, but only the identifier says which listing is meant. A seller may retitle freely and every link already shared keeps working.
 
 ## Description
 
@@ -72,6 +80,12 @@ Being sold is recorded by the platform when a purchase completes. It is not some
 ## Who sees a listing
 
 A listing on offer is visible to everyone. A listing in any other state is visible only to the seller who owns it, so a draft is private while it is being composed and a paused listing disappears from public view without being lost.
+
+A sold listing is the one exception, and only in one place: it is visible to everyone on its seller's public profile, where the record of what a seller has sold is what a buyer weighs them by. Everywhere else — browsing, and the listing's own page — a sold listing is visible only to its seller, so a sale is evidence about the seller rather than a page anyone can still open.
+
+A listing is also only as public as the account behind it. Where the marketplace no longer shows a seller to strangers — a banned account, a deleted one — their listings leave the public catalog with them: they are absent from browsing, from their own page, and from the seller's profile. The seller keeps them, in whatever state they were in, so an account restored gets its listings back on offer. A restricted account is still shown publicly, and so are its listings.
+
+Moderation sees every listing whatever state it is in and whoever owns it, since a listing taken out of public view is the thing a report is usually about.
 
 ## Who may change a listing
 

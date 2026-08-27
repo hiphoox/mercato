@@ -49,7 +49,7 @@ if Mix.env() == :dev do
   alias Mercato.Accounts
   alias Mercato.Accounts.{User, UserRole}
 
-  register_with_role = fn email, first_name, role ->
+  register_with_role = fn email, first_name, last_name, role ->
     case Ash.get(User, [email: email], authorize?: false, not_found_error?: false) do
       {:ok, nil} ->
         user =
@@ -66,13 +66,23 @@ if Mix.env() == :dev do
           Ash.Seed.seed!(UserRole, %{user_id: user.id, role_id: role.id})
         end
 
-        user
+        # Registration takes only a first name, so the surname is a second step.
+        # Handles are minted at registration and left alone by it, which is why
+        # these accounts are addressed by first name alone.
+        Accounts.update_profile_info!(user, first_name, last_name, actor: user)
 
       {:ok, user} ->
         user
     end
   end
 
-  register_with_role.("trader@example.com", "Trader", trader)
-  register_with_role.("admin@example.com", "Admin", admin)
+  register_with_role.("trader@example.com", "Trader", "Example", trader)
+  register_with_role.("admin@example.com", "Admin", "Example", admin)
+
+  # A marketplace with one seller in it cannot be browsed, so dev gets several,
+  # each of whom stocks their own listings in `listings.exs`.
+  register_with_role.("marta@example.com", "Marta", "Ribeiro", trader)
+  register_with_role.("tom@example.com", "Tom", "Whitfield", trader)
+  register_with_role.("aisha@example.com", "Aisha", "Khan", trader)
+  register_with_role.("diego@example.com", "Diego", "Ferreira", trader)
 end

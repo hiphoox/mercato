@@ -66,6 +66,23 @@ defmodule MercatoWeb.UI.ListingCardTest do
     test "leaves the title as plain text when there is nowhere to go" do
       assert %{} |> query("[data-role=title] a") |> Enum.count() == 0
     end
+
+    test "links the photo to the listing too, since that is what a browser clicks" do
+      link =
+        query(%{navigate: "/listings/1", image_src: "/uploads/cover.png"}, "[data-role=photo] a")
+
+      assert LazyHTML.attribute(link, "href") == ["/listings/1"]
+    end
+
+    test "links the placeholder as well, so a listing without a photo still opens" do
+      link = query(%{navigate: "/listings/1"}, "[data-role=photo] a")
+
+      assert LazyHTML.attribute(link, "href") == ["/listings/1"]
+    end
+
+    test "leaves the photo unlinked when there is nowhere to go" do
+      assert %{} |> query("[data-role=photo] a") |> Enum.count() == 0
+    end
   end
 
   describe "slots" do

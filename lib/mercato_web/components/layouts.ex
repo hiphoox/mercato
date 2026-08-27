@@ -23,7 +23,7 @@ defmodule MercatoWeb.Layouts do
 
   ## Examples
 
-      <Layouts.app flash={@flash} current_user={@current_user} current_path={~p"/profile"}>
+      <Layouts.app flash={@flash} current_user={@current_user} current_path={~p"/users/me/profile"}>
         <h1>Content</h1>
       </Layouts.app>
 
