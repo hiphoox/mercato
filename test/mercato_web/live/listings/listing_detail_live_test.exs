@@ -145,6 +145,18 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       assert has_element?(view, "#listing-detail nav[aria-label='Breadcrumb']", "Furniture")
     end
 
+    # The trail ends where the reader is, and what they are looking at is this
+    # listing rather than the category it is filed under.
+    test "ends the breadcrumb at the listing itself", %{conn: conn, listing: listing} do
+      {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
+
+      assert has_element?(
+               view,
+               "#listing-breadcrumb [aria-current=page]",
+               "Mid-century teak sideboard"
+             )
+    end
+
     test "shows who is selling it", %{conn: conn, listing: listing} do
       {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 

@@ -3,7 +3,7 @@ type: feature
 title: Listing Detail Page
 description: The public page one listing has of its own — what it shows, who may open it, and what each lifecycle state offers there.
 tags: [listings, detail, buyer, gallery, purchase]
-timestamp: 2026-08-26T00:00:00Z
+timestamp: 2026-08-27T00:00:00Z
 ---
 
 The page a listing has of its own. It carries the whole buying decision — what the thing is, whether the seller can be trusted, what taking it costs — and is also the surface the purchase starts from.
@@ -26,7 +26,7 @@ The panel stays in view while the rest of the page scrolls past it. Below `lg` i
 
 The pinned bar stands aside while the panel's own action is on screen, and returns once it is not, so the page never shows the same action twice with one covering the other.
 
-The trail above the page is one level deep, because the catalog is flat.
+The trail above the page runs from the marketplace through the category the listing is filed under to the listing itself. It is that shallow because the catalog is flat, and the category is a label rather than a link while there is no page to browse it on. A title too long for the trail is cut short there rather than allowed to wrap over the page.
 
 ## Who may open it
 

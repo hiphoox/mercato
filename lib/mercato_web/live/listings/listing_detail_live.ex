@@ -166,11 +166,16 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
       </.empty_state>
 
       <div :if={@listing} id="listing-detail" class="flex flex-col gap-6">
-        <%!-- One level deep, because the catalog is flat. The category is a label
-              rather than a link until there is a page to browse it on. --%>
+        <%!-- Two levels deep, because the catalog is flat: where the listing is
+              filed, then the listing itself. The category is a label rather
+              than a link until there is a page to browse it on. --%>
         <.breadcrumb
           id="listing-breadcrumb"
-          items={[%{label: "Home", navigate: ~p"/"}, %{label: @listing.category.name}]}
+          items={[
+            %{label: "Home", navigate: ~p"/"},
+            %{label: @listing.category.name},
+            %{label: @listing.title}
+          ]}
         />
 
         <%!-- Under the trail, which says where the page sits and belongs to the

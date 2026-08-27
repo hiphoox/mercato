@@ -94,6 +94,12 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert has_element?(view, "nav[aria-label=Breadcrumb] a[href='/users/me/listings']")
     end
 
+    # There is no listing to name yet, so the trail ends at what the page is for.
+    test "ends the breadcrumb at the page itself while there is nothing to name",
+         %{view: view} do
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "New listing")
+    end
+
     test "offers the fields a listing is made of", %{view: view} do
       assert has_element?(view, "#listing_title")
       assert has_element?(view, "#listing_description")
@@ -188,6 +194,19 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
 
     test "names the page for what it is doing", %{view: view} do
       assert view |> element("h1") |> render() =~ "Edit listing"
+    end
+
+    # The listing is a level of its own in the trail, so the seller can read
+    # which one they are changing and step back to it without saving.
+    test "names the listing in the breadcrumb, and ends at what is being done",
+         %{view: view, listing: listing} do
+      assert has_element?(
+               view,
+               "nav[aria-label=Breadcrumb] a[href='#{~p"/listings/#{listing}"}']",
+               "Eames-style lounge chair"
+             )
+
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "Edit")
     end
 
     test "says what state the listing is in", %{view: view} do
@@ -1370,6 +1389,17 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
 
       [listing] = Listings.list_my_listings!(actor: seller)
       assert_patched(view, "/listings/#{listing.id}/edit")
+    end
+
+    # The trail was composing a listing a moment ago and is now editing one, so
+    # it names it as soon as there is a name to give.
+    test "names the listing in the trail once there is one", %{category: category, view: view} do
+      refute has_element?(view, "nav[aria-label=Breadcrumb]", "Eames-style lounge chair")
+
+      fill(view, category)
+
+      assert has_element?(view, "nav[aria-label=Breadcrumb]", "Eames-style lounge chair")
+      assert has_element?(view, "nav[aria-label=Breadcrumb] [aria-current=page]", "Edit")
     end
 
     test "leaves the gallery open throughout, having nothing to wait for", %{
