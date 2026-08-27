@@ -75,10 +75,10 @@ Browse, search, filtering, and sorting are in [discovery/todo.md](../discovery/t
 
 ### Authorization
 
-34. [ ] Only the owning seller may edit, pause, or delete a listing
-35. [ ] Only `active` listings are readable by anonymous visitors
-36. [ ] Admins may moderate any listing
-37. [ ] A suspended or deleted seller's listings leave the public catalog
+34. [x] Only the owning seller may edit, pause, or delete a listing
+35. [x] Only `active` listings are readable by anonymous visitors
+36. [x] Admins may moderate any listing
+37. [x] A suspended or deleted seller's listings leave the public catalog
 
 ## NICE TO HAVE — Phase 2
 

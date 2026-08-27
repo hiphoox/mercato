@@ -14,6 +14,7 @@ defmodule Mercato.Listings.Listing do
     extensions: [AshArchival.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
+  alias Mercato.Accounts.User.Status, as: SellerStatus
   alias Mercato.Listings.Listing.{Calculations, PublicId}
 
   sqlite do
@@ -235,8 +236,15 @@ defmodule Mercato.Listings.Listing do
     # offer instead of an error. A seller sees their own whatever state it is in.
     # Browsing and opening one share the rule: a listing reachable in a grid and
     # a listing reachable by its own URL are the same set.
+    #
+    # A listing is only as public as the account behind it: a seller the
+    # marketplace no longer shows to strangers takes their listings out of
+    # public view with them, without anything per-listing changing. The list of
+    # statuses is the one the seller's own profile page is gated on, read from
+    # where it is declared rather than restated, so the two can never disagree
+    # about whether a seller is still on the marketplace.
     policy action([:read, :get, :get_by_public_id]) do
-      authorize_if expr(status == :active)
+      authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
       authorize_if expr(seller_id == ^actor(:id))
     end
 
@@ -245,8 +253,15 @@ defmodule Mercato.Listings.Listing do
     # the same thing to the seller as to a stranger, because it is a preview of
     # what buyers see. A paused or draft listing appears nowhere — the seller
     # took it out of public view, or never put it in.
+    #
+    # Gated on the seller's status like the reads above, so a profile page that
+    # somehow gets rendered for an account off the marketplace has nothing to
+    # show — the listings go when the profile does.
     policy action(:list_for_seller) do
-      authorize_if expr(status in [:active, :sold])
+      authorize_if expr(
+                     status in [:active, :sold] and
+                       seller.status in ^SellerStatus.has_public_profile()
+                   )
     end
 
     # Filtering, like :read above — a signed-out visitor gets an empty list
