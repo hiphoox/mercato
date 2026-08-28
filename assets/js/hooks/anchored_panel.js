@@ -80,10 +80,11 @@ export default {
     const below = rect.bottom + gap
     const flip = below + height > window.innerHeight && rect.top - gap - height > 0
 
-    // Right-aligned to the trigger, then held inside the viewport so a
-    // trigger near either edge cannot push the panel off-screen.
-    const right = rect.right - width
-    const left = Math.max(gap, Math.min(right, window.innerWidth - width - gap))
+    // Aligned to whichever of the trigger's edges the caller named, then held
+    // inside the viewport so a trigger near either edge cannot push the panel
+    // off-screen.
+    const aligned = this.el.dataset.align === "left" ? rect.left : rect.right - width
+    const left = Math.max(gap, Math.min(aligned, window.innerWidth - width - gap))
 
     Object.assign(this.el.style, {
       position: "fixed",

@@ -16,6 +16,8 @@ defmodule MercatoWeb.UI.Menu do
   """
   use MercatoWeb, :html
 
+  import MercatoWeb.UI.Popover
+
   @doc """
   Renders a single menu row.
 
@@ -123,20 +125,16 @@ defmodule MercatoWeb.UI.Menu do
   @doc """
   Renders a popup menu anchored to a trigger.
 
-  Open/closed state is held entirely on the client, so no LiveView needs to
-  track it. The panel closes on outside click and on Escape.
+  A `popover/1` carrying rows: the disclosure — open state, dismissal,
+  positioning — belongs to the popover, and what a menu adds is the width a
+  column of rows wants and the promise that the panel holds choices.
   """
   attr :id, :string, required: true, doc: "unique id; the trigger and panel derive theirs from it"
   attr :class, :any, default: nil, doc: "classes for the panel"
 
   attr :trigger_class, :any,
     default: "bg-bg dark:bg-ink-700 shadow-sm transition-[filter] hover:brightness-97",
-    doc: """
-    The trigger's chrome, replacing the default raised surface outright rather
-    than adding to it — a Tailwind utility passed alongside a conflicting one
-    resolves by stylesheet order, not attribute order, so the two cannot be
-    layered.
-    """
+    doc: "the trigger's chrome, replacing the default raised surface outright"
 
   attr :rest, :global
 
@@ -145,69 +143,17 @@ defmodule MercatoWeb.UI.Menu do
 
   def menu(assigns) do
     ~H"""
-    <%!-- click-away lives on the wrapper, not the panel: the trigger sits outside
-          the panel, so a panel-scoped handler would fire on the very click that
-          opens it and close it again in the same event. --%>
-    <div class="relative" phx-click-away={close_menu(@id)} {@rest}>
-      <button
-        type="button"
-        id={"#{@id}-trigger"}
-        aria-haspopup="menu"
-        aria-expanded="false"
-        aria-controls={"#{@id}-panel"}
-        phx-click={open_menu(@id)}
-        class={[
-          "flex items-center gap-2 rounded-md cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100",
-          @trigger_class
-        ]}
-      >
-        {render_slot(@trigger)}
-      </button>
-
-      <%!-- AnchoredPanel (assets/js/hooks/anchored_panel.js) only positions the
-            panel; it deliberately does not take the DOM over with
-            phx-update="ignore", because the rows inside are server-rendered and
-            change (a menu of statuses loses the one just applied). --%>
-      <div
-        id={"#{@id}-panel"}
-        role="menu"
-        aria-labelledby={"#{@id}-trigger"}
-        phx-hook="AnchoredPanel"
-        data-anchor={"#{@id}-trigger"}
-        data-close={close_menu(@id)}
-        phx-window-keydown={close_menu(@id)}
-        phx-key="escape"
-        class={
-          [
-            # The `hidden` class, never the `hidden` attribute: Tailwind's preflight marks
-            # [hidden] as `display:none !important`, which beats the inline display that
-            # JS.toggle sets and would leave the panel permanently invisible.
-            "hidden",
-            "absolute right-0 top-[calc(100%+8px)] z-60 w-62 p-2",
-            "flex flex-col gap-0.5 rounded-md border border-ink-100 dark:border-ink-700",
-            "bg-bg dark:bg-ink-900 shadow-lg",
-            @class
-          ]
-        }
-      >
-        {render_slot(@inner_block)}
-      </div>
-    </div>
+    <.popover
+      id={@id}
+      role="menu"
+      align="right"
+      trigger_class={@trigger_class}
+      class={["w-62", @class]}
+      {@rest}
+    >
+      <:trigger>{render_slot(@trigger)}</:trigger>
+      {render_slot(@inner_block)}
+    </.popover>
     """
-  end
-
-  defp open_menu(id) do
-    # display: "flex" — the panel is a flex column; JS.toggle would otherwise reveal
-    # it as display:block and drop the column layout and row gaps.
-    %JS{}
-    |> JS.toggle(to: "##{id}-panel", display: "flex")
-    |> JS.toggle_attribute({"aria-expanded", "true", "false"}, to: "##{id}-trigger")
-  end
-
-  defp close_menu(id) do
-    %JS{}
-    |> JS.hide(to: "##{id}-panel")
-    |> JS.set_attribute({"aria-expanded", "false"}, to: "##{id}-trigger")
   end
 end
