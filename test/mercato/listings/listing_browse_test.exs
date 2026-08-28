@@ -170,4 +170,86 @@ defmodule Mercato.Listings.ListingBrowseTest do
                [newer.id, older.id]
     end
   end
+
+  describe "browse_listings scoped to a category" do
+    setup do
+      %{
+        furniture: generate(category(slug: "furniture")),
+        outdoor: generate(category(slug: "outdoor"))
+      }
+    end
+
+    test "narrows the shelf to the named category", %{
+      seller: seller,
+      furniture: furniture,
+      outdoor: outdoor
+    } do
+      chair = on_offer!(seller, category_id: furniture.id)
+      on_offer!(seller, category_id: outdoor.id)
+
+      assert [found] = Listings.browse_listings!(%{category_slug: "furniture"})
+      assert found.id == chair.id
+    end
+
+    # The blank slug is not a special case for the same reason the blank term
+    # is not: an unscoped grid and a cleared scope have to be one read.
+    test "returns the whole shelf for a blank slug", %{
+      seller: seller,
+      furniture: furniture,
+      outdoor: outdoor
+    } do
+      on_offer!(seller, category_id: furniture.id)
+      on_offer!(seller, category_id: outdoor.id)
+
+      assert length(Listings.browse_listings!(%{category_slug: ""})) == 2
+    end
+
+    test "defaults to the whole shelf when no slug is given", %{
+      seller: seller,
+      furniture: furniture,
+      outdoor: outdoor
+    } do
+      on_offer!(seller, category_id: furniture.id)
+      on_offer!(seller, category_id: outdoor.id)
+
+      assert length(Listings.browse_listings!()) == 2
+    end
+
+    # A hand-edited or stale URL names a category nobody has: the read says so
+    # by coming back empty rather than by raising, and the page decides what to
+    # draw. Falling back to the whole shelf here would be a lie about the scope
+    # the grid is showing.
+    test "returns nothing for a slug no category holds", %{
+      seller: seller,
+      furniture: furniture
+    } do
+      on_offer!(seller, category_id: furniture.id)
+
+      assert Listings.browse_listings!(%{category_slug: "harpsichords"}) == []
+    end
+
+    test "narrows by the term and the scope together", %{
+      seller: seller,
+      furniture: furniture,
+      outdoor: outdoor
+    } do
+      chair = on_offer!(seller, title: "Folding chair", category_id: furniture.id)
+      on_offer!(seller, title: "Folding chair", category_id: outdoor.id)
+      on_offer!(seller, title: "Two-person tent", category_id: furniture.id)
+
+      assert [found] =
+               Listings.browse_listings!(%{query: "chair", category_slug: "furniture"})
+
+      assert found.id == chair.id
+    end
+
+    test "still leaves out a draft in the scoped category", %{
+      seller: seller,
+      furniture: furniture
+    } do
+      generate(listing(actor: seller, category_id: furniture.id))
+
+      assert Listings.browse_listings!(%{category_slug: "furniture"}) == []
+    end
+  end
 end

@@ -77,12 +77,26 @@ defmodule Mercato.Listings.Listing do
         default ""
       end
 
+      argument :category_slug, :string do
+        description "Narrows the grid to one category, named the way its URL names it."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
       # A disjunction over the two columns rather than a search against them
       # joined: concatenating columns is not compilable to SQLite at all. The
       # match is case-insensitive; see the expression module for why contains/2
       # is unusable here. An empty term matches everything, which is what makes
       # the unsearched grid and a cleared search the same read.
-      filter expr(icontains(title, ^arg(:query)) or icontains(description, ^arg(:query)))
+      #
+      # The scope is blank-means-everything too, so a cleared filter is that
+      # same read again — but it needs the guard spelled out, because equality
+      # against an empty slug matches nothing where an empty term matched all.
+      filter expr(
+               (icontains(title, ^arg(:query)) or icontains(description, ^arg(:query))) and
+                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
+             )
 
       prepare build(
                 sort: [published_at: :desc, inserted_at: :desc],
