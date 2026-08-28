@@ -18,11 +18,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
   bar below the heading writes to the same query string, which is why picking a
   category there is a link rather than an event.
 
-  Price and sort are drawn but not yet wired: `browse_listings!` takes neither,
-  and giving it them is a change to the read action rather than to this page.
-  They are here so the bar is the shape it will keep, not so they work today.
+  The order is a third such parameter, and the heading says nothing about it:
+  the pill on the bar states the order in force, so restating it above the grid
+  would be one claim in two places, and the wrong one half the time. An order is
+  not a filter either, which is why clearing the filters leaves it alone.
 
-  Paging the grid is not here yet either.
+  The price range is drawn but not yet wired, and paging is not here at all.
   """
 
   use MercatoWeb, :live_view
@@ -34,6 +35,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
   import MercatoWeb.UI.Sheet
 
   alias Mercato.Listings
+  alias Mercato.Listings.Listing.SortOrder
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
@@ -46,13 +48,15 @@ defmodule MercatoWeb.Listings.BrowseLive do
   def handle_params(params, _uri, socket) do
     query = params |> Map.get("q", "") |> to_string() |> String.trim()
     category = scope(params, socket.assigns.search_categories)
+    sort = order(params)
 
     {:noreply,
      socket
      |> assign(:query, query)
      |> assign(:category, category && category.slug)
      |> assign(:category_name, category && category.name)
-     |> assign(:listings, listings(query, category))}
+     |> assign(:sort, sort)
+     |> assign(:listings, listings(query, category, sort))}
   end
 
   defp scope(params, categories) do
@@ -61,44 +65,64 @@ defmodule MercatoWeb.Listings.BrowseLive do
     Enum.find(categories, &(&1.slug == slug))
   end
 
-  defp listings(query, category) do
+  # An order nobody offers is read as no order at all, the same way an unknown
+  # category is: a stale or hand-typed link lands on the grid rather than on an
+  # error.
+  defp order(params) do
+    named = params |> Map.get("sort", "") |> to_string()
+
+    Enum.find(SortOrder.values(), :newest, &(to_string(&1) == named))
+  end
+
+  defp listings(query, category, sort) do
     Listings.browse_listings!(%{
       query: query,
-      category_slug: (category && category.slug) || ""
+      category_slug: (category && category.slug) || "",
+      sort: sort
     })
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/")}
+    {:noreply, push_patch(socket, to: browse_path(sort: socket.assigns.sort))}
   end
 
   def handle_event("drop_query", _params, socket) do
-    {:noreply, push_patch(socket, to: browse_path(category: socket.assigns.category))}
+    {:noreply,
+     push_patch(socket,
+       to: browse_path(category: socket.assigns.category, sort: socket.assigns.sort)
+     )}
   end
 
   def handle_event("drop_category", _params, socket) do
-    {:noreply, push_patch(socket, to: browse_path(q: socket.assigns.query))}
+    {:noreply,
+     push_patch(socket, to: browse_path(q: socket.assigns.query, sort: socket.assigns.sort))}
   end
 
   # Built rather than interpolated, so a facet that is unset leaves no empty
   # parameter behind and the whole shelf is plainly `/`.
-  defp browse_path(params) do
+  defp browse_path(opts) do
+    params = [q: opts[:q], category: opts[:category], sort: sort_param(opts[:sort])]
+
     case Enum.reject(params, fn {_key, value} -> value in [nil, ""] end) do
       [] -> ~p"/"
       kept -> ~p"/?#{kept}"
     end
   end
 
-  # A clause per option rather than a lookup table: a label built at compile
-  # time is invisible to translation extraction.
-  defp sort_options do
-    [
-      {"newest", gettext("Newest")},
-      {"price_asc", gettext("Price: low to high")},
-      {"price_desc", gettext("Price: high to low")}
-    ]
-  end
+  # The default order is the absence of the parameter, so the plain shelf has
+  # one address rather than two that render the same page.
+  defp sort_param(order) when order in [nil, :newest], do: nil
+  defp sort_param(order), do: to_string(order)
+
+  # Derived from the type, so an order added to the resource reaches the bar
+  # without being listed a second time here. The labels stay clauses rather
+  # than a lookup table: one built at compile time is invisible to extraction.
+  defp sort_options, do: Enum.map(SortOrder.values(), &{&1, sort_label(&1)})
+
+  defp sort_label(:newest), do: gettext("Newest")
+  defp sort_label(:price_asc), do: gettext("Price: low to high")
+  defp sort_label(:price_desc), do: gettext("Price: high to low")
 
   @impl true
   def render(assigns) do
@@ -136,7 +160,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
               active={not is_nil(@category)}
               class="w-64 max-h-72 overflow-y-auto"
             >
-              <.category_choices query={@query} category={@category} categories={@search_categories} />
+              <.category_choices
+                query={@query}
+                category={@category}
+                sort={@sort}
+                categories={@search_categories}
+              />
             </.filter_menu>
 
             <.filter_menu
@@ -152,11 +181,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
           <.filter_menu
             id="browse-sort"
-            label={sort_label()}
+            label={sort_label(@sort)}
             name={gettext("Sort")}
             class="w-60"
           >
-            <.sort_choices prefix="browse-sort" />
+            <.sort_choices prefix="browse-sort" query={@query} category={@category} sort={@sort} />
           </.filter_menu>
 
           <div class="flex-1"></div>
@@ -211,13 +240,13 @@ defmodule MercatoWeb.Listings.BrowseLive do
               <.filter_chip
                 label={gettext("All categories")}
                 selected={is_nil(@category)}
-                patch={browse_path(q: @query)}
+                patch={browse_path(q: @query, sort: @sort)}
               />
               <.filter_chip
                 :for={category <- @search_categories}
                 label={category.name}
                 selected={category.slug == @category}
-                patch={browse_path(q: @query, category: category.slug)}
+                patch={browse_path(q: @query, category: category.slug, sort: @sort)}
               />
             </div>
           </section>
@@ -233,7 +262,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
             <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
               {gettext("Sort")}
             </h3>
-            <.sort_choices prefix="browse-sheet-sort" />
+            <.sort_choices
+              prefix="browse-sheet-sort"
+              query={@query}
+              category={@category}
+              sort={@sort}
+            />
           </section>
 
           <:footer>
@@ -305,6 +339,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
   # this page has these facets to offer.
   attr :query, :string, required: true
   attr :category, :string, default: nil
+  attr :sort, :atom, required: true
   attr :categories, :list, required: true
 
   defp category_choices(assigns) do
@@ -313,31 +348,33 @@ defmodule MercatoWeb.Listings.BrowseLive do
       id="browse-category-any"
       label={gettext("All categories")}
       selected={is_nil(@category)}
-      patch={browse_path(q: @query)}
+      patch={browse_path(q: @query, sort: @sort)}
     />
     <.filter_option
       :for={category <- @categories}
       id={"browse-category-#{category.slug}"}
       label={category.name}
       selected={category.slug == @category}
-      patch={browse_path(q: @query, category: category.slug)}
+      patch={browse_path(q: @query, category: category.slug, sort: @sort)}
     />
     """
   end
 
-  # Drawn, not wired: the read action takes no order yet, so every option but
-  # the one in force reports the choice and changes nothing.
   attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
+  attr :query, :string, required: true
+  attr :category, :string, default: nil
+  attr :sort, :atom, required: true
 
   defp sort_choices(assigns) do
     assigns = assign(assigns, :options, sort_options())
 
     ~H"""
     <.filter_option
-      :for={{key, label} <- @options}
-      id={"#{@prefix}-#{key}"}
+      :for={{order, label} <- @options}
+      id={"#{@prefix}-#{order}"}
       label={label}
-      selected={key == "newest"}
+      selected={order == @sort}
+      patch={browse_path(q: @query, category: @category, sort: order)}
     />
     """
   end
@@ -368,13 +405,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
     """
   end
 
-  defp sort_label, do: sort_options() |> hd() |> elem(1)
-
-  defp heading("", nil, _listings), do: gettext("Newest listings")
+  defp heading("", nil, _listings), do: gettext("Everything on offer")
 
   defp heading("", category, []), do: gettext("Nothing in %{category} yet", category: category)
 
-  defp heading("", category, _listings), do: gettext("Newest in %{category}", category: category)
+  defp heading("", category, _listings),
+    do: gettext("Everything in %{category}", category: category)
 
   defp heading(query, _category, []), do: gettext("No results for “%{query}”", query: query)
 
@@ -387,23 +423,23 @@ defmodule MercatoWeb.Listings.BrowseLive do
     )
   end
 
-  defp subtitle("", nil, _listings), do: gettext("Everything just listed, freshest first.")
+  defp subtitle("", nil, _listings), do: gettext("Every listing on offer, from every seller.")
 
   defp subtitle("", category, []),
     do: gettext("Nothing is listed in %{category} yet.", category: category)
 
   defp subtitle("", category, _listings),
-    do: gettext("Everything in %{category}, freshest first.", category: category)
+    do: gettext("Every listing in %{category}, from every seller.", category: category)
 
   defp subtitle(_query, nil, []), do: gettext("Nothing on offer matches that search.")
 
   defp subtitle(_query, category, []),
     do: gettext("Nothing in %{category} matches that search.", category: category)
 
-  defp subtitle(_query, nil, _listings), do: gettext("Newest first.")
+  defp subtitle(_query, nil, _listings), do: gettext("Everything on offer that matches.")
 
   defp subtitle(_query, category, _listings),
-    do: gettext("Newest first in %{category}.", category: category)
+    do: gettext("Everything in %{category} that matches.", category: category)
 
   defp no_results_headline("", category),
     do: gettext("Nothing in %{category} yet", category: category)

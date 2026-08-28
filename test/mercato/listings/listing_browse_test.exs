@@ -246,4 +246,61 @@ defmodule Mercato.Listings.ListingBrowseTest do
       assert Listings.browse_listings!(%{category_slug: "furniture"}) == []
     end
   end
+
+  describe "browse_listings ordered by price" do
+    setup %{seller: seller} do
+      %{
+        dear: on_offer!(seller, title: "Turntable", price: 68_000),
+        cheap: on_offer!(seller, title: "Paperbacks", price: 3_200),
+        middling: on_offer!(seller, title: "Kilim runner", price: 15_500)
+      }
+    end
+
+    test "puts the cheapest first when asked", ctx do
+      ids = Listings.browse_listings!(%{sort: :price_asc}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.cheap.id, ctx.middling.id, ctx.dear.id]
+    end
+
+    test "puts the dearest first when asked", ctx do
+      ids = Listings.browse_listings!(%{sort: :price_desc}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.dear.id, ctx.middling.id, ctx.cheap.id]
+    end
+
+    test "still leads with the newest when asked for that", ctx do
+      ids = Listings.browse_listings!(%{sort: :newest}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.middling.id, ctx.cheap.id, ctx.dear.id]
+    end
+
+    test "leads with the newest when asked for nothing, so a plain read is unchanged", ctx do
+      ids = Listings.browse_listings!() |> Enum.map(& &1.id)
+
+      assert ids == [ctx.middling.id, ctx.cheap.id, ctx.dear.id]
+    end
+
+    test "breaks a tie on price by recency, so equal prices do not shuffle", %{seller: seller} do
+      first = on_offer!(seller, price: 500)
+      second = on_offer!(seller, price: 500)
+
+      ids = Listings.browse_listings!(%{sort: :price_asc}) |> Enum.map(& &1.id)
+
+      assert Enum.take(ids, 2) == [second.id, first.id]
+    end
+
+    test "narrows and orders together", %{seller: seller} do
+      cheap = on_offer!(seller, title: "Cheap chair", price: 1_000)
+      dear = on_offer!(seller, title: "Dear chair", price: 90_000)
+
+      ids =
+        Listings.browse_listings!(%{query: "chair", sort: :price_asc}) |> Enum.map(& &1.id)
+
+      assert ids == [cheap.id, dear.id]
+    end
+
+    test "refuses an ordering it does not offer" do
+      assert {:error, _} = Listings.browse_listings(%{sort: :cheapest_nearby})
+    end
+  end
 end

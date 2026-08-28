@@ -95,6 +95,12 @@ defmodule Mercato.Listings.Listing do
         default ""
       end
 
+      argument :sort, Mercato.Listings.Listing.SortOrder do
+        description "The order the grid is read in."
+        allow_nil? false
+        default :newest
+      end
+
       # A disjunction over the two columns rather than a search against them
       # joined: concatenating columns is not compilable to SQLite at all. The
       # match is case-insensitive; see the expression module for why contains/2
@@ -105,10 +111,8 @@ defmodule Mercato.Listings.Listing do
                  (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
              )
 
-      prepare build(
-                sort: [published_at: :desc, inserted_at: :desc],
-                load: [:display_price, :seller, images: :url]
-              )
+      prepare build(load: [:display_price, :seller, images: :url])
+      prepare Mercato.Listings.Listing.Preparations.SortOrder
     end
 
     read :suggest_titles do

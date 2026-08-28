@@ -34,10 +34,10 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       assert has_element?(view, "#browse")
     end
 
-    test "leads with what the grid is ordered by", %{conn: conn} do
+    test "says what the grid holds, leaving the order to the bar", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/")
 
-      assert html =~ "Newest listings"
+      assert html =~ "Everything on offer"
     end
   end
 
@@ -229,7 +229,7 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
 
       {:ok, _view, html} = live(conn, ~p"/?q=")
 
-      assert html =~ "Newest listings"
+      assert html =~ "Everything on offer"
       assert html =~ "Two-person tent"
     end
 
@@ -270,7 +270,7 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
 
       assert_patched(view, "/")
       assert render(view) =~ "Two-person tent"
-      assert render(view) =~ "Newest listings"
+      assert render(view) =~ "Everything on offer"
     end
   end
 
@@ -475,6 +475,98 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       view |> element("#browse-clear-all") |> render_click()
 
       assert_patched(view, "/")
+    end
+  end
+
+  describe "ordering the grid" do
+    setup %{seller: seller} do
+      furniture = generate(category(name: "Furniture", slug: "furniture"))
+
+      # Cheapest published first, so recency and price disagree — an order the
+      # grid has not applied cannot pass by coincidence.
+      %{
+        cheap: on_offer!(seller, title: "Cheap chair", price: 1_000, category_id: furniture.id),
+        dear: on_offer!(seller, title: "Dear chair", price: 90_000, category_id: furniture.id)
+      }
+    end
+
+    test "reads the order out of the URL", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/?sort=price_asc")
+
+      assert view |> element("#browse-grid") |> render() =~ "Cheap chair"
+
+      assert [ctx.cheap.id, ctx.dear.id] ==
+               Regex.scan(~r/browse-listing-([0-9a-f-]+)/, render(view))
+               |> Enum.map(&List.last/1)
+               |> Enum.uniq()
+    end
+
+    test "labels the pill with the order in force", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?sort=price_desc")
+
+      assert view |> element("#browse-sort-trigger") |> render() =~ "Price: high to low"
+    end
+
+    test "marks the order in force as chosen", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?sort=price_asc")
+
+      assert has_element?(view, ~s{#browse-sort-price_asc[aria-checked="true"]})
+      refute has_element?(view, ~s{#browse-sort-newest[aria-checked="true"]})
+    end
+
+    test "picks the order from the bar", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view |> element("#browse-sort-price_asc") |> render_click()
+
+      assert_patched(view, "/?sort=price_asc")
+    end
+
+    test "keeps the term and the scope when the order changes", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&category=furniture")
+
+      view |> element("#browse-sort-price_desc") |> render_click()
+
+      assert_patched(view, "/?category=furniture&q=chair&sort=price_desc")
+    end
+
+    test "keeps the order when the scope changes, since an order is not a filter", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?sort=price_asc")
+
+      view |> element("#browse-category-furniture") |> render_click()
+
+      assert_patched(view, "/?category=furniture&sort=price_asc")
+    end
+
+    test "keeps the order when the filters are cleared", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&sort=price_asc")
+
+      view |> element("#browse-clear-all") |> render_click()
+
+      assert_patched(view, "/?sort=price_asc")
+    end
+
+    test "leaves the order out of the URL while it is the default", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair")
+
+      view |> element("#browse-sort-newest") |> render_click()
+
+      assert_patched(view, "/?q=chair")
+    end
+
+    test "falls back to newest for an order nobody has", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?sort=cheapest_nearby")
+
+      assert view |> element("#browse-sort-trigger") |> render() =~ "Newest"
+      assert has_element?(view, ~s{#browse-sort-newest[aria-checked="true"]})
+    end
+
+    test "offers the same orders in the sheet as on the bar", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-sheet-sort-newest")
+      assert has_element?(view, "#browse-sheet-sort-price_asc")
+      assert has_element?(view, "#browse-sheet-sort-price_desc")
     end
   end
 end
