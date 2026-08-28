@@ -70,6 +70,20 @@ defmodule Mercato.Listings.Listing do
     read :browse do
       description "Every listing on offer, as the public browse grid shows them."
 
+      argument :query, :string do
+        description "Free-text search over the listing's title and description."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      # A disjunction over the two columns rather than a search against them
+      # joined: concatenating columns is not compilable to SQLite at all. The
+      # match is case-insensitive; see the expression module for why contains/2
+      # is unusable here. An empty term matches everything, which is what makes
+      # the unsearched grid and a cleared search the same read.
+      filter expr(icontains(title, ^arg(:query)) or icontains(description, ^arg(:query)))
+
       prepare build(
                 sort: [published_at: :desc, inserted_at: :desc],
                 load: [:display_price, :seller, images: :url]

@@ -15,7 +15,9 @@ defmodule Mercato.Listings.ListingBrowseTest do
     Listings.publish_listing!(listing, actor: seller)
   end
 
-  defp on_offer!(seller), do: publish!(seller, generate(listing(actor: seller)))
+  defp on_offer!(seller, opts \\ []) do
+    publish!(seller, generate(listing(Keyword.put(opts, :actor, seller))))
+  end
 
   describe "browse_listings" do
     test "returns a listing on offer", %{seller: seller} do
@@ -89,6 +91,83 @@ defmodule Mercato.Listings.ListingBrowseTest do
       assert [%{url: url}] = listing.images
       assert is_binary(url)
       assert listing.seller.handle == seller.handle
+    end
+  end
+
+  describe "browse_listings with a search term" do
+    test "finds a listing by a word in its title", %{seller: seller} do
+      on_offer!(seller, title: "Eames-style lounge chair")
+      on_offer!(seller, title: "Two-person tent")
+
+      assert [%{title: "Eames-style lounge chair"}] =
+               Listings.browse_listings!(%{query: "lounge"})
+    end
+
+    test "finds a listing by a word in its description", %{seller: seller} do
+      on_offer!(seller, title: "Nondescript item", description: "Walnut shell, barely used")
+      on_offer!(seller, title: "Two-person tent")
+
+      assert [%{title: "Nondescript item"}] = Listings.browse_listings!(%{query: "walnut"})
+    end
+
+    test "matches on the title alone when the description is blank", %{seller: seller} do
+      on_offer!(seller, title: "Silk scarf", description: nil)
+
+      assert [%{title: "Silk scarf"}] = Listings.browse_listings!(%{query: "scarf"})
+    end
+
+    # The term and the stored value differ only in case, which is the shape that
+    # slips past a filter relying on SQLite's case-sensitive `instr`.
+    test "ignores case in both the term and the stored value", %{seller: seller} do
+      on_offer!(seller, title: "Steel-Frame ROAD Bike")
+
+      assert [_found] = Listings.browse_listings!(%{query: "road BIKE"})
+    end
+
+    # An underscore is what `contains/2` breaks on here: it compiles to a LIKE
+    # pattern escaped with a backslash and no ESCAPE clause, which SQLite
+    # ignores, so the escape is matched literally and nothing comes back.
+    test "matches a term containing an underscore", %{seller: seller} do
+      on_offer!(seller, title: "Model x_200 turntable")
+      on_offer!(seller, title: "Model x1200 turntable")
+
+      assert [%{title: "Model x_200 turntable"}] = Listings.browse_listings!(%{query: "x_200"})
+    end
+
+    # `%` is a LIKE wildcard, so a term leaking into a pattern unescaped would
+    # match every listing rather than the one that actually says so.
+    test "treats a percent sign as a character, not a wildcard", %{seller: seller} do
+      on_offer!(seller, title: "Wool rug, 100% wool")
+      on_offer!(seller, title: "Two-person tent")
+
+      assert [%{title: "Wool rug, 100% wool"}] = Listings.browse_listings!(%{query: "100%"})
+    end
+
+    test "returns nothing when no listing matches", %{seller: seller} do
+      on_offer!(seller, title: "Two-person tent")
+
+      assert Listings.browse_listings!(%{query: "harpsichord"}) == []
+    end
+
+    test "returns the whole shelf for a blank term", %{seller: seller} do
+      on_offer!(seller)
+      on_offer!(seller)
+
+      assert length(Listings.browse_listings!(%{query: ""})) == 2
+    end
+
+    test "searches only what is on offer, never a draft", %{seller: seller} do
+      generate(listing(actor: seller, title: "Draft lounge chair"))
+
+      assert Listings.browse_listings!(%{query: "lounge"}) == []
+    end
+
+    test "keeps the newest first among the matches", %{seller: seller} do
+      older = on_offer!(seller, title: "Older chair")
+      newer = on_offer!(seller, title: "Newer chair")
+
+      assert Enum.map(Listings.browse_listings!(%{query: "chair"}), & &1.id) ==
+               [newer.id, older.id]
     end
   end
 end
