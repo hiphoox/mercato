@@ -67,6 +67,15 @@ defmodule Mercato.Listings.Listing do
       prepare build(load: [:display_price, :seller, :category, images: :url])
     end
 
+    read :browse do
+      description "Every listing on offer, as the public browse grid shows them."
+
+      prepare build(
+                sort: [published_at: :desc, inserted_at: :desc],
+                load: [:display_price, :seller, images: :url]
+              )
+    end
+
     read :list_for_seller do
       description "One seller's listings as their public profile shows them."
 
@@ -234,18 +243,17 @@ defmodule Mercato.Listings.Listing do
   policies do
     # Filtering rather than refusing, so a public browse gets the listings on
     # offer instead of an error. A seller sees their own whatever state it is in.
-    # Browsing and opening one share the rule: a listing reachable in a grid and
-    # a listing reachable by its own URL are the same set.
-    #
     # A listing is only as public as the account behind it: a seller the
-    # marketplace no longer shows to strangers takes their listings out of
-    # public view with them, without anything per-listing changing. The list of
-    # statuses is the one the seller's own profile page is gated on, read from
-    # where it is declared rather than restated, so the two can never disagree
-    # about whether a seller is still on the marketplace.
     policy action([:read, :get, :get_by_public_id]) do
       authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
       authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Deliberately without the "or it is mine" clause the reads above carry. The
+    # browse grid is the marketplace as a stranger sees it, so a seller browsing
+    # it must not find their own drafts and paused listings mixed into the shelf
+    policy action(:browse) do
+      authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
     end
 
     # Deliberately narrower than the seller's own view and wider than the detail

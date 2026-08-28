@@ -13,6 +13,7 @@ defmodule Mercato.Listings do
       define :update_listing, action: :update
       define :delete_listing, action: :destroy
       define :list_listings, action: :read
+      define :browse_listings, action: :browse
       define :get_listing, action: :get, get_by: [:id]
       define :get_listing_by_public_id, action: :get_by_public_id, get_by: [:public_id]
       define :list_seller_listings, action: :list_for_seller, args: [:seller_id]
