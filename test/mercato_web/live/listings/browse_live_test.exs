@@ -335,4 +335,146 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       assert render(view) =~ "Two-person tent"
     end
   end
+
+  describe "the filter bar" do
+    setup %{seller: seller} do
+      furniture = generate(category(name: "Furniture", slug: "furniture"))
+      generate(category(name: "Outdoor", slug: "outdoor"))
+
+      on_offer!(seller, title: "Eames-style lounge chair", category_id: furniture.id)
+
+      :ok
+    end
+
+    test "sits between the heading and the grid", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-filters")
+    end
+
+    test "names the facet while nothing narrows it", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert view |> element("#browse-category-trigger") |> render() =~ "Category"
+    end
+
+    test "names the scope in force instead, so the row reads as one sentence", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?category=furniture")
+
+      assert view |> element("#browse-category-trigger") |> render() =~ "Furniture"
+    end
+
+    test "offers every category the header offers", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-category-panel", "Furniture")
+      assert has_element?(view, "#browse-category-panel", "Outdoor")
+    end
+
+    test "scopes the grid from the bar, not just from the header", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view |> element("#browse-category-furniture") |> render_click()
+
+      assert_patched(view, "/?category=furniture")
+    end
+
+    test "keeps the term when the scope is picked, since they narrow together", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair")
+
+      view |> element("#browse-category-furniture") |> render_click()
+
+      assert_patched(view, "/?category=furniture&q=chair")
+    end
+
+    test "marks the scope in force as chosen", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?category=furniture")
+
+      assert view
+             |> element(~s{#browse-category-furniture[aria-checked="true"]})
+             |> has_element?()
+    end
+
+    test "offers a way back to the whole shelf from inside the menu", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?category=furniture")
+
+      view |> element("#browse-category-any") |> render_click()
+
+      assert_patched(view, "/")
+    end
+
+    test "orders the grid by recency, and says so on the pill", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert view |> element("#browse-sort-trigger") |> render() =~ "Newest"
+    end
+
+    test "opens the rest of the filters in a sheet", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-all-filters")
+      assert has_element?(view, "#browse-filters-sheet")
+    end
+  end
+
+  describe "the filter bar when nothing is listed" do
+    test "is left out, since there is nothing to narrow", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#nothing-listed")
+      refute has_element?(view, "#browse-filters")
+    end
+  end
+
+  describe "the filters in force" do
+    setup %{seller: seller} do
+      furniture = generate(category(name: "Furniture", slug: "furniture"))
+
+      on_offer!(seller, title: "Eames-style lounge chair", category_id: furniture.id)
+
+      :ok
+    end
+
+    test "shows no chips while nothing is applied", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      refute has_element?(view, "#browse-filters-chips")
+    end
+
+    test "shows the term as a chip of its own", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair")
+
+      assert has_element?(view, "#browse-filters-chips", "chair")
+    end
+
+    test "shows the scope as a chip of its own", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?category=furniture")
+
+      assert has_element?(view, "#browse-filters-chips", "Furniture")
+    end
+
+    test "drops the scope and keeps the term", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&category=furniture")
+
+      view |> element("#browse-chip-category") |> render_click()
+
+      assert_patched(view, "/?q=chair")
+    end
+
+    test "drops the term and keeps the scope", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&category=furniture")
+
+      view |> element("#browse-chip-query") |> render_click()
+
+      assert_patched(view, "/?category=furniture")
+    end
+
+    test "drops everything at once", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&category=furniture")
+
+      view |> element("#browse-clear-all") |> render_click()
+
+      assert_patched(view, "/")
+    end
+  end
 end

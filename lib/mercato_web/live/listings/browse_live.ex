@@ -12,20 +12,26 @@ defmodule MercatoWeb.Listings.BrowseLive do
   an account view, and a seller's own drafts and paused listings belong on
   their listings page rather than mixed into the public shelf.
 
-  The term lives in the query string rather than in assigns alone, so a search
-  can be linked, shared and reloaded, and so the header's box — which is drawn
-  on every page and submits here — has somewhere to send it.
+  The term and the scope live in the query string rather than in assigns alone,
+  so a search can be linked, shared and reloaded, and so the header's box —
+  which is drawn on every page and submits here — has somewhere to send it. The
+  bar below the heading writes to the same query string, which is why picking a
+  category there is a link rather than an event.
 
-  Filtering and paging the grid are not here yet. The bar that carries them
-  sits between the heading and the grid; until it exists this page is that
-  layout with the bar left out, not a different one.
+  Price and sort are drawn but not yet wired: `browse_listings!` takes neither,
+  and giving it them is a change to the read action rather than to this page.
+  They are here so the bar is the shape it will keep, not so they work today.
+
+  Paging the grid is not here yet either.
   """
 
   use MercatoWeb, :live_view
 
   import MercatoWeb.UI.EmptyState
+  import MercatoWeb.UI.FilterBar
   import MercatoWeb.UI.ListingCard
   import MercatoWeb.UI.ListingGrid
+  import MercatoWeb.UI.Sheet
 
   alias Mercato.Listings
 
@@ -67,6 +73,33 @@ defmodule MercatoWeb.Listings.BrowseLive do
     {:noreply, push_patch(socket, to: ~p"/")}
   end
 
+  def handle_event("drop_query", _params, socket) do
+    {:noreply, push_patch(socket, to: browse_path(category: socket.assigns.category))}
+  end
+
+  def handle_event("drop_category", _params, socket) do
+    {:noreply, push_patch(socket, to: browse_path(q: socket.assigns.query))}
+  end
+
+  # Built rather than interpolated, so a facet that is unset leaves no empty
+  # parameter behind and the whole shelf is plainly `/`.
+  defp browse_path(params) do
+    case Enum.reject(params, fn {_key, value} -> value in [nil, ""] end) do
+      [] -> ~p"/"
+      kept -> ~p"/?#{kept}"
+    end
+  end
+
+  # A clause per option rather than a lookup table: a label built at compile
+  # time is invisible to translation extraction.
+  defp sort_options do
+    [
+      {"newest", gettext("Newest")},
+      {"price_asc", gettext("Price: low to high")},
+      {"price_desc", gettext("Price: high to low")}
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -85,6 +118,134 @@ defmodule MercatoWeb.Listings.BrowseLive do
           {heading(@query, @category_name, @listings)}
           <:subtitle>{subtitle(@query, @category_name, @listings)}</:subtitle>
         </.header>
+
+        <%!-- Left out when the marketplace itself is empty: there is nothing to
+              narrow, and a bar of filters over an empty shelf reads as though
+              the filters are what emptied it. --%>
+        <.filter_bar
+          :if={@listings != [] or @query != "" or not is_nil(@category)}
+          id="browse-filters"
+        >
+          <%!-- md:contents, so the pill joins the bar's flex row directly and the
+                wrapper hiding it below md leaves no gap behind. --%>
+          <div class="hidden md:contents">
+            <.filter_menu
+              id="browse-category"
+              label={@category_name || gettext("Category")}
+              name={gettext("Category")}
+              active={not is_nil(@category)}
+              class="w-64 max-h-72 overflow-y-auto"
+            >
+              <.category_choices query={@query} category={@category} categories={@search_categories} />
+            </.filter_menu>
+
+            <.filter_menu
+              id="browse-price"
+              label={gettext("Price")}
+              name={gettext("Price range")}
+              role="dialog"
+              class="w-72 gap-3 p-3.5"
+            >
+              <.price_fields prefix="browse-price" />
+            </.filter_menu>
+          </div>
+
+          <.filter_menu
+            id="browse-sort"
+            label={sort_label()}
+            name={gettext("Sort")}
+            class="w-60"
+          >
+            <.sort_choices prefix="browse-sort" />
+          </.filter_menu>
+
+          <div class="flex-1"></div>
+
+          <.filter_button
+            id="browse-all-filters"
+            label={gettext("All filters")}
+            icon="hero-adjustments-horizontal"
+            aria-haspopup="dialog"
+            aria-controls="browse-filters-sheet"
+            phx-click={show_sheet("browse-filters-sheet")}
+          />
+
+          <:chips :if={@query != "" or not is_nil(@category)}>
+            <.filter_chip
+              :if={@query != ""}
+              id="browse-chip-query"
+              label={@query}
+              removable
+              phx-click="drop_query"
+            />
+            <.filter_chip
+              :if={@category_name}
+              id="browse-chip-category"
+              label={@category_name}
+              removable
+              phx-click="drop_category"
+            />
+            <button
+              type="button"
+              id="browse-clear-all"
+              phx-click="clear_search"
+              class={[
+                "h-8 px-1.5 text-caption-lg font-bold cursor-pointer underline",
+                "text-primary-700 dark:text-primary-100 hover:text-primary-600",
+                "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100"
+              ]}
+            >
+              {gettext("Clear all")}
+            </button>
+          </:chips>
+        </.filter_bar>
+
+        <%!-- Everything the bar holds, plus room for the facets that do not fit
+              it — one sheet rather than a second bar below md. --%>
+        <.sheet id="browse-filters-sheet" title={gettext("All filters")}>
+          <section class="flex flex-col gap-3">
+            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
+              {gettext("Category")}
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              <.filter_chip
+                label={gettext("All categories")}
+                selected={is_nil(@category)}
+                patch={browse_path(q: @query)}
+              />
+              <.filter_chip
+                :for={category <- @search_categories}
+                label={category.name}
+                selected={category.slug == @category}
+                patch={browse_path(q: @query, category: category.slug)}
+              />
+            </div>
+          </section>
+
+          <section class="flex flex-col gap-3">
+            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
+              {gettext("Price")}
+            </h3>
+            <.price_fields prefix="browse-sheet-price" />
+          </section>
+
+          <section class="flex flex-col gap-3">
+            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
+              {gettext("Sort")}
+            </h3>
+            <.sort_choices prefix="browse-sheet-sort" />
+          </section>
+
+          <:footer>
+            <.button size="md" variant="neutral" phx-click="clear_search">
+              {gettext("Clear")}
+            </.button>
+            <div class="flex-1"></div>
+            <.button size="md" phx-click={hide_sheet("browse-filters-sheet")}>
+              {gettext("Show results")}
+            </.button>
+          </:footer>
+        </.sheet>
 
         <%!-- Two different emptinesses, because they have two different causes
               and only one of them is the visitor's to fix. --%>
@@ -138,6 +299,76 @@ defmodule MercatoWeb.Listings.BrowseLive do
     </Layouts.app>
     """
   end
+
+  # The bar and the sheet offer the same facets, so each is written once and
+  # rendered in both. They live here rather than in components/ui/ because only
+  # this page has these facets to offer.
+  attr :query, :string, required: true
+  attr :category, :string, default: nil
+  attr :categories, :list, required: true
+
+  defp category_choices(assigns) do
+    ~H"""
+    <.filter_option
+      id="browse-category-any"
+      label={gettext("All categories")}
+      selected={is_nil(@category)}
+      patch={browse_path(q: @query)}
+    />
+    <.filter_option
+      :for={category <- @categories}
+      id={"browse-category-#{category.slug}"}
+      label={category.name}
+      selected={category.slug == @category}
+      patch={browse_path(q: @query, category: category.slug)}
+    />
+    """
+  end
+
+  # Drawn, not wired: the read action takes no order yet, so every option but
+  # the one in force reports the choice and changes nothing.
+  attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
+
+  defp sort_choices(assigns) do
+    assigns = assign(assigns, :options, sort_options())
+
+    ~H"""
+    <.filter_option
+      :for={{key, label} <- @options}
+      id={"#{@prefix}-#{key}"}
+      label={label}
+      selected={key == "newest"}
+    />
+    """
+  end
+
+  # Drawn, not wired, for the same reason as the sort options.
+  attr :prefix, :string, required: true
+
+  defp price_fields(assigns) do
+    ~H"""
+    <div class="flex items-end gap-2.5">
+      <.input
+        type="number"
+        id={"#{@prefix}-min"}
+        name="price_min"
+        value=""
+        label={gettext("Min")}
+        min="0"
+      />
+      <.input
+        type="number"
+        id={"#{@prefix}-max"}
+        name="price_max"
+        value=""
+        label={gettext("Max")}
+        min="0"
+      />
+    </div>
+    """
+  end
+
+  defp sort_label, do: sort_options() |> hd() |> elem(1)
 
   defp heading("", nil, _listings), do: gettext("Newest listings")
 
