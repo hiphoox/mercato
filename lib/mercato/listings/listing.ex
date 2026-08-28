@@ -89,10 +89,6 @@ defmodule Mercato.Listings.Listing do
       # match is case-insensitive; see the expression module for why contains/2
       # is unusable here. An empty term matches everything, which is what makes
       # the unsearched grid and a cleared search the same read.
-      #
-      # The scope is blank-means-everything too, so a cleared filter is that
-      # same read again — but it needs the guard spelled out, because equality
-      # against an empty slug matches nothing where an empty term matched all.
       filter expr(
                (icontains(title, ^arg(:query)) or icontains(description, ^arg(:query))) and
                  (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))

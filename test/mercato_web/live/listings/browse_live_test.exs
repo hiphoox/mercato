@@ -273,4 +273,66 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       assert render(view) =~ "Newest listings"
     end
   end
+
+  describe "scoping the grid to a category" do
+    setup %{seller: seller} do
+      furniture = generate(category(name: "Furniture", slug: "furniture"))
+      outdoor = generate(category(name: "Outdoor", slug: "outdoor"))
+
+      on_offer!(seller, title: "Eames-style lounge chair", category_id: furniture.id)
+      on_offer!(seller, title: "Two-person tent", category_id: outdoor.id)
+
+      %{furniture: furniture, outdoor: outdoor}
+    end
+
+    test "narrows the grid to the category named in the URL", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/?category=furniture")
+
+      assert html =~ "Eames-style lounge chair"
+      refute html =~ "Two-person tent"
+    end
+
+    test "narrows by the term and the scope together", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Folding chair", category_id: generate(category()).id)
+
+      {:ok, _view, html} = live(conn, ~p"/?q=chair&category=furniture")
+
+      assert html =~ "Eames-style lounge chair"
+      refute html =~ "Folding chair"
+    end
+
+    test "reads the scope back into the header, so it survives a search", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?category=furniture")
+
+      assert view
+             |> element(~s{#app-search-scope option[value="furniture"][selected]})
+             |> has_element?()
+    end
+
+    test "falls back to the whole shelf for a category nobody has", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/?category=harpsichords")
+
+      assert html =~ "Eames-style lounge chair"
+      assert html =~ "Two-person tent"
+    end
+
+    test "says the category is empty rather than that nothing is listed at all", %{conn: conn} do
+      generate(category(name: "Vehicles", slug: "vehicles"))
+
+      {:ok, view, html} = live(conn, ~p"/?category=vehicles")
+
+      assert has_element?(view, "#no-results")
+      refute has_element?(view, "#nothing-listed")
+      assert html =~ "Vehicles"
+    end
+
+    test "clears the scope and the term together", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=harpsichord&category=furniture")
+
+      view |> element("#clear-search") |> render_click()
+
+      assert_patched(view, "/")
+      assert render(view) =~ "Two-person tent"
+    end
+  end
 end

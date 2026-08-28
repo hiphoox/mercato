@@ -324,6 +324,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   def render(assigns) do
     ~H"""
     <Layouts.app
+      categories={@search_categories}
       flash={@flash}
       current_scope={assigns[:current_scope]}
       current_user={@current_user}

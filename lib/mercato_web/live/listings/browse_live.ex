@@ -39,20 +39,28 @@ defmodule MercatoWeb.Listings.BrowseLive do
   @impl true
   def handle_params(params, _uri, socket) do
     query = params |> Map.get("q", "") |> to_string() |> String.trim()
+    category = scope(params, socket.assigns.search_categories)
 
     {:noreply,
      socket
      |> assign(:query, query)
-     |> assign(:listings, listings(query))}
+     |> assign(:category, category && category.slug)
+     |> assign(:category_name, category && category.name)
+     |> assign(:listings, listings(query, category))}
   end
 
-  # No actor is passed. Browsing is public and shows the same thing to
-  # everyone, so who is looking cannot change what comes back.
-  #
-  # A blank term is not a special case: it matches everything, so the
-  # unsearched grid and a cleared search are the same read rather than two
-  # paths that could disagree.
-  defp listings(query), do: Listings.browse_listings!(%{query: query})
+  defp scope(params, categories) do
+    slug = params |> Map.get("category", "") |> to_string() |> String.trim()
+
+    Enum.find(categories, &(&1.slug == slug))
+  end
+
+  defp listings(query, category) do
+    Listings.browse_listings!(%{
+      query: query,
+      category_slug: (category && category.slug) || ""
+    })
+  end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
@@ -69,19 +77,21 @@ defmodule MercatoWeb.Listings.BrowseLive do
       admin?={@admin?}
       current_path={~p"/"}
       query={@query}
+      categories={@search_categories}
+      category={@category}
     >
       <%!-- No breadcrumb: this is where the trail every other page draws
             starts, and a crumb pointing at the page you are on is noise. --%>
       <div id="browse" class="flex flex-col gap-6">
         <.header>
-          {heading(@query, @listings)}
-          <:subtitle>{subtitle(@query, @listings)}</:subtitle>
+          {heading(@query, @category_name, @listings)}
+          <:subtitle>{subtitle(@query, @category_name, @listings)}</:subtitle>
         </.header>
 
         <%!-- Two different emptinesses, because they have two different causes
               and only one of them is the visitor's to fix. --%>
         <.empty_state
-          :if={@listings == [] and @query == ""}
+          :if={@listings == [] and @query == "" and is_nil(@category)}
           id="nothing-listed"
           icon="hero-archive-box"
           headline={gettext("Nothing is on offer yet")}
@@ -99,15 +109,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
         </.empty_state>
 
         <.empty_state
-          :if={@listings == [] and @query != ""}
+          :if={@listings == [] and (@query != "" or not is_nil(@category))}
           id="no-results"
           icon="hero-magnifying-glass"
-          headline={gettext("No results for “%{query}”", query: @query)}
-          description={
-            gettext(
-              "Nothing on offer matches that. A shorter or more general term usually turns something up."
-            )
-          }
+          headline={no_results_headline(@query, @category_name)}
+          description={no_results_description(@query)}
         >
           <:actions>
             <.button id="clear-search" size="md" variant="neutral" phx-click="clear_search">
@@ -135,13 +141,15 @@ defmodule MercatoWeb.Listings.BrowseLive do
     """
   end
 
-  # A searched grid is answering a question, so it says what was asked and how
-  # much came back. An unsearched one is not, so it says what it is ordered by.
-  defp heading("", _listings), do: gettext("Newest listings")
+  defp heading("", nil, _listings), do: gettext("Newest listings")
 
-  defp heading(query, []), do: gettext("No results for “%{query}”", query: query)
+  defp heading("", category, []), do: gettext("Nothing in %{category} yet", category: category)
 
-  defp heading(query, listings) do
+  defp heading("", category, _listings), do: gettext("Newest in %{category}", category: category)
+
+  defp heading(query, _category, []), do: gettext("No results for “%{query}”", query: query)
+
+  defp heading(query, _category, listings) do
     ngettext(
       "%{count} result for “%{query}”",
       "%{count} results for “%{query}”",
@@ -150,9 +158,39 @@ defmodule MercatoWeb.Listings.BrowseLive do
     )
   end
 
-  defp subtitle("", _listings), do: gettext("Everything just listed, freshest first.")
-  defp subtitle(_query, []), do: gettext("Nothing on offer matches that search.")
-  defp subtitle(_query, _listings), do: gettext("Newest first.")
+  defp subtitle("", nil, _listings), do: gettext("Everything just listed, freshest first.")
+
+  defp subtitle("", category, []),
+    do: gettext("Nothing is listed in %{category} yet.", category: category)
+
+  defp subtitle("", category, _listings),
+    do: gettext("Everything in %{category}, freshest first.", category: category)
+
+  defp subtitle(_query, nil, []), do: gettext("Nothing on offer matches that search.")
+
+  defp subtitle(_query, category, []),
+    do: gettext("Nothing in %{category} matches that search.", category: category)
+
+  defp subtitle(_query, nil, _listings), do: gettext("Newest first.")
+
+  defp subtitle(_query, category, _listings),
+    do: gettext("Newest first in %{category}.", category: category)
+
+  defp no_results_headline("", category),
+    do: gettext("Nothing in %{category} yet", category: category)
+
+  defp no_results_headline(query, _category),
+    do: gettext("No results for “%{query}”", query: query)
+
+  defp no_results_description(""),
+    do:
+      gettext("No one has listed anything here so far. Another category may have what you want.")
+
+  defp no_results_description(_query),
+    do:
+      gettext(
+        "Nothing on offer matches that. A shorter or more general term usually turns something up."
+      )
 
   defp cover_url(%{images: images}) when is_list(images) do
     case Enum.find(images, & &1.is_cover) do

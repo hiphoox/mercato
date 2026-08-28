@@ -38,6 +38,55 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     end
   end
 
+  @categories [
+    %Mercato.Listings.Category{name: "Electronics", slug: "electronics"},
+    %Mercato.Listings.Category{name: "Fashion", slug: "fashion"}
+  ]
+
+  describe "category scope" do
+    test "offers the catalog, plus a way to search across all of it" do
+      options = [categories: @categories] |> query("#app-search-scope option")
+
+      assert LazyHTML.attribute(options, "value") == ["", "electronics", "fashion"]
+      assert LazyHTML.text(options) =~ "All categories"
+    end
+
+    test "names each category the way a person reads it, not by its slug" do
+      assert [categories: @categories]
+             |> query(~s{#app-search-scope option[value="electronics"]})
+             |> LazyHTML.text()
+             |> String.trim() == "Electronics"
+    end
+
+    test "marks the scope in force, so a search does not blank its own filter" do
+      assert [categories: @categories, category: "fashion"]
+             |> query("#app-search-scope option[selected]")
+             |> LazyHTML.attribute("value") == ["fashion"]
+    end
+
+    test "falls back to all categories when none is in force" do
+      assert [categories: @categories]
+             |> query("#app-search-scope option[selected]")
+             |> LazyHTML.attribute("value") == [""]
+    end
+
+    test "submits alongside the term rather than as a control of its own" do
+      assert [categories: @categories]
+             |> query(~s{form[role="search"] select[name="category"]})
+             |> Enum.count() == 1
+    end
+
+    test "names itself for screen readers" do
+      assert [categories: @categories]
+             |> query("#app-search-scope")
+             |> LazyHTML.attribute("aria-label") == ["Search within"]
+    end
+
+    test "is left out when the caller names no catalog" do
+      assert [] |> query("#app-search-scope") |> Enum.empty?()
+    end
+  end
+
   describe "brand" do
     test "links the wordmark home" do
       assert [current_user: @user] |> query("#app-brand") |> LazyHTML.attribute("href") == ["/"]

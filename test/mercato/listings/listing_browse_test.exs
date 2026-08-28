@@ -191,8 +191,6 @@ defmodule Mercato.Listings.ListingBrowseTest do
       assert found.id == chair.id
     end
 
-    # The blank slug is not a special case for the same reason the blank term
-    # is not: an unscoped grid and a cleared scope have to be one read.
     test "returns the whole shelf for a blank slug", %{
       seller: seller,
       furniture: furniture,
@@ -215,10 +213,6 @@ defmodule Mercato.Listings.ListingBrowseTest do
       assert length(Listings.browse_listings!()) == 2
     end
 
-    # A hand-edited or stale URL names a category nobody has: the read says so
-    # by coming back empty rather than by raising, and the page decides what to
-    # draw. Falling back to the whole shelf here would be a lie about the scope
-    # the grid is showing.
     test "returns nothing for a slug no category holds", %{
       seller: seller,
       furniture: furniture

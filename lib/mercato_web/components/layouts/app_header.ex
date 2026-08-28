@@ -23,6 +23,14 @@ defmodule MercatoWeb.Layouts.AppHeader do
     default: nil,
     doc: "the search term in force, so the box still reads it after a search"
 
+  attr :categories, :list,
+    default: [],
+    doc: "the catalog the scope selector offers; assigned by `MercatoWeb.SearchScope`"
+
+  attr :category, :string,
+    default: nil,
+    doc: "the slug of the scope in force, so the selector still reads it after a search"
+
   def app_header(assigns) do
     ~H"""
     <%!-- Below md the bar wraps to two rows: controls on top, search underneath.
@@ -79,16 +87,39 @@ defmodule MercatoWeb.Layouts.AppHeader do
           "rounded-md bg-bg dark:bg-ink-700 shadow-sm"
         ]}
       >
-        <%!-- The button is the magnifier itself: a submit control has to exist for
-              the form to be reachable without a keyboard, and a second one beside
-              the icon would just repeat it. --%>
-        <button
-          type="submit"
-          aria-label={gettext("Search")}
-          class="flex-none flex items-center cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100 rounded-sm"
+        <span
+          :if={@categories != []}
+          class="relative flex-none flex items-center self-stretch -ml-3.5 md:-ml-4.5"
         >
-          <.icon name="hero-magnifying-glass" aria-hidden="true" class="size-4.5 text-ink-500" />
-        </button>
+          <select
+            id="app-search-scope"
+            name="category"
+            aria-label={gettext("Search within")}
+            class={[
+              "max-w-36 md:max-w-44 truncate cursor-pointer appearance-none",
+              "h-full pl-3.5 md:pl-4.5 pr-8 rounded-l-md border-none outline-none",
+              "text-body-sm font-semibold",
+              "bg-ink-100 text-ink-900 dark:bg-ink-900 dark:text-white",
+              "transition-[filter] hover:brightness-95",
+              "focus-visible:ring-3 focus-visible:ring-primary-100"
+            ]}
+          >
+            <option value="" selected={@category in [nil, ""]}>{gettext("All categories")}</option>
+            <option
+              :for={category <- @categories}
+              value={category.slug}
+              selected={category.slug == @category}
+            >
+              {category.name}
+            </option>
+          </select>
+          <.icon
+            name="hero-chevron-down-micro"
+            aria-hidden="true"
+            class="pointer-events-none absolute right-2.5 size-3.5 text-ink-500 dark:text-ink-100"
+          />
+        </span>
+
         <input
           type="search"
           id="app-search"
@@ -102,6 +133,16 @@ defmodule MercatoWeb.Layouts.AppHeader do
             "text-body-md text-ink-900 dark:text-white placeholder:text-ink-500"
           ]}
         />
+
+        <%!-- The magnifier is the submit control, so the form is reachable
+              without a keyboard. --%>
+        <button
+          type="submit"
+          aria-label={gettext("Search")}
+          class="flex-none flex items-center cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100 rounded-sm"
+        >
+          <.icon name="hero-magnifying-glass" aria-hidden="true" class="size-4.5 text-ink-500" />
+        </button>
       </form>
 
       <%!-- The filled action in the bar. Every account here both buys and
