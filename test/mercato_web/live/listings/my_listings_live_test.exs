@@ -328,4 +328,16 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       assert has_element?(view, "#listing-#{draft.id} [data-role=badges]", "Draft")
     end
   end
+
+  describe "a seller's own listings" do
+    test "carry no cart action, since a seller does not buy their own goods", %{conn: conn} do
+      seller = generate(user())
+      draft = generate(listing(actor: seller))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/users/me/listings")
+
+      assert has_element?(view, "#listing-#{draft.id}")
+      refute has_element?(view, "#add-to-cart-#{draft.id}")
+    end
+  end
 end

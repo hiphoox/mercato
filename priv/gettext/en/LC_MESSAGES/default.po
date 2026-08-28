@@ -16,7 +16,7 @@ msgstr ""
 msgid "%{held} of %{max} added"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:369
+#: lib/mercato_web/live/listings/my_listings_live.ex:372
 #, elixir-autogen, elixir-format
 msgid "%{listings} · %{active} on offer · %{drafts} unfinished"
 msgstr ""
@@ -62,7 +62,7 @@ msgid "%{types}, up to %{max}"
 msgstr ""
 
 #: lib/mercato_web/live/admin/users_live.ex:779
-#: lib/mercato_web/live/listings/my_listings_live.ex:440
+#: lib/mercato_web/live/listings/my_listings_live.ex:443
 #, elixir-autogen, elixir-format
 msgid "1 day ago"
 msgid_plural "%{count} days ago"
@@ -70,14 +70,14 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/mercato_web/live/admin/users_live.ex:776
-#: lib/mercato_web/live/listings/my_listings_live.ex:434
+#: lib/mercato_web/live/listings/my_listings_live.ex:437
 #, elixir-autogen, elixir-format
 msgid "1 hour ago"
 msgid_plural "%{count} hours ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:380
+#: lib/mercato_web/live/listings/my_listings_live.ex:383
 #, elixir-autogen, elixir-format
 msgid "1 listing"
 msgid_plural "%{count} listings"
@@ -85,14 +85,14 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/mercato_web/live/admin/users_live.ex:773
-#: lib/mercato_web/live/listings/my_listings_live.ex:431
+#: lib/mercato_web/live/listings/my_listings_live.ex:434
 #, elixir-autogen, elixir-format
 msgid "1 minute ago"
 msgid_plural "%{count} minutes ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:384
+#: lib/mercato_web/live/listings/my_listings_live.ex:387
 #, elixir-autogen, elixir-format
 msgid "1 photo"
 msgid_plural "%{count} photos"
@@ -192,12 +192,12 @@ msgstr ""
 msgid "Breadcrumb"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:457
+#: lib/mercato_web/live/listings/my_listings_live.ex:460
 #, elixir-autogen, elixir-format
 msgid "Buyers compare, so price it against what similar items went for."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:462
+#: lib/mercato_web/live/listings/my_listings_live.ex:465
 #, elixir-autogen, elixir-format
 msgid "Buyers see it straight away and can make offers."
 msgstr ""
@@ -212,9 +212,9 @@ msgstr ""
 msgid "Cart"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:231
 #: lib/mercato_web/live/listings/browse_live.ex:232
-#: lib/mercato_web/live/listings/browse_live.ex:319
+#: lib/mercato_web/live/listings/browse_live.ex:233
+#: lib/mercato_web/live/listings/browse_live.ex:320
 #: lib/mercato_web/live/listings/listing_form_live.ex:573
 #, elixir-autogen, elixir-format
 msgid "Category"
@@ -245,7 +245,7 @@ msgstr ""
 msgid "Clear filters"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:348
+#: lib/mercato_web/live/listings/browse_live.ex:349
 #: lib/mercato_web/live/listings/listing_form_live.ex:580
 #, elixir-autogen, elixir-format
 msgid "Condition"
@@ -281,7 +281,7 @@ msgstr ""
 msgid "Cover photo"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:413
+#: lib/mercato_web/live/listings/browse_live.ex:414
 #: lib/mercato_web/live/listings/my_listings_live.ex:242
 #, elixir-autogen, elixir-format
 msgid "Cover photo of %{title}"
@@ -308,7 +308,7 @@ msgstr ""
 msgid "Current password"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:452
+#: lib/mercato_web/live/listings/my_listings_live.ex:455
 #, elixir-autogen, elixir-format
 msgid "Daylight, plain background, four or five angles."
 msgstr ""
@@ -408,7 +408,7 @@ msgstr ""
 msgid "Erased on deletion"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:297
+#: lib/mercato_web/live/listings/my_listings_live.ex:300
 #, elixir-autogen, elixir-format
 msgid "Every listing you have is in another state."
 msgstr ""
@@ -418,7 +418,7 @@ msgstr ""
 msgid "Everything on one page. Leave whenever you like — a draft keeps your place."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:366
+#: lib/mercato_web/live/listings/my_listings_live.ex:369
 #, elixir-autogen, elixir-format
 msgid "Everything you sell on Mercato lives here."
 msgstr ""
@@ -521,7 +521,7 @@ msgstr ""
 msgid "Last name"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:409
+#: lib/mercato_web/live/listings/my_listings_live.ex:412
 #, elixir-autogen, elixir-format
 msgid "Listed %{when}"
 msgstr ""
@@ -648,7 +648,7 @@ msgstr ""
 msgid "Not visible to buyers yet."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:296
+#: lib/mercato_web/live/listings/my_listings_live.ex:299
 #, elixir-autogen, elixir-format
 msgid "Nothing in %{section} right now."
 msgstr ""
@@ -712,12 +712,12 @@ msgstr ""
 msgid "Paused"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:413
+#: lib/mercato_web/live/listings/my_listings_live.ex:416
 #, elixir-autogen, elixir-format
 msgid "Paused %{when}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:451
+#: lib/mercato_web/live/listings/my_listings_live.ex:454
 #, elixir-autogen, elixir-format
 msgid "Photograph it"
 msgstr ""
@@ -727,7 +727,7 @@ msgstr ""
 msgid "Photos"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:316
+#: lib/mercato_web/live/listings/my_listings_live.ex:319
 #, elixir-autogen, elixir-format
 msgid "Photos, a price, and a short description are all it takes."
 msgstr ""
@@ -753,7 +753,7 @@ msgstr ""
 msgid "Profile"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:461
+#: lib/mercato_web/live/listings/my_listings_live.ex:464
 #, elixir-autogen, elixir-format
 msgid "Publish"
 msgstr ""
@@ -789,7 +789,7 @@ msgstr ""
 msgid "Relist this listing"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:271
+#: lib/mercato_web/live/listings/my_listings_live.ex:274
 #, elixir-autogen, elixir-format
 msgid "Remove %{title}"
 msgstr ""
@@ -860,7 +860,7 @@ msgstr ""
 msgid "Save or publish"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:405
+#: lib/mercato_web/live/listings/my_listings_live.ex:408
 #, elixir-autogen, elixir-format
 msgid "Saved %{when} · %{photos}"
 msgstr ""
@@ -948,12 +948,12 @@ msgstr ""
 msgid "Sensitive"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:456
+#: lib/mercato_web/live/listings/my_listings_live.ex:459
 #, elixir-autogen, elixir-format
 msgid "Set a price"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:306
+#: lib/mercato_web/live/listings/my_listings_live.ex:309
 #, elixir-autogen, elixir-format
 msgid "Show all listings"
 msgstr ""
@@ -1001,7 +1001,7 @@ msgstr ""
 msgid "Sold"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:417
+#: lib/mercato_web/live/listings/my_listings_live.ex:420
 #, elixir-autogen, elixir-format
 msgid "Sold %{when}"
 msgstr ""
@@ -1264,7 +1264,7 @@ msgstr ""
 msgid "Your first and last name as shown to other members."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:315
+#: lib/mercato_web/live/listings/my_listings_live.ex:318
 #, elixir-autogen, elixir-format
 msgid "Your first listing starts here"
 msgstr ""
@@ -1284,7 +1284,7 @@ msgstr ""
 msgid "Your public @handle, used across Mercato."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:423
+#: lib/mercato_web/live/listings/my_listings_live.ex:426
 #, elixir-autogen, elixir-format
 msgid "at some point"
 msgstr ""
@@ -1299,27 +1299,27 @@ msgstr ""
 msgid "e.g. Eames-style lounge chair, walnut"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:428
+#: lib/mercato_web/live/listings/my_listings_live.ex:431
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:401
+#: lib/mercato_web/live/listings/my_listings_live.ex:404
 #, elixir-autogen, elixir-format
 msgid "needs a photo"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:443
+#: lib/mercato_web/live/listings/my_listings_live.ex:446
 #, elixir-autogen, elixir-format
 msgid "on %{date}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:361
+#: lib/mercato_web/live/listings/my_listings_live.ex:364
 #, elixir-autogen, elixir-format
 msgid "that state"
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:437
+#: lib/mercato_web/live/listings/my_listings_live.ex:440
 #, elixir-autogen, elixir-format
 msgid "yesterday"
 msgstr ""
@@ -1345,84 +1345,84 @@ msgstr ""
 msgid "“%{title}” will be taken off Mercato, along with its photos. This cannot be undone."
 msgstr ""
 
-#: lib/mercato_web/live/listings/my_listings_live.ex:273
+#: lib/mercato_web/live/listings/my_listings_live.ex:276
 #, elixir-autogen, elixir-format
 msgid "“%{title}” will be taken off Mercato. This cannot be undone."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:386
+#: lib/mercato_web/live/listings/browse_live.ex:387
 #, elixir-autogen, elixir-format
 msgid "List something"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:379
+#: lib/mercato_web/live/listings/browse_live.ex:380
 #, elixir-autogen, elixir-format
 msgid "No one has listed anything for sale so far. The first listing published shows up here."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:377
+#: lib/mercato_web/live/listings/browse_live.ex:378
 #, elixir-autogen, elixir-format
 msgid "Nothing is on offer yet"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:645
+#: lib/mercato_web/live/listings/browse_live.ex:654
 #, elixir-autogen, elixir-format
 msgid "listed %{count} day ago"
 msgid_plural "listed %{count} days ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:643
+#: lib/mercato_web/live/listings/browse_live.ex:652
 #, elixir-autogen, elixir-format
 msgid "listed %{count} hour ago"
 msgid_plural "listed %{count} hours ago"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:635
+#: lib/mercato_web/live/listings/browse_live.ex:644
 #, elixir-autogen, elixir-format
 msgid "listed at some point"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:646
+#: lib/mercato_web/live/listings/browse_live.ex:655
 #, elixir-autogen, elixir-format
 msgid "listed in %{month}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:642
+#: lib/mercato_web/live/listings/browse_live.ex:651
 #, elixir-autogen, elixir-format
 msgid "listed just now"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:644
+#: lib/mercato_web/live/listings/browse_live.ex:653
 #, elixir-autogen, elixir-format
 msgid "listed yesterday"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:555
+#: lib/mercato_web/live/listings/browse_live.ex:564
 #, elixir-autogen, elixir-format
 msgid "%{count} result for “%{query}”"
 msgid_plural "%{count} results for “%{query}”"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:400
+#: lib/mercato_web/live/listings/browse_live.ex:401
 #, elixir-autogen, elixir-format
 msgid "Clear search"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:552
-#: lib/mercato_web/live/listings/browse_live.ex:597
+#: lib/mercato_web/live/listings/browse_live.ex:561
+#: lib/mercato_web/live/listings/browse_live.ex:606
 #, elixir-autogen, elixir-format
 msgid "No results for “%{query}”"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:580
+#: lib/mercato_web/live/listings/browse_live.ex:589
 #, elixir-autogen, elixir-format
 msgid "Nothing on offer matches that search."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:611
+#: lib/mercato_web/live/listings/browse_live.ex:620
 #, elixir-autogen, elixir-format
 msgid "Nothing on offer matches that. A shorter or more general term usually turns something up."
 msgstr ""
@@ -1433,24 +1433,24 @@ msgid "Search"
 msgstr ""
 
 #: lib/mercato_web/components/layouts/app_header.ex:113
-#: lib/mercato_web/live/listings/browse_live.ex:323
-#: lib/mercato_web/live/listings/browse_live.ex:434
+#: lib/mercato_web/live/listings/browse_live.ex:324
+#: lib/mercato_web/live/listings/browse_live.ex:443
 #, elixir-autogen, elixir-format
 msgid "All categories"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:607
+#: lib/mercato_web/live/listings/browse_live.ex:616
 #, elixir-autogen, elixir-format
 msgid "No one has listed anything here so far. Another category may have what you want."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:583
+#: lib/mercato_web/live/listings/browse_live.ex:592
 #, elixir-autogen, elixir-format
 msgid "Nothing in %{category} matches that search."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:546
-#: lib/mercato_web/live/listings/browse_live.ex:594
+#: lib/mercato_web/live/listings/browse_live.ex:555
+#: lib/mercato_web/live/listings/browse_live.ex:603
 #, elixir-autogen, elixir-format
 msgid "Nothing in %{category} yet"
 msgstr ""
@@ -1460,7 +1460,7 @@ msgstr ""
 msgid "Search within"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:575
+#: lib/mercato_web/live/listings/browse_live.ex:584
 #, elixir-autogen, elixir-format
 msgid "Nothing is listed in %{category} yet."
 msgstr ""
@@ -1485,18 +1485,18 @@ msgstr ""
 msgid "Sellers"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:263
-#: lib/mercato_web/live/listings/browse_live.ex:316
+#: lib/mercato_web/live/listings/browse_live.ex:264
+#: lib/mercato_web/live/listings/browse_live.ex:317
 #, elixir-autogen, elixir-format
 msgid "All filters"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:362
+#: lib/mercato_web/live/listings/browse_live.ex:363
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Clear"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:309
+#: lib/mercato_web/live/listings/browse_live.ex:310
 #, elixir-autogen, elixir-format
 msgid "Clear all"
 msgstr ""
@@ -1506,129 +1506,134 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:514
+#: lib/mercato_web/live/listings/browse_live.ex:523
 #, elixir-autogen, elixir-format
 msgid "Max"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:505
+#: lib/mercato_web/live/listings/browse_live.ex:514
 #, elixir-autogen, elixir-format
 msgid "Min"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:199
+#: lib/mercato_web/live/listings/browse_live.ex:200
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Newest"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:241
-#: lib/mercato_web/live/listings/browse_live.ex:338
+#: lib/mercato_web/live/listings/browse_live.ex:242
+#: lib/mercato_web/live/listings/browse_live.ex:339
 #, elixir-autogen, elixir-format
 msgid "Price"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:242
+#: lib/mercato_web/live/listings/browse_live.ex:243
 #, elixir-autogen, elixir-format
 msgid "Price range"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:201
+#: lib/mercato_web/live/listings/browse_live.ex:202
 #, elixir-autogen, elixir-format
 msgid "Price: high to low"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:200
+#: lib/mercato_web/live/listings/browse_live.ex:201
 #, elixir-autogen, elixir-format
 msgid "Price: low to high"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:366
+#: lib/mercato_web/live/listings/browse_live.ex:367
 #, elixir-autogen, elixir-format
 msgid "Show results"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:253
-#: lib/mercato_web/live/listings/browse_live.ex:355
+#: lib/mercato_web/live/listings/browse_live.ex:254
+#: lib/mercato_web/live/listings/browse_live.ex:356
 #, elixir-autogen, elixir-format
 msgid "Sort"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:578
+#: lib/mercato_web/live/listings/browse_live.ex:587
 #, elixir-autogen, elixir-format
 msgid "Every listing in %{category}, from every seller."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:572
+#: lib/mercato_web/live/listings/browse_live.ex:581
 #, elixir-autogen, elixir-format
 msgid "Every listing on offer, from every seller."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:549
+#: lib/mercato_web/live/listings/browse_live.ex:558
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Everything in %{category}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:569
-#: lib/mercato_web/live/listings/browse_live.ex:589
+#: lib/mercato_web/live/listings/browse_live.ex:578
+#: lib/mercato_web/live/listings/browse_live.ex:598
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Everything in %{category} that matches."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:543
+#: lib/mercato_web/live/listings/browse_live.ex:552
 #, elixir-autogen, elixir-format
 msgid "Everything on offer"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:566
-#: lib/mercato_web/live/listings/browse_live.ex:586
+#: lib/mercato_web/live/listings/browse_live.ex:575
+#: lib/mercato_web/live/listings/browse_live.ex:595
 #, elixir-autogen, elixir-format
 msgid "Everything on offer that matches."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:530
+#: lib/mercato_web/live/listings/browse_live.ex:539
 #, elixir-autogen, elixir-format
 msgid "%{min} – %{max}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:455
+#: lib/mercato_web/live/listings/browse_live.ex:464
 #, elixir-autogen, elixir-format
 msgid "Any condition"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:519
+#: lib/mercato_web/live/listings/browse_live.ex:528
 #, elixir-autogen, elixir-format
 msgid "Apply"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:526
+#: lib/mercato_web/live/listings/browse_live.ex:535
 #, elixir-autogen, elixir-format
 msgid "From %{min}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:527
+#: lib/mercato_web/live/listings/browse_live.ex:536
 #, elixir-autogen, elixir-format
 msgid "Up to %{max}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:540
+#: lib/mercato_web/live/listings/browse_live.ex:549
 #, elixir-autogen, elixir-format
 msgid "%{count} listing matches"
 msgid_plural "%{count} listings match"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:537
-#: lib/mercato_web/live/listings/browse_live.ex:591
+#: lib/mercato_web/live/listings/browse_live.ex:546
+#: lib/mercato_web/live/listings/browse_live.ex:600
 #, elixir-autogen, elixir-format
 msgid "Nothing matches those filters"
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:564
+#: lib/mercato_web/live/listings/browse_live.ex:573
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Nothing on offer matches those filters."
 msgstr ""
 
-#: lib/mercato_web/live/listings/browse_live.ex:601
+#: lib/mercato_web/live/listings/browse_live.ex:610
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Nothing on offer matches those filters. Loosening one of them usually turns something up."
+msgstr ""
+
+#: lib/mercato_web/components/ui/add_to_cart.ex:34
+#, elixir-autogen, elixir-format
+msgid "Add to cart"
 msgstr ""

@@ -31,6 +31,7 @@ defmodule MercatoWeb.UI.ListingCard do
   attr :rest, :global
 
   slot :badges, doc: "state, sale, or featured badges, shown beside the price"
+  slot :corner, doc: "one control pinned to the card's top-right corner, over the photo"
   slot :meta, doc: "one caption line under the title"
   slot :actions, doc: "the card's footer controls"
 
@@ -41,7 +42,7 @@ defmodule MercatoWeb.UI.ListingCard do
     <article
       id={@id}
       class={[
-        "grid grid-cols-[4rem_1fr] gap-3 p-3.5",
+        "relative grid grid-cols-[4rem_1fr] gap-3 p-3.5",
         "md:grid-cols-1 md:grid-rows-[auto_1fr_auto] md:gap-0 md:p-0 md:h-full md:overflow-hidden",
         "rounded-lg border border-ink-100 dark:border-ink-700",
         "bg-bg dark:bg-ink-900 shadow-sm",
@@ -77,7 +78,19 @@ defmodule MercatoWeb.UI.ListingCard do
         />
       </div>
 
-      <div class="flex flex-col gap-1.5 min-w-0 md:px-3.5 md:pt-3.5">
+      <%!-- Pinned to the card rather than to the photo: from md the photo is the
+            top of the card and the two are the same corner, and below md the
+            thumbnail is too small to hold a touch target at all. --%>
+      <div :if={@corner != []} data-role="corner" class="absolute top-2 right-2 z-10">
+        {render_slot(@corner)}
+      </div>
+
+      <%!-- Below md the corner sits over this column, so the text is kept clear
+            of it; from md it sits over the photo and the column is untouched. --%>
+      <div class={[
+        "flex flex-col gap-1.5 min-w-0 md:px-3.5 md:pt-3.5",
+        @corner != [] && "pr-11 md:pr-0"
+      ]}>
         <div class="flex items-center gap-2 flex-wrap">
           <span :if={@badges != []} data-role="badges" class="flex items-center gap-2 flex-wrap">
             {render_slot(@badges)}

@@ -775,4 +775,25 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       refute has_element?(view, "#browse-listing-#{listing.id} [data-role=badges]")
     end
   end
+
+  describe "adding a card's listing to a cart" do
+    test "offers the action on every card in the grid", %{conn: conn, seller: seller} do
+      listing = on_offer!(seller)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-listing-#{listing.id} #add-to-cart-#{listing.id}")
+    end
+
+    test "offers it to a visitor with no account, who may still buy", %{
+      conn: conn,
+      seller: seller
+    } do
+      listing = on_offer!(seller)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#add-to-cart-#{listing.id}")
+    end
+  end
 end

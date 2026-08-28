@@ -14,6 +14,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
 
   use MercatoWeb, :live_view
 
+  import MercatoWeb.UI.AddToCart
   import MercatoWeb.UI.Avatar
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.EmptyState
@@ -123,6 +124,9 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
                 <.badge :if={condition(listing)} kind="neutral">{condition(listing)}</.badge>
               </:badges>
               <:meta>Listed {when_listed(listing)}</:meta>
+              <:corner>
+                <.add_to_cart id={"add-to-cart-#{listing.id}"} />
+              </:corner>
             </.listing_card>
           </.listing_grid>
 

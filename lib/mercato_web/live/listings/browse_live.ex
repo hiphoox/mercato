@@ -32,6 +32,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   use MercatoWeb, :live_view
 
+  import MercatoWeb.UI.AddToCart
   import MercatoWeb.UI.EmptyState
   import MercatoWeb.UI.FilterBar
   import MercatoWeb.UI.ListingCard
@@ -419,6 +420,9 @@ defmodule MercatoWeb.Listings.BrowseLive do
               <.badge kind="neutral">{Listings.condition_label(listing.condition)}</.badge>
             </:badges>
             <:meta>{seller_handle(listing)} · {listed_ago(listing)}</:meta>
+            <:corner>
+              <.add_to_cart id={"add-to-cart-#{listing.id}"} />
+            </:corner>
           </.listing_card>
         </.listing_grid>
       </div>
