@@ -8,7 +8,7 @@ timestamp: 2026-08-28T00:00:00Z
 
 Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings-todo.md](listings-todo.md).
 
-The Phase 1 MVP is "list an item, find it, buy it". *Find it* is this file; *list it* is the listings backlog. Neither area's Phase 1 is shippable alone.
+The Phase 1 MVP is "list an item, find it, buy it". _Find it_ is this file; _list it_ is the listings backlog. Neither area's Phase 1 is shippable alone.
 
 Flows referenced here are already specified in [commerce-ux-patterns.md](../architecture/commerce-ux-patterns.md); this file tracks what to build, not how it should behave on screen.
 
@@ -22,13 +22,13 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 - [x] Public browse grid of `active` listings, newest first
 - [x] Keyword search over title and description
 - [x] Type-ahead suggestions over titles, categories and seller handles
-- [ ] Sort by newest and by price ascending/descending
+- [x] Sort by newest and by price ascending/descending
 - [ ] Pagination or infinite scroll on the grid
 
 ### Filtering
 
 - [x] Filter by category, from the header's scope selector
-- [ ] Filter by price range, plus condition where a condition list is configured
+- [x] Filter by price range, plus condition where a condition list is configured
 - [x] Only `active` listings appear in browse and search results
 
 ## NICE TO HAVE — Phase 2
