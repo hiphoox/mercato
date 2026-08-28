@@ -18,6 +18,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.EmptyState
   import MercatoWeb.UI.ListingCard
+  import MercatoWeb.UI.ListingGrid
   import MercatoWeb.UI.ListingStatusBadge
 
   alias Mercato.Accounts
@@ -294,16 +295,6 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
         {render_slot(@inner_block)}
       </h2>
       <span class="text-body-sm text-ink-500">{pluralize(@count, @unit)}</span>
-    </div>
-    """
-  end
-
-  slot :inner_block, required: true
-
-  defp listing_grid(assigns) do
-    ~H"""
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(15.5rem,1fr))] md:gap-5">
-      {render_slot(@inner_block)}
     </div>
     """
   end
