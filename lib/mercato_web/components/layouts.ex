@@ -41,6 +41,10 @@ defmodule MercatoWeb.Layouts do
     default: false,
     doc: "reveals the sidebar's Admin section; assigned by `MercatoWeb.LiveUserAuth`"
 
+  attr :query, :string,
+    default: nil,
+    doc: "the search term in force, so the header's box still reads it after a search"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -48,7 +52,7 @@ defmodule MercatoWeb.Layouts do
     <%!-- h-screen + overflow-hidden, so the page itself never scrolls: the sidebar
           and the main column each get their own scrollbar below. --%>
     <div class="h-screen overflow-hidden flex flex-col font-sans bg-bg-2 dark:bg-ink-900 text-ink-900 dark:text-white">
-      <.app_header current_user={@current_user} admin?={@admin?} />
+      <.app_header current_user={@current_user} admin?={@admin?} query={@query} />
 
       <%!-- The gap is lg-only: below that the sidebar is a fixed drawer and takes no
             space in this row, so a gap would just indent the main card against nothing. --%>

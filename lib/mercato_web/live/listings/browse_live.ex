@@ -1,7 +1,7 @@
 defmodule MercatoWeb.Listings.BrowseLive do
   @moduledoc """
   The marketplace as anyone arriving at it sees it: everything on offer,
-  newest first.
+  newest first, narrowed by a search term when there is one.
 
   This is the front door, so it is the one page that assumes nothing — no
   account, no history, no stated interest. What it can honestly order by is
@@ -12,9 +12,13 @@ defmodule MercatoWeb.Listings.BrowseLive do
   an account view, and a seller's own drafts and paused listings belong on
   their listings page rather than mixed into the public shelf.
 
-  Searching, filtering and paging the grid are not here yet. The bar that
-  carries them sits between the heading and the grid; until it exists this
-  page is that layout with the bar left out, not a different one.
+  The term lives in the query string rather than in assigns alone, so a search
+  can be linked, shared and reloaded, and so the header's box — which is drawn
+  on every page and submits here — has somewhere to send it.
+
+  Filtering and paging the grid are not here yet. The bar that carries them
+  sits between the heading and the grid; until it exists this page is that
+  layout with the bar left out, not a different one.
   """
 
   use MercatoWeb, :live_view
@@ -29,12 +33,31 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :listings, listings())}
+    {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    query = params |> Map.get("q", "") |> to_string() |> String.trim()
+
+    {:noreply,
+     socket
+     |> assign(:query, query)
+     |> assign(:listings, listings(query))}
   end
 
   # No actor is passed. Browsing is public and shows the same thing to
   # everyone, so who is looking cannot change what comes back.
-  defp listings, do: Listings.browse_listings!()
+  #
+  # A blank term is not a special case: it matches everything, so the
+  # unsearched grid and a cleared search are the same read rather than two
+  # paths that could disagree.
+  defp listings(query), do: Listings.browse_listings!(%{query: query})
+
+  @impl true
+  def handle_event("clear_search", _params, socket) do
+    {:noreply, push_patch(socket, to: ~p"/")}
+  end
 
   @impl true
   def render(assigns) do
@@ -45,19 +68,22 @@ defmodule MercatoWeb.Listings.BrowseLive do
       current_user={@current_user}
       admin?={@admin?}
       current_path={~p"/"}
+      query={@query}
     >
       <%!-- No breadcrumb: this is where the trail every other page draws
             starts, and a crumb pointing at the page you are on is noise. --%>
       <div id="browse" class="flex flex-col gap-6">
         <.header>
-          {gettext("Newest listings")}
-          <:subtitle>{gettext("Everything just listed, freshest first.")}</:subtitle>
+          {heading(@query, @listings)}
+          <:subtitle>{subtitle(@query, @listings)}</:subtitle>
         </.header>
 
+        <%!-- Two different emptinesses, because they have two different causes
+              and only one of them is the visitor's to fix. --%>
         <.empty_state
-          :if={@listings == []}
+          :if={@listings == [] and @query == ""}
           id="nothing-listed"
-          icon="hero-magnifying-glass"
+          icon="hero-archive-box"
           headline={gettext("Nothing is on offer yet")}
           description={
             gettext(
@@ -68,6 +94,24 @@ defmodule MercatoWeb.Listings.BrowseLive do
           <:actions>
             <.button :if={@current_user} size="md" navigate={~p"/listings/new"}>
               {gettext("List something")}
+            </.button>
+          </:actions>
+        </.empty_state>
+
+        <.empty_state
+          :if={@listings == [] and @query != ""}
+          id="no-results"
+          icon="hero-magnifying-glass"
+          headline={gettext("No results for “%{query}”", query: @query)}
+          description={
+            gettext(
+              "Nothing on offer matches that. A shorter or more general term usually turns something up."
+            )
+          }
+        >
+          <:actions>
+            <.button id="clear-search" size="md" variant="neutral" phx-click="clear_search">
+              {gettext("Clear search")}
             </.button>
           </:actions>
         </.empty_state>
@@ -90,6 +134,25 @@ defmodule MercatoWeb.Listings.BrowseLive do
     </Layouts.app>
     """
   end
+
+  # A searched grid is answering a question, so it says what was asked and how
+  # much came back. An unsearched one is not, so it says what it is ordered by.
+  defp heading("", _listings), do: gettext("Newest listings")
+
+  defp heading(query, []), do: gettext("No results for “%{query}”", query: query)
+
+  defp heading(query, listings) do
+    ngettext(
+      "%{count} result for “%{query}”",
+      "%{count} results for “%{query}”",
+      length(listings),
+      query: query
+    )
+  end
+
+  defp subtitle("", _listings), do: gettext("Everything just listed, freshest first.")
+  defp subtitle(_query, []), do: gettext("Nothing on offer matches that search.")
+  defp subtitle(_query, _listings), do: gettext("Newest first.")
 
   defp cover_url(%{images: images}) when is_list(images) do
     case Enum.find(images, & &1.is_cover) do

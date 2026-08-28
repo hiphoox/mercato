@@ -81,6 +81,35 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
       assert [current_user: @user] |> query("#app-search") |> LazyHTML.attribute("aria-label") ==
                ["Search listings"]
     end
+
+    # A GET form, so a search started from any page lands on the browse grid —
+    # the only page that knows what to do with a term.
+    test "submits to the browse page" do
+      form = [current_user: @user] |> query("header > form")
+
+      assert LazyHTML.attribute(form, "action") == ["/"]
+      assert LazyHTML.attribute(form, "method") == ["get"]
+    end
+
+    test "names the field so the term arrives as a query parameter" do
+      assert [current_user: @user] |> query("#app-search") |> LazyHTML.attribute("name") == ["q"]
+    end
+
+    test "carries a term already in force, so the box still reads it" do
+      assert [current_user: @user, query: "lounge chair"]
+             |> query("#app-search")
+             |> LazyHTML.attribute("value") == ["lounge chair"]
+    end
+
+    test "offers a submit control, so searching needs no keyboard" do
+      assert [current_user: @user]
+             |> query("header > form button[type=submit]")
+             |> LazyHTML.attribute("aria-label") == ["Search"]
+    end
+
+    test "searches for a signed-out visitor too, who has the most need of it" do
+      assert [] |> query("#app-search") |> Enum.empty?() == false
+    end
   end
 
   describe "sell" do
@@ -158,7 +187,7 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     test "drops search onto its own row, after the other controls" do
       wrapper =
         [current_user: @user]
-        |> query("header > div.grow")
+        |> query("header > form.grow")
         |> LazyHTML.attribute("class")
         |> hd()
 

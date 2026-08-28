@@ -19,6 +19,10 @@ defmodule MercatoWeb.Layouts.AppHeader do
   attr :current_user, :map, default: nil
   attr :admin?, :boolean, default: false
 
+  attr :query, :string,
+    default: nil,
+    doc: "the search term in force, so the box still reads it after a search"
+
   def app_header(assigns) do
     ~H"""
     <%!-- Below md the bar wraps to two rows: controls on top, search underneath.
@@ -61,16 +65,35 @@ defmodule MercatoWeb.Layouts.AppHeader do
 
       <%!-- `grow basis-full`, never `flex-1`: the shorthand would set flex-basis to 0
             and the search would sit on the first row instead of forcing the wrap. --%>
-      <div class={[
-        "order-4 basis-full md:order-none md:basis-0 grow min-w-0",
-        "flex items-center gap-2.5 h-12 md:h-14 px-3.5 md:px-4.5",
-        "rounded-md bg-bg dark:bg-ink-700 shadow-sm"
-      ]}>
-        <.icon name="hero-magnifying-glass" aria-hidden="true" class="size-4.5 text-ink-500" />
+      <%!-- A plain GET form rather than a LiveView event: the header is drawn on
+            every page, and only the browse page knows what to do with a search
+            term. Submitting navigates there from wherever the visitor is, which
+            no per-page event handler could do. --%>
+      <form
+        method="get"
+        action={~p"/"}
+        role="search"
+        class={[
+          "order-4 basis-full md:order-none md:basis-0 grow min-w-0",
+          "flex items-center gap-2.5 h-12 md:h-14 px-3.5 md:px-4.5",
+          "rounded-md bg-bg dark:bg-ink-700 shadow-sm"
+        ]}
+      >
+        <%!-- The button is the magnifier itself: a submit control has to exist for
+              the form to be reachable without a keyboard, and a second one beside
+              the icon would just repeat it. --%>
+        <button
+          type="submit"
+          aria-label={gettext("Search")}
+          class="flex-none flex items-center cursor-pointer focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100 rounded-sm"
+        >
+          <.icon name="hero-magnifying-glass" aria-hidden="true" class="size-4.5 text-ink-500" />
+        </button>
         <input
           type="search"
           id="app-search"
           name="q"
+          value={@query}
           aria-label={gettext("Search listings")}
           placeholder={gettext("Search listings, categories, sellers")}
           autocomplete="off"
@@ -79,7 +102,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
             "text-body-md text-ink-900 dark:text-white placeholder:text-ink-500"
           ]}
         />
-      </div>
+      </form>
 
       <%!-- The filled action in the bar. Every account here both buys and
             sells, so listing something is not a minority errand tucked into a

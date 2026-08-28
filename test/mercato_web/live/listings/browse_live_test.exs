@@ -170,4 +170,107 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       refute has_element?(view, ~s{#nothing-listed a[href="/listings/new"]})
     end
   end
+
+  describe "searching" do
+    test "narrows the grid to what matches the term", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Eames-style lounge chair")
+      on_offer!(seller, title: "Two-person tent")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=lounge")
+
+      assert html =~ "Eames-style lounge chair"
+      refute html =~ "Two-person tent"
+    end
+
+    test "matches on the description too, not just the title", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Nondescript item", description: "Walnut shell, barely used")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=walnut")
+
+      assert html =~ "Nondescript item"
+    end
+
+    test "ignores case", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Steel-Frame ROAD Bike")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=road+bike")
+
+      assert html =~ "Steel-Frame ROAD Bike"
+    end
+
+    test "says what was asked and how much came back", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Lounge chair")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=lounge")
+
+      assert html =~ "1 result for"
+      assert html =~ "lounge"
+    end
+
+    test "counts every match in the heading", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Lounge chair, walnut")
+      on_offer!(seller, title: "Lounge chair, oak")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=lounge")
+
+      assert html =~ "2 results for"
+    end
+
+    test "leaves the term in the header's box after searching", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Lounge chair")
+
+      {:ok, view, _html} = live(conn, ~p"/?q=lounge")
+
+      assert view |> element("#app-search") |> render() =~ ~s(value="lounge")
+    end
+
+    test "treats a blank term as no search at all", %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Two-person tent")
+
+      {:ok, _view, html} = live(conn, ~p"/?q=")
+
+      assert html =~ "Newest listings"
+      assert html =~ "Two-person tent"
+    end
+
+    test "still hides a draft that matches the term", %{conn: conn, seller: seller} do
+      generate(listing(actor: seller, title: "Draft lounge chair"))
+
+      {:ok, _view, html} = live(conn, ~p"/?q=lounge")
+
+      refute html =~ "Draft lounge chair"
+    end
+  end
+
+  describe "when a search matches nothing" do
+    setup %{conn: conn, seller: seller} do
+      on_offer!(seller, title: "Two-person tent")
+
+      {:ok, view, html} = live(conn, ~p"/?q=harpsichord")
+
+      %{view: view, html: html}
+    end
+
+    test "says so rather than drawing an empty grid", %{view: view} do
+      assert has_element?(view, "#no-results")
+      refute has_element?(view, "#browse-grid")
+    end
+
+    test "names the term that found nothing", %{html: html} do
+      assert html =~ "No results for"
+      assert html =~ "harpsichord"
+    end
+
+    test "keeps the empty state apart from the one for an empty marketplace", %{view: view} do
+      refute has_element?(view, "#nothing-listed")
+    end
+
+    test "clears the search back to the whole shelf", %{view: view} do
+      view |> element("#clear-search") |> render_click()
+
+      assert_patched(view, "/")
+      assert render(view) =~ "Two-person tent"
+      assert render(view) =~ "Newest listings"
+    end
+  end
 end

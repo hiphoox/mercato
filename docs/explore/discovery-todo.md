@@ -20,14 +20,14 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 ### Browse & search
 
 - [x] Public browse grid of `active` listings, newest first
-- [ ] Keyword search over title and description
+- [x] Keyword search over title and description
 - [ ] Sort by newest and by price ascending/descending
 - [ ] Pagination or infinite scroll on the grid
 
 ### Filtering
 
 - [ ] Filter by category and price range, plus condition where a condition list is configured
-- [ ] Only `active` listings appear in browse and search results
+- [x] Only `active` listings appear in browse and search results
 
 ## NICE TO HAVE — Phase 2
 
