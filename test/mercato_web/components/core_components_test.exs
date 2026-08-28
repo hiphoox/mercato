@@ -230,6 +230,22 @@ defmodule MercatoWeb.CoreComponentsTest do
     test "a plain chip has no remove control" do
       refute render_chip(label: "Active (2)", selected: false) =~ "Remove"
     end
+
+    test "renders a button when picking it acts rather than navigates" do
+      assert render_chip(label: "Bikes") =~ "<button"
+    end
+
+    test "renders a link when picking it goes somewhere" do
+      html = render_chip(label: "Bikes", patch: "/?category=bikes")
+
+      assert html =~ "<a"
+      assert html =~ ~s(href="/?category=bikes")
+    end
+
+    test "a chip that navigates still says whether it is the one in force" do
+      assert render_chip(label: "Bikes", patch: "/?category=bikes", selected: true) =~
+               ~s(aria-pressed="true")
+    end
   end
 
   describe "card" do
