@@ -413,6 +413,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
             image_alt={gettext("Cover photo of %{title}", title: listing.title)}
             class="transition-shadow hover:shadow-md"
           >
+            <%!-- On the slot rather than on the badge, so a listing whose seller
+                  stated no condition leaves no empty row above the price. --%>
+            <:badges :if={listing.condition}>
+              <.badge kind="neutral">{Listings.condition_label(listing.condition)}</.badge>
+            </:badges>
             <:meta>{seller_handle(listing)} · {listed_ago(listing)}</:meta>
           </.listing_card>
         </.listing_grid>

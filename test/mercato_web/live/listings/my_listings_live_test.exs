@@ -302,4 +302,30 @@ defmodule MercatoWeb.Listings.MyListingsLiveTest do
       assert view |> element("#flash-error") |> render() =~ "back on offer"
     end
   end
+
+  describe "the condition on a card" do
+    setup %{conn: conn} do
+      seller = generate(user())
+
+      %{conn: log_in(conn, seller), seller: seller}
+    end
+
+    test "marks the card with the condition, beside the state badge", ctx do
+      draft = generate(listing(actor: ctx.seller, condition: "good"))
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
+
+      assert has_element?(view, "#listing-#{draft.id} [data-role=badges]", "Good")
+      assert has_element?(view, "#listing-#{draft.id} [data-role=badges]", "Draft")
+    end
+
+    test "leaves the mark off a listing with no condition, keeping the state", ctx do
+      draft = generate(listing(actor: ctx.seller, condition: nil))
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/users/me/listings")
+
+      refute has_element?(view, "#listing-#{draft.id} [data-role=badges]", "Good")
+      assert has_element?(view, "#listing-#{draft.id} [data-role=badges]", "Draft")
+    end
+  end
 end

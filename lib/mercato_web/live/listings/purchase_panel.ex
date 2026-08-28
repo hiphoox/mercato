@@ -86,16 +86,9 @@ defmodule MercatoWeb.Listings.PurchasePanel do
       <div class="flex items-center gap-2 flex-wrap text-body-sm text-ink-500">
         <span class="font-semibold">{@category}</span>
         <span :if={@condition} aria-hidden="true" class="size-1 rounded-full bg-ink-300" />
-        <span
-          :if={@condition}
-          id="listing-condition"
-          class={[
-            "inline-flex items-center h-6.5 px-2.5 rounded-full",
-            "border border-ink-300 font-semibold text-ink-700 dark:text-ink-100"
-          ]}
-        >
-          {@condition}
-        </span>
+        <%!-- The same badge a card carries, so the one fact is worded and drawn
+              one way wherever a listing is shown. --%>
+        <.badge :if={@condition} id="listing-condition" kind="neutral">{@condition}</.badge>
       </div>
 
       <div class="flex flex-col gap-1">

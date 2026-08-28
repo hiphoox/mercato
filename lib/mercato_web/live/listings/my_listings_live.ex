@@ -245,6 +245,9 @@ defmodule MercatoWeb.Listings.MyListingsLive do
             >
               <:badges>
                 <.listing_status_badge status={listing.status} />
+                <.badge :if={listing.condition} kind="neutral">
+                  {Listings.condition_label(listing.condition)}
+                </.badge>
               </:badges>
               <:meta>{meta(listing, state)}</:meta>
               <:actions>

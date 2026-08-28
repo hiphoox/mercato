@@ -757,4 +757,22 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       assert_patched(view, "/")
     end
   end
+
+  describe "the condition on a card" do
+    test "marks the card with the condition its seller stated", %{conn: conn, seller: seller} do
+      listing = on_offer!(seller, title: "Boxed camera", condition: "like_new")
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-listing-#{listing.id} [data-role=badges]", "Like new")
+    end
+
+    test "leaves the mark off a listing whose seller stated none", %{conn: conn, seller: seller} do
+      listing = on_offer!(seller, title: "Boxed camera", condition: nil)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      refute has_element?(view, "#browse-listing-#{listing.id} [data-role=badges]")
+    end
+  end
 end
