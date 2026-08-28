@@ -101,6 +101,37 @@ defmodule Mercato.Accounts.User do
       filter expr(status in ^Status.has_public_profile())
     end
 
+    read :suggest_sellers do
+      description "Sellers whose name or handle matches a term, as the search box offers them."
+
+      argument :query, :string do
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      argument :category_slug, :string do
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      # Name and handle only. The admin listing below matches email too, because
+      # it is admin-only; this read is anonymous.
+      filter expr(
+               (icontains(first_name, ^arg(:query)) or icontains(last_name, ^arg(:query)) or
+                  icontains(handle, ^arg(:query))) and
+                 status in ^Status.has_public_profile() and
+                 exists(
+                   listings,
+                   status == :active and
+                     (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
+                 )
+             )
+
+      prepare build(sort: [:handle], limit: 3)
+    end
+
     read :list_accounts do
       description "Admin listing of every account, searchable and filterable by status."
 

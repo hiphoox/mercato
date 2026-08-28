@@ -16,6 +16,20 @@ defmodule Mercato.Listings.Category do
   actions do
     defaults [:read]
 
+    read :suggest do
+      description "Categories whose name matches a term, as the search box offers them."
+
+      argument :query, :string do
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      filter expr(icontains(name, ^arg(:query)))
+
+      prepare build(sort: [:name], limit: 5)
+    end
+
     create :create do
       primary? true
       accept [:name, :slug]

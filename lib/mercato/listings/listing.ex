@@ -100,6 +100,31 @@ defmodule Mercato.Listings.Listing do
               )
     end
 
+    read :suggest_titles do
+      description "Titles matching a term, as the search box completes them."
+
+      argument :query, :string do
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      argument :category_slug, :string do
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      filter expr(
+               icontains(title, ^arg(:query)) and
+                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
+             )
+
+      # Over-fetched, then folded down to one per title by the preparation.
+      prepare build(sort: [published_at: :desc, inserted_at: :desc], limit: 20)
+      prepare Mercato.Listings.Listing.Preparations.DistinctTitles
+    end
+
     read :list_for_seller do
       description "One seller's listings as their public profile shows them."
 
@@ -276,7 +301,7 @@ defmodule Mercato.Listings.Listing do
     # Deliberately without the "or it is mine" clause the reads above carry. The
     # browse grid is the marketplace as a stranger sees it, so a seller browsing
     # it must not find their own drafts and paused listings mixed into the shelf
-    policy action(:browse) do
+    policy action([:browse, :suggest_titles]) do
       authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
     end
 
