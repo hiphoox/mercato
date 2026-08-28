@@ -101,6 +101,31 @@ defmodule Mercato.Listings.Listing do
         default :newest
       end
 
+      # Minor units, like the column they are compared against, so the web layer
+      # reads what a buyer typed and nothing here has to know about decimals.
+      # Nil is an open end rather than a bound of zero, which is what lets a
+      # buyer state one side of the range and leave the other alone.
+      argument :price_min, :integer do
+        description "The least a listing may cost, in minor units."
+        constraints min: 0
+      end
+
+      argument :price_max, :integer do
+        description "The most a listing may cost, in minor units."
+        constraints min: 0
+      end
+
+      # A plain string rather than the `Condition` type: the type refuses a
+      # value the marketplace no longer configures, and a stale link should land
+      # on an empty grid rather than on an error. Empty is no narrowing, the
+      # same way it is for the category above.
+      argument :condition, :string do
+        description "Narrows the grid to one of the conditions the marketplace configures."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
       # A disjunction over the two columns rather than a search against them
       # joined: concatenating columns is not compilable to SQLite at all. The
       # match is case-insensitive; see the expression module for why contains/2
@@ -108,7 +133,10 @@ defmodule Mercato.Listings.Listing do
       # the unsearched grid and a cleared search the same read.
       filter expr(
                (icontains(title, ^arg(:query)) or icontains(description, ^arg(:query))) and
-                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
+                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug)) and
+                 (is_nil(^arg(:price_min)) or price >= ^arg(:price_min)) and
+                 (is_nil(^arg(:price_max)) or price <= ^arg(:price_max)) and
+                 (^arg(:condition) == "" or condition == ^arg(:condition))
              )
 
       prepare build(load: [:display_price, :seller, images: :url])

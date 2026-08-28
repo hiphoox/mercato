@@ -303,4 +303,87 @@ defmodule Mercato.Listings.ListingBrowseTest do
       assert {:error, _} = Listings.browse_listings(%{sort: :cheapest_nearby})
     end
   end
+
+  describe "browse_listings narrowed by price" do
+    setup %{seller: seller} do
+      %{
+        cheap: on_offer!(seller, price: 1_000),
+        middling: on_offer!(seller, price: 5_000),
+        dear: on_offer!(seller, price: 20_000)
+      }
+    end
+
+    test "leaves out what costs less than the floor asked for", ctx do
+      ids = Listings.browse_listings!(%{price_min: 5_000}) |> Enum.map(& &1.id)
+
+      assert Enum.sort(ids) == Enum.sort([ctx.middling.id, ctx.dear.id])
+    end
+
+    test "leaves out what costs more than the ceiling asked for", ctx do
+      ids = Listings.browse_listings!(%{price_max: 5_000}) |> Enum.map(& &1.id)
+
+      assert Enum.sort(ids) == Enum.sort([ctx.cheap.id, ctx.middling.id])
+    end
+
+    test "keeps a listing priced exactly at either bound, since a range includes its ends", ctx do
+      ids =
+        Listings.browse_listings!(%{price_min: 5_000, price_max: 5_000}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.middling.id]
+    end
+
+    test "reads an unset bound as no bound at all", ctx do
+      ids = Listings.browse_listings!(%{price_min: nil, price_max: nil}) |> Enum.map(& &1.id)
+
+      assert Enum.sort(ids) ==
+               Enum.sort([ctx.cheap.id, ctx.middling.id, ctx.dear.id])
+    end
+
+    test "returns nothing when the range excludes everything on offer" do
+      assert Listings.browse_listings!(%{price_min: 100_000}) == []
+    end
+
+    test "narrows by term and by price together", %{seller: seller} do
+      chair = on_offer!(seller, title: "Oak chair", price: 4_000)
+      on_offer!(seller, title: "Oak chair", price: 40_000)
+
+      ids =
+        Listings.browse_listings!(%{query: "chair", price_max: 10_000}) |> Enum.map(& &1.id)
+
+      assert ids == [chair.id]
+    end
+  end
+
+  describe "browse_listings narrowed by condition" do
+    setup %{seller: seller} do
+      %{
+        pristine: on_offer!(seller, condition: "new"),
+        worn: on_offer!(seller, condition: "fair"),
+        unstated: on_offer!(seller, condition: nil)
+      }
+    end
+
+    test "returns only what is in the condition asked for", ctx do
+      ids = Listings.browse_listings!(%{condition: "new"}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.pristine.id]
+    end
+
+    test "leaves out a listing whose seller stated no condition", ctx do
+      ids = Listings.browse_listings!(%{condition: "fair"}) |> Enum.map(& &1.id)
+
+      assert ids == [ctx.worn.id]
+    end
+
+    test "reads an unstated condition as no narrowing, not as a listing with none", ctx do
+      ids = Listings.browse_listings!(%{condition: ""}) |> Enum.map(& &1.id)
+
+      assert Enum.sort(ids) ==
+               Enum.sort([ctx.pristine.id, ctx.worn.id, ctx.unstated.id])
+    end
+
+    test "returns nothing for a condition nothing on offer is in" do
+      assert Listings.browse_listings!(%{condition: "like_new"}) == []
+    end
+  end
 end

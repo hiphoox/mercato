@@ -23,7 +23,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
   would be one claim in two places, and the wrong one half the time. An order is
   not a filter either, which is why clearing the filters leaves it alone.
 
-  The price range is drawn but not yet wired, and paging is not here at all.
+  Condition is offered only where the marketplace configures conditions at
+  all, so an instance selling services or digital goods never draws a facet
+  with nothing in it.
+
+  Paging is not here yet.
   """
 
   use MercatoWeb, :live_view
@@ -36,27 +40,35 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   alias Mercato.Listings
   alias Mercato.Listings.Listing.SortOrder
+  alias Mercato.Money
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :conditions, Listings.conditions())}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    query = params |> Map.get("q", "") |> to_string() |> String.trim()
     category = scope(params, socket.assigns.search_categories)
-    sort = order(params)
+
+    socket =
+      socket
+      |> assign(:query, params |> Map.get("q", "") |> to_string() |> String.trim())
+      |> assign(:category, category && category.slug)
+      |> assign(:category_name, category && category.name)
+      |> assign(:sort, order(params))
+      |> assign(:price_min, price(params, "price_min"))
+      |> assign(:price_max, price(params, "price_max"))
+      |> assign(:condition, condition(params))
 
     {:noreply,
      socket
-     |> assign(:query, query)
-     |> assign(:category, category && category.slug)
-     |> assign(:category_name, category && category.name)
-     |> assign(:sort, sort)
-     |> assign(:listings, listings(query, category, sort))}
+     |> assign(:facets, facets(socket))
+     |> assign(:narrowed?, narrowed?(socket))
+     |> assign(:filtered?, filtered?(socket))
+     |> assign(:listings, listings(socket))}
   end
 
   defp scope(params, categories) do
@@ -74,11 +86,63 @@ defmodule MercatoWeb.Listings.BrowseLive do
     Enum.find(SortOrder.values(), :newest, &(to_string(&1) == named))
   end
 
-  defp listings(query, category, sort) do
+  # Read as a person types it, in major units, and held in the minor units the
+  # resource compares against. A bound that cannot be read is no bound at all,
+  # the same forgiveness a hand-typed order or category gets.
+  defp price(params, key) do
+    case params |> Map.get(key, "") |> to_string() |> String.trim() do
+      "" -> nil
+      typed -> typed |> Money.to_minor() |> readable()
+    end
+  end
+
+  defp readable({:ok, amount}), do: amount
+  defp readable(:error), do: nil
+
+  # Checked against what this marketplace actually configures, so an instance
+  # offering no conditions cannot be filtered by one asked for by hand either.
+  defp condition(params) do
+    named = params |> Map.get("condition", "") |> to_string()
+
+    Enum.find(Listings.conditions(), &(&1 == named))
+  end
+
+  # Every facet in force in one list, so a control that changes one names only
+  # that one and the rest survive the patch rather than being dropped by
+  # whichever handler forgot them.
+  defp facets(%{assigns: assigns}) do
+    [
+      q: assigns.query,
+      category: assigns.category,
+      condition: assigns.condition,
+      price_min: assigns.price_min,
+      price_max: assigns.price_max,
+      sort: assigns.sort
+    ]
+  end
+
+  # The order is deliberately not counted: it is not a filter, so it neither
+  # summons the bar nor keeps the "nothing listed" state off the page.
+  defp narrowed?(%{assigns: assigns}) do
+    Enum.any?([assigns.category, assigns.condition, assigns.price_min, assigns.price_max]) or
+      assigns.query != ""
+  end
+
+  # A price or a condition narrows the shelf without appearing in the heading
+  # the way a term or a category does, so the copy above the grid has to stop
+  # claiming to be everything on offer.
+  defp filtered?(%{assigns: assigns}) do
+    Enum.any?([assigns.condition, assigns.price_min, assigns.price_max])
+  end
+
+  defp listings(%{assigns: assigns}) do
     Listings.browse_listings!(%{
-      query: query,
-      category_slug: (category && category.slug) || "",
-      sort: sort
+      query: assigns.query,
+      category_slug: assigns.category || "",
+      condition: assigns.condition || "",
+      price_min: assigns.price_min,
+      price_max: assigns.price_max,
+      sort: assigns.sort
     })
   end
 
@@ -87,22 +151,34 @@ defmodule MercatoWeb.Listings.BrowseLive do
     {:noreply, push_patch(socket, to: browse_path(sort: socket.assigns.sort))}
   end
 
-  def handle_event("drop_query", _params, socket) do
-    {:noreply,
-     push_patch(socket,
-       to: browse_path(category: socket.assigns.category, sort: socket.assigns.sort)
-     )}
+  def handle_event("drop_query", _params, socket), do: narrow(socket, q: nil)
+
+  def handle_event("drop_category", _params, socket), do: narrow(socket, category: nil)
+
+  def handle_event("drop_condition", _params, socket), do: narrow(socket, condition: nil)
+
+  def handle_event("drop_price", _params, socket),
+    do: narrow(socket, price_min: nil, price_max: nil)
+
+  def handle_event("apply_price", params, socket) do
+    narrow(socket, price_min: price(params, "price_min"), price_max: price(params, "price_max"))
   end
 
-  def handle_event("drop_category", _params, socket) do
-    {:noreply,
-     push_patch(socket, to: browse_path(q: socket.assigns.query, sort: socket.assigns.sort))}
+  defp narrow(socket, changed) do
+    {:noreply, push_patch(socket, to: browse_path(Keyword.merge(socket.assigns.facets, changed)))}
   end
 
   # Built rather than interpolated, so a facet that is unset leaves no empty
   # parameter behind and the whole shelf is plainly `/`.
   defp browse_path(opts) do
-    params = [q: opts[:q], category: opts[:category], sort: sort_param(opts[:sort])]
+    params = [
+      q: opts[:q],
+      category: opts[:category],
+      condition: opts[:condition],
+      price_min: Money.amount(opts[:price_min]),
+      price_max: Money.amount(opts[:price_max]),
+      sort: sort_param(opts[:sort])
+    ]
 
     case Enum.reject(params, fn {_key, value} -> value in [nil, ""] end) do
       [] -> ~p"/"
@@ -139,17 +215,14 @@ defmodule MercatoWeb.Listings.BrowseLive do
             starts, and a crumb pointing at the page you are on is noise. --%>
       <div id="browse" class="flex flex-col gap-6">
         <.header>
-          {heading(@query, @category_name, @listings)}
-          <:subtitle>{subtitle(@query, @category_name, @listings)}</:subtitle>
+          {heading(@query, @category_name, @listings, @filtered?)}
+          <:subtitle>{subtitle(@query, @category_name, @listings, @filtered?)}</:subtitle>
         </.header>
 
         <%!-- Left out when the marketplace itself is empty: there is nothing to
               narrow, and a bar of filters over an empty shelf reads as though
               the filters are what emptied it. --%>
-        <.filter_bar
-          :if={@listings != [] or @query != "" or not is_nil(@category)}
-          id="browse-filters"
-        >
+        <.filter_bar :if={@listings != [] or @narrowed?} id="browse-filters">
           <%!-- md:contents, so the pill joins the bar's flex row directly and the
                 wrapper hiding it below md leaves no gap behind. --%>
           <div class="hidden md:contents">
@@ -160,12 +233,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
               active={not is_nil(@category)}
               class="w-64 max-h-72 overflow-y-auto"
             >
-              <.category_choices
-                query={@query}
-                category={@category}
-                sort={@sort}
-                categories={@search_categories}
-              />
+              <.category_choices facets={@facets} categories={@search_categories} />
             </.filter_menu>
 
             <.filter_menu
@@ -175,7 +243,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
               role="dialog"
               class="w-72 gap-3 p-3.5"
             >
-              <.price_fields prefix="browse-price" />
+              <.price_fields prefix="browse-price" min={@price_min} max={@price_max} />
             </.filter_menu>
           </div>
 
@@ -185,7 +253,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
             name={gettext("Sort")}
             class="w-60"
           >
-            <.sort_choices prefix="browse-sort" query={@query} category={@category} sort={@sort} />
+            <.sort_choices prefix="browse-sort" facets={@facets} />
           </.filter_menu>
 
           <div class="flex-1"></div>
@@ -199,7 +267,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
             phx-click={show_sheet("browse-filters-sheet")}
           />
 
-          <:chips :if={@query != "" or not is_nil(@category)}>
+          <:chips :if={@narrowed?}>
             <.filter_chip
               :if={@query != ""}
               id="browse-chip-query"
@@ -213,6 +281,20 @@ defmodule MercatoWeb.Listings.BrowseLive do
               label={@category_name}
               removable
               phx-click="drop_category"
+            />
+            <.filter_chip
+              :if={@condition}
+              id="browse-chip-condition"
+              label={Listings.condition_label(@condition)}
+              removable
+              phx-click="drop_condition"
+            />
+            <.filter_chip
+              :if={@price_min || @price_max}
+              id="browse-chip-price"
+              label={price_label(@price_min, @price_max)}
+              removable
+              phx-click="drop_price"
             />
             <button
               type="button"
@@ -240,13 +322,13 @@ defmodule MercatoWeb.Listings.BrowseLive do
               <.filter_chip
                 label={gettext("All categories")}
                 selected={is_nil(@category)}
-                patch={browse_path(q: @query, sort: @sort)}
+                patch={browse_path(Keyword.put(@facets, :category, nil))}
               />
               <.filter_chip
                 :for={category <- @search_categories}
                 label={category.name}
                 selected={category.slug == @category}
-                patch={browse_path(q: @query, category: category.slug, sort: @sort)}
+                patch={browse_path(Keyword.put(@facets, :category, category.slug))}
               />
             </div>
           </section>
@@ -255,19 +337,24 @@ defmodule MercatoWeb.Listings.BrowseLive do
             <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
               {gettext("Price")}
             </h3>
-            <.price_fields prefix="browse-sheet-price" />
+            <.price_fields prefix="browse-sheet-price" min={@price_min} max={@price_max} />
+          </section>
+
+          <%!-- Left out where the marketplace configures no conditions: a
+                services or digital-goods instance has none to offer, and a
+                facet with nothing in it reads as a page that failed to load. --%>
+          <section :if={@conditions != []} class="flex flex-col gap-3">
+            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
+              {gettext("Condition")}
+            </h3>
+            <.condition_choices facets={@facets} conditions={@conditions} />
           </section>
 
           <section class="flex flex-col gap-3">
             <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
               {gettext("Sort")}
             </h3>
-            <.sort_choices
-              prefix="browse-sheet-sort"
-              query={@query}
-              category={@category}
-              sort={@sort}
-            />
+            <.sort_choices prefix="browse-sheet-sort" facets={@facets} />
           </section>
 
           <:footer>
@@ -284,7 +371,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
         <%!-- Two different emptinesses, because they have two different causes
               and only one of them is the visitor's to fix. --%>
         <.empty_state
-          :if={@listings == [] and @query == "" and is_nil(@category)}
+          :if={@listings == [] and not @narrowed?}
           id="nothing-listed"
           icon="hero-archive-box"
           headline={gettext("Nothing is on offer yet")}
@@ -302,11 +389,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
         </.empty_state>
 
         <.empty_state
-          :if={@listings == [] and (@query != "" or not is_nil(@category))}
+          :if={@listings == [] and @narrowed?}
           id="no-results"
           icon="hero-magnifying-glass"
           headline={no_results_headline(@query, @category_name)}
-          description={no_results_description(@query)}
+          description={no_results_description(@query, @category_name)}
         >
           <:actions>
             <.button id="clear-search" size="md" variant="neutral" phx-click="clear_search">
@@ -337,9 +424,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
   # The bar and the sheet offer the same facets, so each is written once and
   # rendered in both. They live here rather than in components/ui/ because only
   # this page has these facets to offer.
-  attr :query, :string, required: true
-  attr :category, :string, default: nil
-  attr :sort, :atom, required: true
+  attr :facets, :list, required: true, doc: "every facet in force, so a pick changes only its own"
   attr :categories, :list, required: true
 
   defp category_choices(assigns) do
@@ -347,23 +432,44 @@ defmodule MercatoWeb.Listings.BrowseLive do
     <.filter_option
       id="browse-category-any"
       label={gettext("All categories")}
-      selected={is_nil(@category)}
-      patch={browse_path(q: @query, sort: @sort)}
+      selected={is_nil(@facets[:category])}
+      patch={browse_path(Keyword.put(@facets, :category, nil))}
     />
     <.filter_option
       :for={category <- @categories}
       id={"browse-category-#{category.slug}"}
       label={category.name}
-      selected={category.slug == @category}
-      patch={browse_path(q: @query, category: category.slug, sort: @sort)}
+      selected={category.slug == @facets[:category]}
+      patch={browse_path(Keyword.put(@facets, :category, category.slug))}
+    />
+    """
+  end
+
+  attr :facets, :list, required: true
+  attr :conditions, :list, required: true
+
+  defp condition_choices(assigns) do
+    ~H"""
+    <.filter_option
+      id="browse-condition-any"
+      label={gettext("Any condition")}
+      selected={is_nil(@facets[:condition])}
+      patch={browse_path(Keyword.put(@facets, :condition, nil))}
+    />
+    <%!-- Worded by the domain, not here: the list is what the operator
+          configured, so it is data rather than copy to translate. --%>
+    <.filter_option
+      :for={condition <- @conditions}
+      id={"browse-condition-#{condition}"}
+      label={Listings.condition_label(condition)}
+      selected={condition == @facets[:condition]}
+      patch={browse_path(Keyword.put(@facets, :condition, condition))}
     />
     """
   end
 
   attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
-  attr :query, :string, required: true
-  attr :category, :string, default: nil
-  attr :sort, :atom, required: true
+  attr :facets, :list, required: true
 
   defp sort_choices(assigns) do
     assigns = assign(assigns, :options, sort_options())
@@ -373,48 +479,79 @@ defmodule MercatoWeb.Listings.BrowseLive do
       :for={{order, label} <- @options}
       id={"#{@prefix}-#{order}"}
       label={label}
-      selected={order == @sort}
-      patch={browse_path(q: @query, category: @category, sort: order)}
+      selected={order == @facets[:sort]}
+      patch={browse_path(Keyword.put(@facets, :sort, order))}
     />
     """
   end
 
-  # Drawn, not wired, for the same reason as the sort options.
-  attr :prefix, :string, required: true
+  # A range is stated by typing rather than by picking, so it is submitted
+  # rather than patched on every keystroke: half a range is a bound the buyer
+  # has not finished writing, and applying it would empty the grid underneath
+  # them mid-word.
+  attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
+  attr :min, :integer, default: nil
+  attr :max, :integer, default: nil
 
   defp price_fields(assigns) do
     ~H"""
-    <div class="flex items-end gap-2.5">
-      <.input
-        type="number"
-        id={"#{@prefix}-min"}
-        name="price_min"
-        value=""
-        label={gettext("Min")}
-        min="0"
-      />
-      <.input
-        type="number"
-        id={"#{@prefix}-max"}
-        name="price_max"
-        value=""
-        label={gettext("Max")}
-        min="0"
-      />
-    </div>
+    <.form for={%{}} id={"#{@prefix}-form"} phx-submit="apply_price" class="flex flex-col gap-2.5">
+      <div class="flex items-end gap-2.5">
+        <.input
+          type="number"
+          id={"#{@prefix}-min"}
+          name="price_min"
+          value={Money.amount(@min)}
+          label={gettext("Min")}
+          min="0"
+          step="0.01"
+        />
+        <.input
+          type="number"
+          id={"#{@prefix}-max"}
+          name="price_max"
+          value={Money.amount(@max)}
+          label={gettext("Max")}
+          min="0"
+          step="0.01"
+        />
+      </div>
+      <.button type="submit" size="sm">{gettext("Apply")}</.button>
+    </.form>
     """
   end
 
-  defp heading("", nil, _listings), do: gettext("Everything on offer")
+  # Three whole messages rather than one built from a fragment and a bound:
+  # which end is open changes the sentence, not just a word inside it.
+  defp price_label(min, nil), do: gettext("From %{min}", min: money(min))
+  defp price_label(nil, max), do: gettext("Up to %{max}", max: money(max))
 
-  defp heading("", category, []), do: gettext("Nothing in %{category} yet", category: category)
+  defp price_label(min, max),
+    do: gettext("%{min} – %{max}", min: money(min), max: money(max))
 
-  defp heading("", category, _listings),
+  defp money(amount), do: Money.format(amount, Listings.currency())
+
+  # A filtered shelf is counted rather than described: the facets in force are
+  # already named by the chips, and a count is the one claim that stays true
+  # whichever of them is doing the narrowing.
+  defp heading("", _category, [], true), do: gettext("Nothing matches those filters")
+
+  defp heading("", _category, listings, true) do
+    ngettext("%{count} listing matches", "%{count} listings match", length(listings))
+  end
+
+  defp heading("", nil, _listings, _filtered?), do: gettext("Everything on offer")
+
+  defp heading("", category, [], _filtered?),
+    do: gettext("Nothing in %{category} yet", category: category)
+
+  defp heading("", category, _listings, _filtered?),
     do: gettext("Everything in %{category}", category: category)
 
-  defp heading(query, _category, []), do: gettext("No results for “%{query}”", query: query)
+  defp heading(query, _category, [], _filtered?),
+    do: gettext("No results for “%{query}”", query: query)
 
-  defp heading(query, _category, listings) do
+  defp heading(query, _category, listings, _filtered?) do
     ngettext(
       "%{count} result for “%{query}”",
       "%{count} results for “%{query}”",
@@ -423,23 +560,35 @@ defmodule MercatoWeb.Listings.BrowseLive do
     )
   end
 
-  defp subtitle("", nil, _listings), do: gettext("Every listing on offer, from every seller.")
+  defp subtitle("", _category, [], true),
+    do: gettext("Nothing on offer matches those filters.")
 
-  defp subtitle("", category, []),
+  defp subtitle("", nil, _listings, true), do: gettext("Everything on offer that matches.")
+
+  defp subtitle("", category, _listings, true),
+    do: gettext("Everything in %{category} that matches.", category: category)
+
+  defp subtitle("", nil, _listings, _filtered?),
+    do: gettext("Every listing on offer, from every seller.")
+
+  defp subtitle("", category, [], _filtered?),
     do: gettext("Nothing is listed in %{category} yet.", category: category)
 
-  defp subtitle("", category, _listings),
+  defp subtitle("", category, _listings, _filtered?),
     do: gettext("Every listing in %{category}, from every seller.", category: category)
 
-  defp subtitle(_query, nil, []), do: gettext("Nothing on offer matches that search.")
+  defp subtitle(_query, nil, [], _filtered?), do: gettext("Nothing on offer matches that search.")
 
-  defp subtitle(_query, category, []),
+  defp subtitle(_query, category, [], _filtered?),
     do: gettext("Nothing in %{category} matches that search.", category: category)
 
-  defp subtitle(_query, nil, _listings), do: gettext("Everything on offer that matches.")
+  defp subtitle(_query, nil, _listings, _filtered?),
+    do: gettext("Everything on offer that matches.")
 
-  defp subtitle(_query, category, _listings),
+  defp subtitle(_query, category, _listings, _filtered?),
     do: gettext("Everything in %{category} that matches.", category: category)
+
+  defp no_results_headline("", nil), do: gettext("Nothing matches those filters")
 
   defp no_results_headline("", category),
     do: gettext("Nothing in %{category} yet", category: category)
@@ -447,11 +596,17 @@ defmodule MercatoWeb.Listings.BrowseLive do
   defp no_results_headline(query, _category),
     do: gettext("No results for “%{query}”", query: query)
 
-  defp no_results_description(""),
+  defp no_results_description("", nil),
+    do:
+      gettext(
+        "Nothing on offer matches those filters. Loosening one of them usually turns something up."
+      )
+
+  defp no_results_description("", _category),
     do:
       gettext("No one has listed anything here so far. Another category may have what you want.")
 
-  defp no_results_description(_query),
+  defp no_results_description(_query, _category),
     do:
       gettext(
         "Nothing on offer matches that. A shorter or more general term usually turns something up."

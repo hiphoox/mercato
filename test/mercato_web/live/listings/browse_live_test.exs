@@ -569,4 +569,192 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
       assert has_element?(view, "#browse-sheet-sort-price_desc")
     end
   end
+
+  describe "narrowing the grid by price" do
+    setup %{seller: seller} do
+      %{
+        cheap: on_offer!(seller, title: "Cheap chair", price: 1_000),
+        dear: on_offer!(seller, title: "Dear chair", price: 90_000)
+      }
+    end
+
+    test "reads the range out of the URL", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/?price_max=100.00")
+
+      assert render(view) =~ "Cheap chair"
+      refute render(view) =~ "Dear chair"
+    end
+
+    test "applies the range typed into the bar", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#browse-price-form", %{"price_min" => "5", "price_max" => "50"})
+      |> render_submit()
+
+      assert_patched(view, "/?price_max=50.00&price_min=5.00")
+    end
+
+    test "applies a floor on its own, leaving the other end open", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#browse-price-form", %{"price_min" => "20", "price_max" => ""})
+      |> render_submit()
+
+      assert_patched(view, "/?price_min=20.00")
+    end
+
+    test "applies the range typed into the sheet as well as the bar", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view |> form("#browse-sheet-price-form", %{"price_max" => "50"}) |> render_submit()
+
+      assert_patched(view, "/?price_max=50.00")
+    end
+
+    test "keeps the term and the order when the range is applied", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&sort=price_asc")
+
+      view |> form("#browse-price-form", %{"price_min" => "5"}) |> render_submit()
+
+      assert_patched(view, "/?price_min=5.00&q=chair&sort=price_asc")
+    end
+
+    test "shows the range back in the fields it was typed into", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_min=5.00&price_max=50.00")
+
+      assert view |> element("#browse-price-min") |> render() =~ ~s(value="5.00")
+      assert view |> element("#browse-price-max") |> render() =~ ~s(value="50.00")
+    end
+
+    test "shows the range as a chip of its own", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_min=5.00&price_max=50.00")
+
+      assert has_element?(view, "#browse-filters-chips", "$5.00")
+      assert has_element?(view, "#browse-filters-chips", "$50.00")
+    end
+
+    test "says which end is bounded when only one of them is", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_min=5.00")
+
+      assert has_element?(view, "#browse-filters-chips", "From $5.00")
+    end
+
+    test "drops the range and keeps the term", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=chair&price_min=5.00&price_max=50.00")
+
+      view |> element("#browse-chip-price") |> render_click()
+
+      assert_patched(view, "/?q=chair")
+    end
+
+    test "counts what matches rather than claiming the whole shelf", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_max=100.00")
+
+      assert render(view) =~ "1 listing matches"
+    end
+
+    test "says so plainly when the range excludes everything", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_min=1000.00")
+
+      assert has_element?(view, "#no-results")
+      assert render(view) =~ "Nothing matches those filters"
+      refute render(view) =~ "Nothing in  yet"
+    end
+
+    test "ignores a range it cannot read, rather than refusing the page", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?price_min=cheap")
+
+      assert render(view) =~ "Cheap chair"
+      assert render(view) =~ "Dear chair"
+      refute has_element?(view, "#browse-chip-price")
+    end
+  end
+
+  describe "narrowing the grid by condition" do
+    setup %{seller: seller} do
+      %{
+        pristine: on_offer!(seller, title: "Boxed camera", condition: "new"),
+        worn: on_offer!(seller, title: "Battered camera", condition: "fair")
+      }
+    end
+
+    test "reads the condition out of the URL", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/?condition=new")
+
+      assert render(view) =~ "Boxed camera"
+      refute render(view) =~ "Battered camera"
+    end
+
+    test "offers every condition the marketplace configures, in the sheet", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#browse-condition-new", "New")
+      assert has_element?(view, "#browse-condition-like_new", "Like new")
+    end
+
+    test "picks a condition from the sheet", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view |> element("#browse-condition-good") |> render_click()
+
+      assert_patched(view, "/?condition=good")
+    end
+
+    test "marks the condition in force as chosen", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?condition=new")
+
+      assert has_element?(view, ~s{#browse-condition-new[aria-checked="true"]})
+      refute has_element?(view, ~s{#browse-condition-any[aria-checked="true"]})
+    end
+
+    test "offers a way back to every condition at once", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?condition=new")
+
+      view |> element("#browse-condition-any") |> render_click()
+
+      assert_patched(view, "/")
+    end
+
+    test "shows the condition as a chip, worded the way the marketplace configures it", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = live(conn, ~p"/?condition=like_new")
+
+      assert has_element?(view, "#browse-filters-chips", "Like new")
+    end
+
+    test "drops the condition and keeps the term", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?q=camera&condition=new")
+
+      view |> element("#browse-chip-condition") |> render_click()
+
+      assert_patched(view, "/?q=camera")
+    end
+
+    test "ignores a condition this marketplace does not use", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?condition=roadworthy")
+
+      assert render(view) =~ "Boxed camera"
+      assert render(view) =~ "Battered camera"
+      refute has_element?(view, "#browse-chip-condition")
+    end
+
+    test "keeps the condition when the order changes", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?condition=new")
+
+      view |> element("#browse-sort-price_asc") |> render_click()
+
+      assert_patched(view, "/?condition=new&sort=price_asc")
+    end
+
+    test "drops it along with every other filter", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/?condition=new&price_min=5.00")
+
+      view |> element("#browse-clear-all") |> render_click()
+
+      assert_patched(view, "/")
+    end
+  end
 end
