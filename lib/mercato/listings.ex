@@ -5,7 +5,20 @@ defmodule Mercato.Listings do
   """
 
   use Ash.Domain,
-    otp_app: :mercato
+    otp_app: :mercato,
+    extensions: [AshJsonApi.Domain]
+
+  json_api do
+    routes do
+      base_route "/listings", Mercato.Listings.Listing do
+        index :suggest_titles, route: "/suggest"
+      end
+
+      base_route "/categories", Mercato.Listings.Category do
+        index :suggest, route: "/suggest"
+      end
+    end
+  end
 
   resources do
     resource Mercato.Listings.Listing do

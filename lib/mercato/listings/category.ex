@@ -6,11 +6,28 @@ defmodule Mercato.Listings.Category do
   seed data, not by letting sellers invent categories as they go.
   """
 
-  use Ash.Resource, otp_app: :mercato, domain: Mercato.Listings, data_layer: AshSqlite.DataLayer
+  use Ash.Resource,
+    otp_app: :mercato,
+    domain: Mercato.Listings,
+    data_layer: AshSqlite.DataLayer,
+    extensions: [AshJsonApi.Resource]
 
   sqlite do
     table "categories"
     repo Mercato.Repo
+  end
+
+  json_api do
+    type "category"
+
+    # An allowlist, not a subtraction: a field added later is not exposed until
+    # it is named here.
+    show_fields([:name, :slug])
+
+    # The route answers one prepared question. Deriving filter and sort would
+    # turn it into a general query surface over the catalog.
+    derive_filter?(false)
+    derive_sort?(false)
   end
 
   actions do
@@ -21,7 +38,7 @@ defmodule Mercato.Listings.Category do
 
       argument :query, :string do
         constraints allow_empty?: true
-        allow_nil? false
+        allow_nil? true
         default ""
       end
 

@@ -11,7 +11,7 @@ defmodule Mercato.Listings.Listing do
     domain: Mercato.Listings,
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshArchival.Resource]
+    extensions: [AshArchival.Resource, AshJsonApi.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Accounts.User.Status, as: SellerStatus
@@ -20,6 +20,17 @@ defmodule Mercato.Listings.Listing do
   sqlite do
     table "listings"
     repo Mercato.Repo
+  end
+
+  json_api do
+    type "listing"
+
+    # An allowlist, not a subtraction: a field added later is not exposed until
+    # it is named here.
+    show_fields([:title])
+
+    derive_filter?(false)
+    derive_sort?(false)
   end
 
   archive do
@@ -105,13 +116,13 @@ defmodule Mercato.Listings.Listing do
 
       argument :query, :string do
         constraints allow_empty?: true
-        allow_nil? false
+        allow_nil? true
         default ""
       end
 
       argument :category_slug, :string do
         constraints allow_empty?: true
-        allow_nil? false
+        allow_nil? true
         default ""
       end
 

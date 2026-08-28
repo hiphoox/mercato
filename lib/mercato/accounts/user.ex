@@ -9,7 +9,7 @@ defmodule Mercato.Accounts.User do
     domain: Mercato.Accounts,
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshAuthentication, AshArchival.Resource]
+    extensions: [AshAuthentication, AshArchival.Resource, AshJsonApi.Resource]
 
   alias Mercato.Accounts.User.Status
 
@@ -68,6 +68,20 @@ defmodule Mercato.Accounts.User do
     end
   end
 
+  json_api do
+    type "seller"
+
+    # An allowlist, and the reason this resource can face the public at all:
+    # every other field on a user — email above all — stays unexposed, and a
+    # field added later is not exposed until it is named here.
+    show_fields([:handle, :first_name, :last_name])
+
+    # Without these the route becomes a general query surface over accounts,
+    # filterable and sortable by fields it does not even show.
+    derive_filter?(false)
+    derive_sort?(false)
+  end
+
   archive do
     # Every read filters archived accounts out on its own, so a read added later
     # is excluded by default rather than by remembering to say so. Not a
@@ -106,13 +120,13 @@ defmodule Mercato.Accounts.User do
 
       argument :query, :string do
         constraints allow_empty?: true
-        allow_nil? false
+        allow_nil? true
         default ""
       end
 
       argument :category_slug, :string do
         constraints allow_empty?: true
-        allow_nil? false
+        allow_nil? true
         default ""
       end
 

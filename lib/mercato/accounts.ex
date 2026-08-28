@@ -4,7 +4,16 @@ defmodule Mercato.Accounts do
   """
 
   use Ash.Domain,
-    otp_app: :mercato
+    otp_app: :mercato,
+    extensions: [AshJsonApi.Domain]
+
+  json_api do
+    routes do
+      base_route "/sellers", Mercato.Accounts.User do
+        index :suggest_sellers, route: "/suggest"
+      end
+    end
+  end
 
   resources do
     resource Mercato.Accounts.Token
