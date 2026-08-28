@@ -19,7 +19,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 
 ### Browse & search
 
-- [ ] Public browse grid of `active` listings, newest first
+- [x] Public browse grid of `active` listings, newest first
 - [ ] Keyword search over title and description
 - [ ] Sort by newest and by price ascending/descending
 - [ ] Pagination or infinite scroll on the grid

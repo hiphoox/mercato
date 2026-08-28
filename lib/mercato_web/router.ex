@@ -37,6 +37,11 @@ defmodule MercatoWeb.Router do
       # If an authenticated user must *not* be present:
       # on_mount {MercatoWeb.LiveUserAuth, :live_no_user}
 
+      # The marketplace's front door, and the only page not about one resource
+      # in particular — it is addressed as the site root rather than under a
+      # prefix, so it sits above the grouping below rather than inside it.
+      live "/", Listings.BrowseLive
+
       # Grouped by the resource the page is about, so a new page for one of them
       # can only land inside its own prefix.
       scope "/users" do
@@ -69,7 +74,6 @@ defmodule MercatoWeb.Router do
   scope "/", MercatoWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
     auth_routes AuthController, Mercato.Accounts.User, path: "/auth"
     sign_out_route AuthController
 

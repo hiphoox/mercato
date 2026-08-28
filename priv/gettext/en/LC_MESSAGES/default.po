@@ -192,11 +192,6 @@ msgstr ""
 msgid "Breadcrumb"
 msgstr ""
 
-#: lib/mercato_web/controllers/page_html/home.html.heex:8
-#, elixir-autogen, elixir-format
-msgid "Browse"
-msgstr ""
-
 #: lib/mercato_web/live/listings/my_listings_live.ex:458
 #, elixir-autogen, elixir-format
 msgid "Buyers compare, so price it against what similar items went for."
@@ -282,6 +277,7 @@ msgstr ""
 msgid "Cover photo"
 msgstr ""
 
+#: lib/mercato_web/live/listings/browse_live.ex:83
 #: lib/mercato_web/live/listings/my_listings_live.ex:243
 #, elixir-autogen, elixir-format
 msgid "Cover photo of %{title}"
@@ -426,11 +422,6 @@ msgstr ""
 #: lib/mercato_web/live/listings/my_listings_live.ex:192
 #, elixir-autogen, elixir-format
 msgid "Filter by state"
-msgstr ""
-
-#: lib/mercato_web/controllers/page_html/home.html.heex:10
-#, elixir-autogen, elixir-format
-msgid "Find something worth buying, or list something worth selling."
 msgstr ""
 
 #: lib/mercato_web/live/auth/register_form.ex:107
@@ -1353,4 +1344,63 @@ msgstr ""
 #: lib/mercato_web/live/listings/my_listings_live.ex:274
 #, elixir-autogen, elixir-format
 msgid "“%{title}” will be taken off Mercato. This cannot be undone."
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "Everything just listed, freshest first."
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "List something"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:53
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Newest listings"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:63
+#, elixir-autogen, elixir-format
+msgid "No one has listed anything for sale so far. The first listing published shows up here."
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:61
+#, elixir-autogen, elixir-format
+msgid "Nothing is on offer yet"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:124
+#, elixir-autogen, elixir-format
+msgid "listed %{count} day ago"
+msgid_plural "listed %{count} days ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:122
+#, elixir-autogen, elixir-format
+msgid "listed %{count} hour ago"
+msgid_plural "listed %{count} hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:114
+#, elixir-autogen, elixir-format
+msgid "listed at some point"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "listed in %{month}"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:121
+#, elixir-autogen, elixir-format
+msgid "listed just now"
+msgstr ""
+
+#: lib/mercato_web/live/listings/browse_live.ex:123
+#, elixir-autogen, elixir-format
+msgid "listed yesterday"
 msgstr ""
