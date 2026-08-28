@@ -81,7 +81,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   # holds few enough listings that one read is cheaper than five, and the
   # counts on the chips have to describe the same snapshot the sections do.
   defp load_listings(socket) do
-    listings = Listings.list_my_listings!(actor: socket.assigns.current_user)
+    listings = Listings.list_my_listings!(actor: socket.assigns.current_scope.user)
     grouped = Enum.group_by(listings, & &1.status)
 
     socket
@@ -93,7 +93,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   @impl true
   def handle_event("remove", %{"id" => id}, socket) do
     with %{} = listing <- Enum.find(socket.assigns.listings, &(&1.id == id)),
-         :ok <- Listings.delete_listing(listing, actor: socket.assigns.current_user) do
+         :ok <- Listings.delete_listing(listing, actor: socket.assigns.current_scope.user) do
       {:noreply,
        socket
        |> load_listings()
@@ -142,7 +142,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
   # the same snapshot.
   defp moved(socket, id, move, said, refused) do
     with %{} = listing <- Enum.find(socket.assigns.listings, &(&1.id == id)),
-         {:ok, _moved} <- move.(listing, actor: socket.assigns.current_user) do
+         {:ok, _moved} <- move.(listing, actor: socket.assigns.current_scope.user) do
       {:noreply,
        socket
        |> load_listings()
@@ -163,9 +163,7 @@ defmodule MercatoWeb.Listings.MyListingsLive do
     <Layouts.app
       categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/users/me/listings"}
     >
       <div id="my-listings" class="flex flex-col gap-6">

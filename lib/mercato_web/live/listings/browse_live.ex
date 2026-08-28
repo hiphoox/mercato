@@ -72,9 +72,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
     ~H"""
     <Layouts.app
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/"}
       query={@query}
       categories={@search_categories}
@@ -102,7 +100,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
           }
         >
           <:actions>
-            <.button :if={@current_user} size="md" navigate={~p"/listings/new"}>
+            <.button :if={@current_scope.user} size="md" navigate={~p"/listings/new"}>
               {gettext("List something")}
             </.button>
           </:actions>

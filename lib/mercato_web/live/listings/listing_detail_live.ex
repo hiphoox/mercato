@@ -73,7 +73,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   defp load_listing(socket, slug) do
     public_id = Slug.public_id(slug)
 
-    case Listings.get_listing_by_public_id(public_id, actor: socket.assigns.current_user) do
+    case Listings.get_listing_by_public_id(public_id, actor: socket.assigns.current_scope.user) do
       {:ok, listing} -> assign(socket, listing: listing, path: ~p"/listings/#{listing}")
       {:error, _gone} -> assign(socket, listing: nil, path: ~p"/listings/#{slug}")
     end
@@ -124,7 +124,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   # describe the same snapshot. A refusal is almost always the gallery minimum
   # or a state someone else moved the listing out of first.
   defp moved(socket, move, said, refused) do
-    %{listing: listing, current_user: user} = socket.assigns
+    %{listing: listing, current_scope: %{user: user}} = socket.assigns
 
     case move.(listing, actor: user) do
       {:ok, _moved} ->
@@ -142,16 +142,14 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   def render(assigns) do
     assigns =
       assigns
-      |> assign(:banner, owner_banner(assigns.listing, assigns.current_user))
+      |> assign(:banner, owner_banner(assigns.listing, assigns.current_scope.user))
       |> assign(:description, description(assigns))
 
     ~H"""
     <Layouts.app
       categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={@path}
     >
       <.empty_state
@@ -272,8 +270,8 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
                 condition={Listings.condition_label(@listing.condition)}
                 status={@listing.status}
                 quantity={@listing.quantity}
-                owner?={owner?(@listing, @current_user)}
-                signed_in?={!is_nil(@current_user)}
+                owner?={owner?(@listing, @current_scope.user)}
+                signed_in?={!is_nil(@current_scope.user)}
                 edit_path={~p"/listings/#{@listing.id}/edit"}
                 sold_at={@listing.updated_at}
               />
@@ -297,7 +295,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
         <%!-- Below lg the panel scrolls away with the page, so the action and the
               price it commits to travel pinned to the bottom instead. --%>
         <.sticky_buy_bar
-          :if={buyable?(@listing, @current_user)}
+          :if={buyable?(@listing, @current_scope.user)}
           price={@listing.display_price}
           quantity={@listing.quantity}
         />

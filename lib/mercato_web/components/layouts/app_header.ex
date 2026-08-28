@@ -16,8 +16,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
   sidebar to toggle, nothing to list under, and no cart to open when nobody is
   signed in.
   """
-  attr :current_user, :map, default: nil
-  attr :admin?, :boolean, default: false
+  attr :current_scope, Mercato.Accounts.Scope, required: true
 
   attr :query, :string,
     default: nil,
@@ -44,7 +43,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
         "lg:w-58 sidebar-collapsed:w-18 lg:transition-[width] lg:duration-150"
       ]}>
         <button
-          :if={@current_user}
+          :if={@current_scope.user}
           type="button"
           id="sidebar-toggle"
           phx-hook="SidebarToggle"
@@ -152,7 +151,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
             The layout lives on the wrapper rather than on the button: a class
             given to the button replaces its variant outright, and restating
             the fill here is how a vocabulary drifts. --%>
-      <div :if={@current_user} class="order-1 md:order-none flex-none">
+      <div :if={@current_scope.user} class="order-1 md:order-none flex-none">
         <.button id="sell-cta" navigate={~p"/listings/new"} aria-label={gettext("Sell an item")}>
           <.icon name="hero-tag" aria-hidden="true" class="size-4.5" />
           <%!-- The span carries the responsive display rather than the button, whose
@@ -164,7 +163,7 @@ defmodule MercatoWeb.Layouts.AppHeader do
       </div>
 
       <.link
-        :if={@current_user}
+        :if={@current_scope.user}
         id="app-cart"
         navigate={~p"/"}
         aria-label={gettext("Cart")}
@@ -190,9 +189,11 @@ defmodule MercatoWeb.Layouts.AppHeader do
               Below md the header is already wrapping two rows, and the same badge sits
               in the account menu, so the indicator is dropped rather than crowded in. --%>
         <span class="hidden md:inline">
-          <.badge :if={@admin?} id="admin-indicator" kind="featured">{gettext("Admin")}</.badge>
+          <.badge :if={@current_scope.admin?} id="admin-indicator" kind="featured">
+            {gettext("Admin")}
+          </.badge>
         </span>
-        <.user_menu current_user={@current_user} admin?={@admin?} />
+        <.user_menu current_scope={@current_scope} />
       </div>
     </header>
     """

@@ -16,7 +16,7 @@ defmodule MercatoWeb.ProfileLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    user = socket.assigns.current_user
+    user = socket.assigns.current_scope.user
 
     socket =
       socket
@@ -70,9 +70,7 @@ defmodule MercatoWeb.ProfileLive do
     <Layouts.app
       categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/users/me/profile"}
     >
       <div class="flex flex-col gap-6">

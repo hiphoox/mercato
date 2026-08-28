@@ -94,7 +94,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # `:update` policy can only widen the first of the two — so the answer is the
   # same for every account on the page, and the check costs a query each time.
   defp assign_can_change_status(socket) do
-    actor = socket.assigns.current_user
+    actor = socket.assigns.current_scope.user
 
     assign(socket, :can_change_status?, Accounts.can_change_status?(actor, actor, :active))
   end
@@ -132,7 +132,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # answer "yes" for an admin who holds no `user:delete` at all. Every non-self
   # row gives the same answer, so one of them settles the whole page.
   defp assign_can_delete_accounts(socket) do
-    %{current_user: actor, accounts: accounts} = socket.assigns
+    %{current_scope: %{user: actor}, accounts: accounts} = socket.assigns
 
     can? =
       case Enum.find(accounts, &(&1.id != actor.id)) do
@@ -144,7 +144,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   end
 
   defp load_accounts(socket) do
-    %{query: query, status: status, page: page, current_user: actor} = socket.assigns
+    %{query: query, status: status, page: page, current_scope: %{user: actor}} = socket.assigns
 
     {:ok, results} =
       Accounts.list_accounts(%{query: query, status: status},
@@ -166,7 +166,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # chips describe the platform, not the current search. A chip shifting while
   # the user types would make it useless as a starting point for narrowing down.
   defp load_status_counts(socket) do
-    actor = socket.assigns.current_user
+    actor = socket.assigns.current_scope.user
 
     counts =
       Map.new(@status_values, fn status ->
@@ -251,7 +251,7 @@ defmodule MercatoWeb.Admin.UsersLive do
       # say whose account went.
       name = display_name(account)
 
-      case Accounts.delete_account(account, actor: socket.assigns.current_user) do
+      case Accounts.delete_account(account, actor: socket.assigns.current_scope.user) do
         :ok -> {:ok, name}
         {:error, _} -> :error
       end
@@ -269,7 +269,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   defp change_status(socket, account, status)
        when is_map(account) and status not in [nil, :deleted] do
     if actionable?(socket.assigns, account) do
-      case Accounts.change_status(account, status, %{}, actor: socket.assigns.current_user) do
+      case Accounts.change_status(account, status, %{}, actor: socket.assigns.current_scope.user) do
         {:ok, updated} -> {:ok, updated}
         {:error, _} -> :error
       end
@@ -282,7 +282,7 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   defp actionable?(%{can_change_status?: false}, _account), do: false
 
-  defp actionable?(%{current_user: %{id: actor_id}}, account) do
+  defp actionable?(%{current_scope: %{user: %{id: actor_id}}}, account) do
     account.id != actor_id and not deleted?(account)
   end
 
@@ -326,9 +326,7 @@ defmodule MercatoWeb.Admin.UsersLive do
     <Layouts.app
       categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/admin/users"}
     >
       <div class="flex flex-col gap-6">

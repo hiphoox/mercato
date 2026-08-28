@@ -23,23 +23,18 @@ defmodule MercatoWeb.Layouts do
 
   ## Examples
 
-      <Layouts.app flash={@flash} current_user={@current_user} current_path={~p"/users/me/profile"}>
+      <Layouts.app flash={@flash} current_scope={@current_scope} current_path={~p"/users/me/profile"}>
         <h1>Content</h1>
       </Layouts.app>
 
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
-  attr :current_scope, :map,
-    default: nil,
-    doc: "the current [scope](https://phoenix.hexdocs.pm/scopes.html)"
+  attr :current_scope, Mercato.Accounts.Scope,
+    required: true,
+    doc: "who is looking and what that reaches; assigned by `MercatoWeb.LiveUserAuth`"
 
-  attr :current_user, :map, default: nil, doc: "drives the sidebar, cart and user menu"
   attr :current_path, :string, default: nil, doc: "used to mark the active sidebar entry"
-
-  attr :admin?, :boolean,
-    default: false,
-    doc: "reveals the sidebar's Admin section; assigned by `MercatoWeb.LiveUserAuth`"
 
   attr :query, :string,
     default: nil,
@@ -61,8 +56,7 @@ defmodule MercatoWeb.Layouts do
           and the main column each get their own scrollbar below. --%>
     <div class="h-screen overflow-hidden flex flex-col font-sans bg-bg-2 dark:bg-ink-900 text-ink-900 dark:text-white">
       <.app_header
-        current_user={@current_user}
-        admin?={@admin?}
+        current_scope={@current_scope}
         query={@query}
         categories={@categories}
         category={@category}
@@ -71,7 +65,11 @@ defmodule MercatoWeb.Layouts do
       <%!-- The gap is lg-only: below that the sidebar is a fixed drawer and takes no
             space in this row, so a gap would just indent the main card against nothing. --%>
       <div class="flex-1 min-h-0 flex items-stretch lg:gap-3 px-3 pb-3 md:px-4 md:pb-4">
-        <.sidebar :if={@current_user} current_path={@current_path} admin?={@admin?} />
+        <.sidebar
+          :if={@current_scope.user}
+          current_path={@current_path}
+          admin?={@current_scope.admin?}
+        />
 
         <main class={[
           "flex-1 min-w-0 overflow-y-auto rounded-md bg-bg dark:bg-ink-900 shadow-sm",

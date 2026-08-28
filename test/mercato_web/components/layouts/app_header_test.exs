@@ -3,6 +3,7 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
   import Phoenix.LiveViewTest
 
+  alias Mercato.Accounts.Scope
   alias MercatoWeb.Layouts.AppHeader
 
   @user %Mercato.Accounts.User{
@@ -13,6 +14,8 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
   }
 
   defp query(assigns, selector) do
+    assigns = Keyword.put_new(assigns, :current_scope, %Scope{})
+
     render_component(&AppHeader.app_header/1, assigns)
     |> LazyHTML.from_fragment()
     |> LazyHTML.query(selector)
@@ -20,21 +23,21 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
   describe "admin indicator" do
     test "marks an admin in the header itself, not only inside the account menu" do
-      assert [current_user: @user, admin?: true]
+      assert [current_scope: %Scope{user: @user, admin?: true}]
              |> query("#admin-indicator")
              |> LazyHTML.text() =~ "Admin"
     end
 
     test "is absent for a non-admin" do
-      assert [current_user: @user, admin?: false] |> query("#admin-indicator") |> Enum.empty?()
+      assert [current_scope: %Scope{user: @user}] |> query("#admin-indicator") |> Enum.empty?()
     end
 
     test "is absent when the caller says nothing about admin access" do
-      assert [current_user: @user] |> query("#admin-indicator") |> Enum.empty?()
+      assert [current_scope: %Scope{user: @user}] |> query("#admin-indicator") |> Enum.empty?()
     end
 
     test "is absent for a signed-out visitor" do
-      assert [] |> query("#admin-indicator") |> Enum.empty?()
+      assert [current_scope: %Scope{}] |> query("#admin-indicator") |> Enum.empty?()
     end
   end
 
@@ -83,38 +86,45 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     end
 
     test "is left out when the caller names no catalog" do
-      assert [] |> query("#app-search-scope") |> Enum.empty?()
+      assert [current_scope: %Scope{}] |> query("#app-search-scope") |> Enum.empty?()
     end
   end
 
   describe "brand" do
     test "links the wordmark home" do
-      assert [current_user: @user] |> query("#app-brand") |> LazyHTML.attribute("href") == ["/"]
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-brand")
+             |> LazyHTML.attribute("href") == ["/"]
     end
 
     test "renders the logo" do
-      assert [current_user: @user] |> query("#app-brand img") |> Enum.count() == 1
+      assert [current_scope: %Scope{user: @user}] |> query("#app-brand img") |> Enum.count() == 1
     end
   end
 
   describe "sidebar toggle" do
     test "is only rendered for signed-in users, who are the only ones with a sidebar" do
-      assert [current_user: nil] |> query("#sidebar-toggle") |> Enum.count() == 0
+      assert [current_scope: %Scope{}] |> query("#sidebar-toggle") |> Enum.count() == 0
     end
 
     test "names itself for screen readers" do
-      assert [current_user: @user] |> query("#sidebar-toggle") |> LazyHTML.attribute("aria-label") ==
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#sidebar-toggle")
+             |> LazyHTML.attribute("aria-label") ==
                ["Toggle navigation"]
     end
 
     test "points at the sidebar it controls" do
-      assert [current_user: @user]
+      assert [current_scope: %Scope{user: @user}]
              |> query("#sidebar-toggle")
              |> LazyHTML.attribute("aria-controls") == ["app-sidebar"]
     end
 
     test "meets the minimum touch target" do
-      class = [current_user: @user] |> query("#sidebar-toggle") |> LazyHTML.attribute("class")
+      class =
+        [current_scope: %Scope{user: @user}]
+        |> query("#sidebar-toggle")
+        |> LazyHTML.attribute("class")
 
       assert hd(class) =~ "size-11"
     end
@@ -122,53 +132,65 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
   describe "search" do
     test "renders a search input" do
-      assert [current_user: @user] |> query("#app-search") |> LazyHTML.attribute("type") ==
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-search")
+             |> LazyHTML.attribute("type") ==
                ["search"]
     end
 
     test "labels the input for screen readers, since the placeholder is not a label" do
-      assert [current_user: @user] |> query("#app-search") |> LazyHTML.attribute("aria-label") ==
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-search")
+             |> LazyHTML.attribute("aria-label") ==
                ["Search listings"]
     end
 
     # A GET form, so a search started from any page lands on the browse grid —
     # the only page that knows what to do with a term.
     test "submits to the browse page" do
-      form = [current_user: @user] |> query("header > form")
+      form = [current_scope: %Scope{user: @user}] |> query("header > form")
 
       assert LazyHTML.attribute(form, "action") == ["/"]
       assert LazyHTML.attribute(form, "method") == ["get"]
     end
 
     test "names the field so the term arrives as a query parameter" do
-      assert [current_user: @user] |> query("#app-search") |> LazyHTML.attribute("name") == ["q"]
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-search")
+             |> LazyHTML.attribute("name") == ["q"]
     end
 
     test "carries a term already in force, so the box still reads it" do
-      assert [current_user: @user, query: "lounge chair"]
+      assert [current_scope: %Scope{user: @user}, query: "lounge chair"]
              |> query("#app-search")
              |> LazyHTML.attribute("value") == ["lounge chair"]
     end
 
     test "offers a submit control, so searching needs no keyboard" do
-      assert [current_user: @user]
+      assert [current_scope: %Scope{user: @user}]
              |> query("header > form button[type=submit]")
              |> LazyHTML.attribute("aria-label") == ["Search"]
     end
 
     test "searches for a signed-out visitor too, who has the most need of it" do
-      assert [] |> query("#app-search") |> Enum.empty?() == false
+      assert [current_scope: %Scope{}] |> query("#app-search") |> Enum.empty?() == false
     end
   end
 
   describe "sell" do
     test "offers a signed-in trader a way to start a listing" do
-      assert [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("href") ==
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#sell-cta")
+             |> LazyHTML.attribute("href") ==
                ["/listings/new"]
     end
 
     test "is the filled call to action, selling being what the bar is there to invite" do
-      class = [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("class") |> hd()
+      class =
+        [current_scope: %Scope{user: @user}]
+        |> query("#sell-cta")
+        |> LazyHTML.attribute("class")
+        |> hd()
 
       assert class =~ "bg-primary-500"
       assert class =~ "text-white"
@@ -177,25 +199,27 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     test "draws its look from the button vocabulary rather than restating it" do
       # Layout belongs to the wrapper, because a class given to the button
       # replaces its variant outright rather than adding to it.
-      assert [current_user: @user]
+      assert [current_scope: %Scope{user: @user}]
              |> query("#sell-cta")
              |> LazyHTML.attribute("class")
              |> hd() =~ "h-[52px]"
     end
 
     test "is hidden from signed-out visitors, who have nowhere to be sent" do
-      assert [current_user: nil] |> query("#sell-cta") |> Enum.empty?()
+      assert [current_scope: %Scope{}] |> query("#sell-cta") |> Enum.empty?()
     end
 
     test "keeps its name for a screen reader at the width that drops it" do
-      assert [current_user: @user] |> query("#sell-cta") |> LazyHTML.attribute("aria-label") ==
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#sell-cta")
+             |> LazyHTML.attribute("aria-label") ==
                ["Sell an item"]
     end
 
     test "shows its name from md up, where there is room for it" do
       # Not any span: the icon is one too, and it is hidden from readers rather
       # than from narrow screens.
-      assert [current_user: @user]
+      assert [current_scope: %Scope{user: @user}]
              |> query("#sell-cta span:not([aria-hidden])")
              |> LazyHTML.attribute("class") == ["hidden md:inline"]
     end
@@ -203,21 +227,22 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
   describe "cart" do
     test "is hidden from signed-out visitors, who have no cart" do
-      assert [current_user: nil] |> query("#app-cart") |> Enum.count() == 0
+      assert [current_scope: %Scope{}] |> query("#app-cart") |> Enum.count() == 0
     end
 
     test "is shown to signed-in users" do
-      assert [current_user: @user] |> query("#app-cart") |> Enum.count() == 1
+      assert [current_scope: %Scope{user: @user}] |> query("#app-cart") |> Enum.count() == 1
     end
   end
 
   describe "user menu" do
     test "is rendered for signed-in users" do
-      assert [current_user: @user] |> query("#user-menu-trigger") |> Enum.count() == 1
+      assert [current_scope: %Scope{user: @user}] |> query("#user-menu-trigger") |> Enum.count() ==
+               1
     end
 
     test "is rendered for signed-out visitors too, offering sign in" do
-      hrefs = [current_user: nil] |> query("[role=menu] a") |> LazyHTML.attribute("href")
+      hrefs = [current_scope: %Scope{}] |> query("[role=menu] a") |> LazyHTML.attribute("href")
 
       assert "/sign-in" in hrefs
     end
@@ -227,7 +252,11 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
   # that the bar reflows. Confirming the reflow needs a browser at a real viewport.
   describe "wrapping below md" do
     test "allows the bar to wrap, and stops it wrapping from md up" do
-      class = [current_user: @user] |> query("header") |> LazyHTML.attribute("class") |> hd()
+      class =
+        [current_scope: %Scope{user: @user}]
+        |> query("header")
+        |> LazyHTML.attribute("class")
+        |> hd()
 
       assert class =~ "flex-wrap"
       assert class =~ "md:flex-nowrap"
@@ -235,7 +264,7 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
     test "drops search onto its own row, after the other controls" do
       wrapper =
-        [current_user: @user]
+        [current_scope: %Scope{user: @user}]
         |> query("header > form.grow")
         |> LazyHTML.attribute("class")
         |> hd()
@@ -249,7 +278,7 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
     test "keeps the account control on the first row, pinned right" do
       class =
-        [current_user: @user]
+        [current_scope: %Scope{user: @user}]
         |> query("header > div.order-2")
         |> LazyHTML.attribute("class")
         |> hd()
@@ -260,7 +289,7 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
 
     test "reserves the sidebar's width in the header only once the sidebar is in flow" do
       class =
-        [current_user: @user]
+        [current_scope: %Scope{user: @user}]
         |> query("header > div:first-child")
         |> LazyHTML.attribute("class")
         |> hd()

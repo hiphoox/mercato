@@ -7,12 +7,13 @@ defmodule MercatoWeb.LiveUserAuth do
   use MercatoWeb, :verified_routes
 
   alias AshAuthentication.Phoenix.LiveSession
+  alias Mercato.Accounts.Scope
 
   @doc """
   Mount hooks, selected by name:
 
-    * `:current_user` — assigns the current user, requiring none
-    * `:live_user_optional` — the same, plus `:admin?`
+    * `:current_user` — assigns `:current_scope`, requiring no account
+    * `:live_user_optional` — the same
     * `:live_user_required` — sends a signed-out visitor to sign-in
     * `:live_admin_required` — the same, and sends a non-admin home
     * `:live_no_user` — sends a signed-in user home
@@ -22,20 +23,16 @@ defmodule MercatoWeb.LiveUserAuth do
   def on_mount(hook, params, session, socket)
 
   def on_mount(:current_user, _params, session, socket) do
-    {:cont, LiveSession.assign_new_resources(socket, session)}
+    {:cont, socket |> LiveSession.assign_new_resources(session) |> assign_scope()}
   end
 
   def on_mount(:live_user_optional, _params, _session, socket) do
-    if socket.assigns[:current_user] do
-      {:cont, assign_admin(socket)}
-    else
-      {:cont, socket |> assign(:current_user, nil) |> assign(:admin?, false)}
-    end
+    {:cont, assign_scope(socket)}
   end
 
   def on_mount(:live_user_required, _params, _session, socket) do
     if socket.assigns[:current_user] do
-      {:cont, assign_admin(socket)}
+      {:cont, assign_scope(socket)}
     else
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/sign-in")}
     end
@@ -49,7 +46,7 @@ defmodule MercatoWeb.LiveUserAuth do
         {:halt, socket}
 
       {:cont, socket} ->
-        if socket.assigns.admin? do
+        if socket.assigns.current_scope.admin? do
           {:cont, socket}
         else
           {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
@@ -61,15 +58,15 @@ defmodule MercatoWeb.LiveUserAuth do
     if socket.assigns[:current_user] do
       {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/")}
     else
-      {:cont, socket |> assign(:current_user, nil) |> assign(:admin?, false)}
+      {:cont, assign_scope(socket)}
     end
   end
 
-  # Assigned on every authenticated mount, not just under /admin: the sidebar
-  # shows the Admin section on every page, so every page needs the answer.
-  defp assign_admin(socket) do
-    assign_new(socket, :admin?, fn ->
-      MercatoWeb.AdminAccess.admin?(socket.assigns.current_user)
+  # Every hook ends here, so a mount always leaves the same shape behind
+  # whichever way it got there.
+  defp assign_scope(socket) do
+    assign_new(socket, :current_scope, fn ->
+      Scope.for_user(socket.assigns[:current_user])
     end)
   end
 end
