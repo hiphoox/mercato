@@ -3,7 +3,7 @@ type: explore
 title: Discovery Todo
 description: Backlog of browse, search, filter, and ranking capabilities, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [discovery, search, todo, backlog, mvp]
-timestamp: 2026-08-24T00:00:00Z
+timestamp: 2026-08-28T00:00:00Z
 ---
 
 Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings-todo.md](listings-todo.md).
@@ -21,12 +21,14 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 
 - [x] Public browse grid of `active` listings, newest first
 - [x] Keyword search over title and description
+- [x] Type-ahead suggestions over titles, categories and seller handles
 - [ ] Sort by newest and by price ascending/descending
 - [ ] Pagination or infinite scroll on the grid
 
 ### Filtering
 
-- [ ] Filter by category and price range, plus condition where a condition list is configured
+- [x] Filter by category, from the header's scope selector
+- [ ] Filter by price range, plus condition where a condition list is configured
 - [x] Only `active` listings appear in browse and search results
 
 ## NICE TO HAVE — Phase 2

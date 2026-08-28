@@ -90,6 +90,52 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     end
   end
 
+  describe "suggestion panel" do
+    test "gives the box a listbox to point at" do
+      panel = [categories: @categories] |> query("#app-search-suggestions")
+
+      assert LazyHTML.attribute(panel, "role") == ["listbox"]
+      assert LazyHTML.text(panel) |> String.trim() == ""
+    end
+
+    test "starts hidden, so a visitor without JavaScript never sees an empty box" do
+      assert [categories: @categories]
+             |> query("#app-search-suggestions[hidden]")
+             |> Enum.count() == 1
+    end
+
+    test "marks the input as the combobox driving it" do
+      input = [categories: @categories] |> query("#app-search")
+
+      assert LazyHTML.attribute(input, "role") == ["combobox"]
+      assert LazyHTML.attribute(input, "aria-controls") == ["app-search-suggestions"]
+      assert LazyHTML.attribute(input, "aria-expanded") == ["false"]
+    end
+
+    test "hangs the hook on the form, since a suggestion acts on the whole form" do
+      assert [categories: @categories]
+             |> query("#app-search-form")
+             |> LazyHTML.attribute("phx-hook") == ["SearchSuggest"]
+    end
+
+    # The hook renders rows client-side, so the group headings have to reach it
+    # from here — otherwise they would be English baked into JavaScript.
+    test "hands the group headings over as data, so gettext still owns them" do
+      form = [categories: @categories] |> query("#app-search-form")
+
+      assert LazyHTML.attribute(form, "data-label-listings") == ["Listings"]
+      assert LazyHTML.attribute(form, "data-label-categories") == ["Categories"]
+      assert LazyHTML.attribute(form, "data-label-sellers") == ["Sellers"]
+    end
+
+    test "tells the hook where to ask and where a seller lives" do
+      form = [categories: @categories] |> query("#app-search-form")
+
+      assert LazyHTML.attribute(form, "data-suggest-path") == ["/api/json"]
+      assert LazyHTML.attribute(form, "data-seller-path") == ["/users"]
+    end
+  end
+
   describe "brand" do
     test "links the wordmark home" do
       assert [current_scope: %Scope{user: @user}]

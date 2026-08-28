@@ -77,11 +77,18 @@ defmodule MercatoWeb.Layouts.AppHeader do
             term. Submitting navigates there from wherever the visitor is, which
             no per-page event handler could do. --%>
       <form
+        id="app-search-form"
         method="get"
         action={~p"/"}
         role="search"
+        phx-hook="SearchSuggest"
+        data-suggest-path="/api/json"
+        data-seller-path="/users"
+        data-label-listings={gettext("Listings")}
+        data-label-categories={gettext("Categories")}
+        data-label-sellers={gettext("Sellers")}
         class={[
-          "order-4 basis-full md:order-none md:basis-0 grow min-w-0",
+          "order-4 basis-full md:order-none md:basis-0 grow min-w-0 relative",
           "flex items-center gap-2.5 h-12 md:h-14 px-3.5 md:px-4.5",
           "rounded-md bg-bg dark:bg-ink-700 shadow-sm"
         ]}
@@ -127,6 +134,10 @@ defmodule MercatoWeb.Layouts.AppHeader do
           aria-label={gettext("Search listings")}
           placeholder={gettext("Search listings, categories, sellers")}
           autocomplete="off"
+          role="combobox"
+          aria-expanded="false"
+          aria-controls="app-search-suggestions"
+          aria-autocomplete="list"
           class={[
             "flex-1 min-w-0 border-none bg-transparent outline-none",
             "text-body-md text-ink-900 dark:text-white placeholder:text-ink-500"
@@ -142,6 +153,21 @@ defmodule MercatoWeb.Layouts.AppHeader do
         >
           <.icon name="hero-magnifying-glass" aria-hidden="true" class="size-4.5 text-ink-500" />
         </button>
+
+        <%!-- Filled by the hook from JSON, so it stays empty on the server and
+              a visitor without JavaScript never sees an empty box. --%>
+        <ul
+          id="app-search-suggestions"
+          role="listbox"
+          aria-label={gettext("Search suggestions")}
+          hidden
+          class={[
+            "absolute left-0 right-0 top-[calc(100%+6px)] z-60 py-1.5 m-0 list-none",
+            "rounded-md border border-ink-100 dark:border-ink-700",
+            "bg-bg dark:bg-ink-900 shadow-lg overflow-hidden"
+          ]}
+        >
+        </ul>
       </form>
 
       <%!-- The filled action in the bar. Every account here both buys and
