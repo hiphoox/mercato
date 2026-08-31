@@ -15,7 +15,8 @@ defmodule Mercato.Listings.Listing do
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Accounts.User.Status, as: SellerStatus
-  alias Mercato.Listings.Listing.{Calculations, PublicId}
+  alias Mercato.Listings.Listing.Calculations
+  alias Mercato.PublicId
 
   sqlite do
     table "listings"

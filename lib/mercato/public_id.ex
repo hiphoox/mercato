@@ -1,8 +1,8 @@
-defmodule Mercato.Listings.Listing.PublicId do
+defmodule Mercato.PublicId do
   @moduledoc """
-  Mints the short identifier a listing is known by in public.
+  Mints the short identifier a record is known by in public.
 
-  Separate from the primary key so the URL a seller shares stays short,
+  Separate from the primary key so the URL someone shares stays short,
   readable, and free to outlive whatever the database uses internally.
   """
 
@@ -14,7 +14,7 @@ defmodule Mercato.Listings.Listing.PublicId do
   @doc """
   A new public id: #{@length} characters drawn at random from the alphabet.
 
-  Random rather than sequential, so a listing's URL says nothing about how many
+  Random rather than sequential, so the URL says nothing about how many records
   the marketplace holds or in what order they arrived.
   """
   def generate do
