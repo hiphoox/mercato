@@ -3,7 +3,7 @@ type: explore
 title: Discovery Todo
 description: Backlog of browse, search, filter, and ranking capabilities, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [discovery, search, todo, backlog, mvp]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-08-31T12:00:00Z
 ---
 
 Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings-todo.md](listings-todo.md).
@@ -22,7 +22,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 - [x] Public browse grid of `active` listings, newest first
 - [x] Keyword search over title and description
 - [x] Type-ahead suggestions over titles, categories and seller handles
-- [x] Sort by newest and by price ascending/descending
+- [x] Sort by newest and by price ascending/descending, from a declared set an instance can replace — see [discovery-facets.md](../architecture/discovery-facets.md)
 - [x] Pagination or infinite scroll on the grid
 
 ### Filtering
@@ -59,6 +59,7 @@ The free-text term stays outside the facet set for this reason: it is the engine
 ### Filtering depth
 
 - [x] Customizable filter set — declared facets driving both the query and the controls; the rules now live in [discovery-facets.md](../architecture/discovery-facets.md) and the procedure in [browse-filters.md](../guides/browse-filters.md)
+- [x] Customizable sort set — declared orders, each naming its own columns and inheriting the tie-break from the default
 - [ ] Location-based filtering and local pickup
 - [ ] Sold-only filter with sold listings ranked last in general results
 - [ ] Filtering on category-scoped attributes, once listings carry them

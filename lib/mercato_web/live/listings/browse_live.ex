@@ -55,7 +55,6 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   alias Mercato.Discovery
   alias Mercato.Listings
-  alias Mercato.Listings.Listing.SortOrder
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
@@ -117,11 +116,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   # An order nobody offers is read as no order at all, the same way an unknown
   # category is: a stale or hand-typed link lands on the grid rather than on an
-  # error.
+  # error. The read itself refuses one, which is why it is settled here first.
   defp order(params) do
-    named = params |> Map.get("sort", "") |> to_string()
-
-    Enum.find(SortOrder.values(), :newest, &(to_string(&1) == named))
+    case params |> Map.get("sort", "") |> Discovery.fetch_sort() do
+      {:ok, sort} -> sort
+      :error -> Discovery.default_sort()
+    end
   end
 
   # A number that is not one, or one below the first page, is read as no page
@@ -165,7 +165,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   defp listings(%{assigns: assigns}, page) do
     Listings.browse_listings!(
-      %{query: assigns.query, filters: assigns.filters, sort: assigns.sort},
+      %{query: assigns.query, filters: assigns.filters, sort: assigns.sort.key},
       page: [limit: @per_page, offset: (page - 1) * @per_page, count: true]
     )
   end
@@ -228,9 +228,13 @@ defmodule MercatoWeb.Listings.BrowseLive do
   end
 
   # The default order is the absence of the parameter, so the plain shelf has
-  # one address rather than two that render the same page.
-  defp sort_param(order) when order in [nil, :newest], do: nil
-  defp sort_param(order), do: to_string(order)
+  # one address rather than two that render the same page. Which order that is
+  # comes from the declarations rather than from a name known here.
+  defp sort_param(nil), do: nil
+
+  defp sort_param(order) do
+    if order.key == Discovery.default_sort().key, do: nil, else: to_string(order.key)
+  end
 
   # The first page is the absence of the parameter, for the same reason the
   # default order is: the plain shelf keeps one address, and the page is left
@@ -238,14 +242,18 @@ defmodule MercatoWeb.Listings.BrowseLive do
   defp page_param(number) when number in [nil, 1], do: nil
   defp page_param(number), do: to_string(number)
 
-  # Derived from the type, so an order added to the resource reaches the bar
-  # without being listed a second time here. The labels stay clauses rather
-  # than a lookup table: one built at compile time is invisible to extraction.
-  defp sort_options, do: Enum.map(SortOrder.values(), &{&1, sort_label(&1)})
-
-  defp sort_label(:newest), do: gettext("Newest")
-  defp sort_label(:price_asc), do: gettext("Price: low to high")
-  defp sort_label(:price_desc), do: gettext("Price: high to low")
+  # Read from the declarations, so an order a marketplace adds reaches the bar
+  # without being listed a second time here.
+  #
+  # The orders this codebase ships are worded below rather than taken from the
+  # declaration, so extraction can see them: a label held in a list built at
+  # compile time is invisible to it. An order a marketplace declared for itself
+  # is worded by whoever declared it — see the copy boundary in
+  # `docs/architecture/i18n-copy.md`.
+  defp sort_label(%{key: :newest}), do: gettext("Newest")
+  defp sort_label(%{key: :price_asc}), do: gettext("Price: low to high")
+  defp sort_label(%{key: :price_desc}), do: gettext("Price: high to low")
+  defp sort_label(%{label: declared}), do: declared
 
   @impl true
   def render(assigns) do
@@ -444,17 +452,17 @@ defmodule MercatoWeb.Listings.BrowseLive do
   attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
   attr :query, :string, required: true
   attr :filters, :map, required: true
-  attr :sort, :atom, required: true
+  attr :sort, :map, required: true
 
   defp sort_choices(assigns) do
-    assigns = assign(assigns, :options, sort_options())
+    assigns = assign(assigns, :orders, Discovery.sorts())
 
     ~H"""
     <.filter_option
-      :for={{order, label} <- @options}
-      id={"#{@prefix}-#{order}"}
-      label={label}
-      selected={order == @sort}
+      :for={order <- @orders}
+      id={"#{@prefix}-#{order.key}"}
+      label={sort_label(order)}
+      selected={order.key == @sort.key}
       patch={browse_path(q: @query, filters: @filters, sort: order)}
     />
     """

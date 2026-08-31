@@ -88,10 +88,14 @@ defmodule Mercato.Listings.Listing do
         default ""
       end
 
-      argument :sort, Mercato.Listings.Listing.SortOrder do
-        description "The order the grid is read in."
-        allow_nil? false
-        default :newest
+      # An atom rather than a type enumerating the orders, because the orders
+      # are configuration: a marketplace declares the ones its own catalog
+      # sorts by, and a type fixed at compile time could not be extended
+      # without being edited. Unset is the marketplace's own default, which is
+      # what lets a caller read the plain shelf without naming one; the
+      # preparation below refuses an order nobody offers.
+      argument :sort, :atom do
+        description "The order the grid is read in, named as the marketplace declares it."
       end
 
       # One argument for every narrowing rather than one apiece, because the

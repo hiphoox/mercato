@@ -1,9 +1,9 @@
 ---
 type: architecture
 title: Discovery Facets
-description: How the browse grid's filters are declared once and drive both the query and the controls.
+description: How the browse grid's filters and orders are declared once and drive both the query and the controls.
 tags: [architecture, discovery, filters, facets, browse]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-08-31T12:00:00Z
 ---
 
 The browse grid is narrowed by facets that are declared as configuration. One declaration is the single source for the filter applied to the read, the control drawn on the bar, the section in the all-filters sheet, the chip stating the facet is in force, and the query-string parameter that makes a narrowed grid a shareable address.
@@ -42,7 +42,19 @@ The last row is deliberately not forgiving. A misdeclared facet is an operator's
 
 **The free-text term.** A term is matched and ranked, which is the search engine's concern rather than the operator's choice of what to offer. Keeping it out of the facet set is what lets the engine change without changing which filters a buyer sees.
 
-**The sort order.** It states how the shelf is read rather than what is on it, which is why clearing the filters leaves the order standing.
+**The sort order.** It states how the shelf is read rather than what is on it, which is why clearing the filters leaves the order standing. It is declared all the same, and separately — see below.
+
+## Orders
+
+The orders the grid can be read in are declared the same way the facets are, and for the same reason: a vehicle marketplace offers fewest miles and a rentals one soonest available, neither of which the grid should have to be edited to say.
+
+A declaration names the order's key, what it is called, and the columns its own order turns on. It does not name what settles two rows that tie on those columns, because that is supplied:
+
+**Every order is read as its own columns followed by the default order's.** Two listings at the same price would otherwise come back in whatever order the data layer happened to produce, and a grid that reshuffles between two identical reads reads as a bug rather than as a tie. Supplying it rather than declaring it means a marketplace adding an order cannot forget what it never had to write.
+
+**The default order is the first one declared.** A marketplace states its default by putting it first rather than by naming it twice, and that order is the absence of the parameter in the address, so the plain shelf keeps one address.
+
+Where a facet is forgiving, an order is not: a read asked for an order nobody offers is refused rather than quietly given the default. A facet is forgiving because a stale address should still land on the grid; an order is not a narrowing, so the browse page settles an unreadable one into the default before the read ever sees it, and a read asked directly for a bad order has been given a caller's mistake rather than a buyer's stale link.
 
 ## How a facet is drawn
 
@@ -56,7 +68,7 @@ While a facet is narrowing the grid it is named by a chip, which removes it when
 
 ## Wording
 
-Wording follows the copy boundary in [i18n-copy.md](i18n-copy.md). A facet this codebase ships is worded in the web layer, one clause per facet returning a literal, so a translator can find it. A facet a marketplace declared for itself is worded by the operator and rendered as configured, as are the values a facet offers — a category name and a condition are operator data, not source text.
+Wording follows the copy boundary in [i18n-copy.md](i18n-copy.md). A facet or an order this codebase ships is worded in the web layer, one clause apiece returning a literal, so a translator can find it. One a marketplace declared for itself is worded by the operator and rendered as configured, as are the values a facet offers — a category name and a condition are operator data, not source text.
 
 ## Related
 

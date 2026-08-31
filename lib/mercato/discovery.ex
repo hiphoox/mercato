@@ -8,6 +8,11 @@ defmodule Mercato.Discovery do
   condition it is in — and a marketplace selling something else replaces the
   list rather than editing the grid.
 
+  The orders the grid can be read in are configuration for the same reason,
+  and declared apart from the facets: an order states how the shelf is read
+  where a facet states what is on it, which is why clearing the filters leaves
+  the order standing.
+
   Free text is deliberately not a facet. A term is matched and ranked, which is
   the search engine's job rather than the operator's; a facet is a narrowing
   the operator chose to offer. Keeping the two apart is what lets the engine be
@@ -15,6 +20,7 @@ defmodule Mercato.Discovery do
   """
 
   alias Mercato.Discovery.Facet
+  alias Mercato.Discovery.Sort
 
   @default_facets [
     [
@@ -54,6 +60,69 @@ defmodule Mercato.Discovery do
     :mercato
     |> Application.get_env(:browse_facets, @default_facets)
     |> Enum.map(&Facet.new/1)
+  end
+
+  @default_sorts [
+    [key: :newest, label: "Newest", by: [published_at: :desc, inserted_at: :desc]],
+    [key: :price_asc, label: "Price: low to high", by: [price: :asc]],
+    [key: :price_desc, label: "Price: high to low", by: [price: :desc]]
+  ]
+
+  @doc """
+  Every order this marketplace offers the browse grid in, in the order they are
+  offered.
+
+  The default is recency and the buyer's own price signal, which is all a front
+  door can honestly order by before it has a ranking to sort on.
+  """
+  @spec sorts() :: [Sort.t()]
+  def sorts do
+    :mercato
+    |> Application.get_env(:browse_sorts, @default_sorts)
+    |> Enum.map(&Sort.new/1)
+  end
+
+  @doc """
+  The order the grid is read in when none is asked for.
+
+  The first one declared, so a marketplace states its default by putting it
+  first rather than by naming it twice.
+  """
+  @spec default_sort() :: Sort.t()
+  def default_sort, do: hd(sorts())
+
+  @doc """
+  The order a key names, where this marketplace offers one.
+
+  Reads a key stated as a string as readily as one stated as an atom, since an
+  address states it as text — and without minting an atom for text that names
+  no order, which is what keeps a hand-typed address from filling the atom
+  table.
+  """
+  @spec fetch_sort(atom() | String.t()) :: {:ok, Sort.t()} | :error
+  def fetch_sort(key) do
+    named = to_string(key)
+
+    case Enum.find(sorts(), &(to_string(&1.key) == named)) do
+      nil -> :error
+      sort -> {:ok, sort}
+    end
+  end
+
+  @doc """
+  The columns a read is sorted by to honour an order.
+
+  An order's own columns, then the default order's. Two rows tying on price
+  would otherwise come back in whatever order the data layer happened to
+  produce, and a grid that reshuffles between two identical reads reads as a
+  bug rather than as a tie. Supplied here rather than declared, because a
+  marketplace adding an order cannot forget what it never had to write.
+  """
+  @spec order_by(Sort.t()) :: keyword()
+  def order_by(%Sort{} = sort) do
+    settle = default_sort()
+
+    if sort.key == settle.key, do: sort.by, else: sort.by ++ settle.by
   end
 
   @doc "The facet a key names, where this marketplace offers one."

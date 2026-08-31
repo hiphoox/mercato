@@ -1,9 +1,9 @@
 ---
 type: guide
-title: Browse Filters
-description: How to change which filters the browse grid offers, by declaring facets in configuration.
-tags: [guide, discovery, filters, facets, configuration]
-timestamp: 2026-08-31T00:00:00Z
+title: Browse Filters & Orders
+description: How to change which filters and sort orders the browse grid offers, by declaring them in configuration.
+tags: [guide, discovery, filters, facets, sorting, configuration]
+timestamp: 2026-08-31T12:00:00Z
 ---
 
 The browse grid is narrowed by **facets**, declared in configuration rather than written into the page. One declaration produces the query filter, the control on the filter bar, the section in the all-filters sheet, the chip that says the facet is in force, and the query-string parameter that makes the narrowed grid a shareable address.
@@ -85,11 +85,39 @@ Wording splits along the copy boundary described in [i18n-copy.md](../architectu
 
 The same holds for the values: a category name and a condition are operator data, shown as they come back from `options`.
 
+## Declaring the orders
+
+The orders the grid can be read in are configured separately, under `:browse_sorts`. Omitting the key gives newest and the two price orders.
+
+```elixir
+config :mercato, :browse_sorts, [
+  [key: :newest, label: "Newest", by: [published_at: :desc, inserted_at: :desc]],
+  [key: :price_asc, label: "Price: low to high", by: [price: :asc]]
+]
+```
+
+| Key | Required | Meaning |
+| :--- | :--- | :--- |
+| `key` | yes | Names the order, and names it in the query string as `?sort=<key>`. |
+| `label` | yes | What the order is called. |
+| `by` | no | The columns this order turns on, as a keyword list of `field: :asc \| :desc`. |
+
+Two rules are supplied rather than declared:
+
+- **The first order declared is the default.** State your default by putting it first. It is also the *absence* of `?sort=`, so the plain shelf keeps one address.
+- **Every order ends in the default order's columns.** Two listings at the same price would otherwise come back in whatever order the database happened to produce, and a grid that reshuffles between two identical reads reads as a bug. You do not write the tie-break, and cannot forget it.
+
+A vehicle marketplace adding a mileage order declares it and nothing else changes:
+
+```elixir
+[key: :fewest_miles, label: "Fewest miles", by: [mileage: :asc]]
+```
+
+Unlike a facet, an order is **not** forgiving at the read: asking the browse action for an order nobody offers is an error rather than a silent fallback. The browse page settles an unreadable `?sort=` into the default before it gets that far, so a stale link still lands on the grid.
+
 ## What is left out on purpose
 
-**The free-text term is not a facet.** A term is matched and ranked, which belongs to the search engine rather than to the operator's choice of filters. Keeping the two apart is what lets the engine be swapped without changing which filters a buyer sees — see [search-engine-port.md](search-engine-port.md).
-
-**The sort order is not a facet.** It states how the shelf is read rather than what is on it, which is why clearing the filters leaves the order alone.
+**The free-text term is neither a facet nor an order.** A term is matched and ranked, which belongs to the search engine rather than to the operator's choice — see [search-engine-port.md](search-engine-port.md). Relevance will become an order once there is a ranking to sort on, contributed by the engine rather than declared here.
 
 ## Behaviour worth knowing
 
@@ -100,8 +128,9 @@ The same holds for the values: a category name and a condition are operator data
 
 ## Checklist
 
-1. Declare the facet in `:browse_facets`.
+1. Declare the facet in `:browse_facets`, or the order in `:browse_sorts`.
 2. Give a `:select` facet an `options` function returning `[{value, wording}]`.
 3. Give the facet a `parse`/`format` pair if what a buyer types is not what the column stores.
 4. Confirm the attribute or relationship named by `field` exists on the listing.
 5. Restart, and check the facet appears in the sheet, states itself in the address, and shows a chip while in force.
+6. For an order, check it appears in the sort pill and that the first one declared leaves no `?sort=` behind.
