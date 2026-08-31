@@ -3,7 +3,7 @@ type: explore
 title: Listings Todo
 description: Backlog of listing capabilities split into Phase 1 MVP musts and Phase 2 extension nice-to-haves.
 tags: [listings, todo, backlog, mvp]
-timestamp: 2026-08-26T00:00:00Z
+timestamp: 2026-08-31T00:00:00Z
 ---
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
@@ -87,7 +87,7 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 38. [ ] Category-scoped attribute sets, so a fashion marketplace adds size/brand/color and a rentals marketplace adds duration/deposit without a schema change
 39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
 40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
-41. [ ] Listing-created and listing-sold events other features can subscribe to
+41. [ ] Listing-created and listing-sold events other features can subscribe to — the sold event is raised by order completion, see [orders-todo.md](orders-todo.md)
 58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin-todo.md](admin-todo.md)
 
 ### Taxonomy
@@ -100,13 +100,14 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 ### Pricing
 
 46. [ ] Original-price field with strikethrough display
-47. [ ] Net-payout estimate shown before publish — moves to a payments area once one exists
+47. [ ] Net-payout estimate shown before publish — needs the commission rule in [payments-todo.md](payments-todo.md)
 
 ### Inventory & variants
 
 48. [ ] Variants — one listing, several purchasable options with their own price and stock
 49. [ ] Low-stock and out-of-stock handling distinct from `sold`
 50. [ ] Listing expiry with renew and relist
+60. [ ] Seller nudges over a stale catalog — a listing long unsold prompting a price drop, a listing long unedited prompting a refresh, a periodic prompt to confirm what is still available — so a catalog stops accumulating items the seller no longer has
 51. [ ] Duplicate a listing to relist a similar item
 
 ### Media & authoring

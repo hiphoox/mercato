@@ -69,6 +69,7 @@ The free-text term stays outside the facet set for this reason: it is the engine
 - [ ] Similar listings and more-from-this-seller carousels
 - [ ] Recently viewed listings
 - [ ] Curated collections placed into home and explore sections
+- [ ] Rule-based collections that fill and empty themselves as listings match or stop matching, defined over the same declared facets the filter bar uses, so an operator composes one without a deploy
 
 ### Pricing intelligence
 
