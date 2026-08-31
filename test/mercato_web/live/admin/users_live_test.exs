@@ -6,6 +6,8 @@ defmodule MercatoWeb.Admin.UsersLiveTest do
 
   alias AshAuthentication.Plug.Helpers
 
+  @pager "nav[aria-label='Pagination']"
+
   defp log_in(conn, user) do
     conn
     |> Plug.Test.init_test_session(%{})
@@ -213,25 +215,82 @@ defmodule MercatoWeb.Admin.UsersLiveTest do
       %{view: view}
     end
 
-    test "shows the first page and the range it covers", ctx do
+    test "shows the range the page covers", ctx do
       assert render(ctx.view) =~ "Showing 1"
       assert render(ctx.view) =~ "26"
     end
 
+    # The pager marks the page in force, so the label saying so as well would be
+    # one claim in two places.
+    test "leaves stating which page it is to the pager", ctx do
+      refute render(ctx.view) =~ "page 1 of"
+    end
+
+    test "pages the table with the same control the browse grid uses", ctx do
+      assert has_element?(ctx.view, "nav[aria-label='Pagination']")
+    end
+
+    test "offers the page numbers rather than only a step onward", ctx do
+      assert has_element?(ctx.view, "#{@pager} [data-role='page']", "2")
+    end
+
+    test "marks the page being read", ctx do
+      assert has_element?(ctx.view, "#{@pager} [aria-current='page']", "1")
+    end
+
     test "the previous control is disabled on the first page", ctx do
-      assert has_element?(ctx.view, "#prev-page[disabled]")
+      assert has_element?(ctx.view, "#{@pager} [data-role='prev'][aria-disabled='true']")
+    end
+
+    test "steps onward through a link rather than an event", ctx do
+      assert has_element?(ctx.view, "#{@pager} a[data-role='next']")
     end
 
     test "moving to the next page shows different accounts", ctx do
       first_page_ids = row_ids(ctx.view)
 
-      ctx.view |> element("#next-page") |> render_click()
+      ctx.view |> element("#{@pager} [data-role='next']") |> render_click()
 
       second_page_ids = row_ids(ctx.view)
 
       refute second_page_ids == []
       assert MapSet.disjoint?(MapSet.new(first_page_ids), MapSet.new(second_page_ids))
-      refute has_element?(ctx.view, "#prev-page[disabled]")
+      refute has_element?(ctx.view, "#{@pager} [data-role='prev'][aria-disabled='true']")
+    end
+
+    test "keeps the search in force when stepping to the next page", %{conn: conn} do
+      admin = admin_user()
+      for i <- 1..25, do: generate(user(first_name: "Persona#{i}"))
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users?query=Persona")
+
+      href =
+        view
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("#{@pager} a[data-role='next']")
+        |> LazyHTML.attribute("href")
+        |> List.first()
+
+      assert href =~ "query=Persona"
+      assert href =~ "page=2"
+    end
+
+    test "drops the page from the address of the first page", %{conn: conn} do
+      admin = admin_user()
+      for i <- 1..25, do: generate(user(first_name: "Person#{i}"))
+
+      {:ok, view, _html} = live(log_in(conn, admin), ~p"/admin/users?page=2")
+
+      href =
+        view
+        |> render()
+        |> LazyHTML.from_fragment()
+        |> LazyHTML.query("#{@pager} a[data-role='prev']")
+        |> LazyHTML.attribute("href")
+        |> List.first()
+
+      assert href == "/admin/users"
     end
   end
 
