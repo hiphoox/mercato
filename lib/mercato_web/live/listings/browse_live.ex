@@ -23,9 +23,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
   would be one claim in two places, and the wrong one half the time. An order is
   not a filter either, which is why clearing the filters leaves it alone.
 
-  Condition is offered only where the marketplace configures conditions at
-  all, so an instance selling services or digital goods never draws a facet
-  with nothing in it.
+  Which facets the bar offers is declared rather than written out here, so a
+  marketplace narrows its grid by what its own catalog has. This page reads the
+  declarations, states them in the query string, and draws a control per facet;
+  it knows that a facet exists and what kind it is, never that it happens to be
+  a condition. A facet with nothing to offer — a condition list an instance
+  selling services left empty — draws nothing rather than an empty panel.
 
   The page is a fourth query-string parameter, and numbered rather than
   scrolled for the same reason the rest of them are there: a shelf reached by
@@ -43,15 +46,16 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   import MercatoWeb.UI.AddToCart
   import MercatoWeb.UI.EmptyState
+  import MercatoWeb.UI.FacetControls
   import MercatoWeb.UI.FilterBar
   import MercatoWeb.UI.ListingCard
   import MercatoWeb.UI.ListingGrid
   import MercatoWeb.UI.Pager
   import MercatoWeb.UI.Sheet
 
+  alias Mercato.Discovery
   alias Mercato.Listings
   alias Mercato.Listings.Listing.SortOrder
-  alias Mercato.Money
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
@@ -61,29 +65,29 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    facets = Discovery.facets()
+
+    # Read once here rather than per render: a facet's options come from the
+    # catalog or from configuration, and neither changes while the grid is
+    # being narrowed.
     {:ok,
      socket
-     |> assign(:conditions, Listings.conditions())
+     |> assign(:facets, facets)
+     |> assign(:facet_options, options(facets))
      |> assign(:per_page, @per_page)}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    category = scope(params, socket.assigns.search_categories)
-
     socket =
       socket
       |> assign(:query, params |> Map.get("q", "") |> to_string() |> String.trim())
-      |> assign(:category, category && category.slug)
-      |> assign(:category_name, category && category.name)
+      |> assign(:filters, Discovery.from_params(params, socket.assigns.facet_options))
       |> assign(:sort, order(params))
-      |> assign(:price_min, price(params, "price_min"))
-      |> assign(:price_max, price(params, "price_max"))
-      |> assign(:condition, condition(params))
 
     socket =
       socket
-      |> assign(:facets, facets(socket))
+      |> assign(:category_name, category_name(socket))
       |> assign(:narrowed?, narrowed?(socket))
       |> assign(:filtered?, filtered?(socket))
 
@@ -111,12 +115,6 @@ defmodule MercatoWeb.Listings.BrowseLive do
     end
   end
 
-  defp scope(params, categories) do
-    slug = params |> Map.get("category", "") |> to_string() |> String.trim()
-
-    Enum.find(categories, &(&1.slug == slug))
-  end
-
   # An order nobody offers is read as no order at all, the same way an unknown
   # category is: a stale or hand-typed link lands on the grid rather than on an
   # error.
@@ -136,103 +134,92 @@ defmodule MercatoWeb.Listings.BrowseLive do
     end
   end
 
-  # Read as a person types it, in major units, and held in the minor units the
-  # resource compares against. A bound that cannot be read is no bound at all,
-  # the same forgiveness a hand-typed order or category gets.
-  defp price(params, key) do
-    case params |> Map.get(key, "") |> to_string() |> String.trim() do
-      "" -> nil
-      typed -> typed |> Money.to_minor() |> readable()
+  # The heading names the category the way it names the term, so the one facet
+  # the copy speaks about is worded here. Every other facet is named by its
+  # chip instead.
+  defp category_name(%{assigns: assigns}) do
+    stated = assigns.filters[:category]
+
+    case Enum.find(assigns.facet_options[:category] || [], fn {slug, _name} -> slug == stated end) do
+      {_slug, name} -> name
+      nil -> nil
     end
-  end
-
-  defp readable({:ok, amount}), do: amount
-  defp readable(:error), do: nil
-
-  # Checked against what this marketplace actually configures, so an instance
-  # offering no conditions cannot be filtered by one asked for by hand either.
-  defp condition(params) do
-    named = params |> Map.get("condition", "") |> to_string()
-
-    Enum.find(Listings.conditions(), &(&1 == named))
-  end
-
-  # Every facet in force in one list, so a control that changes one names only
-  # that one and the rest survive the patch rather than being dropped by
-  # whichever handler forgot them.
-  defp facets(%{assigns: assigns}) do
-    [
-      q: assigns.query,
-      category: assigns.category,
-      condition: assigns.condition,
-      price_min: assigns.price_min,
-      price_max: assigns.price_max,
-      sort: assigns.sort
-    ]
   end
 
   # The order is deliberately not counted: it is not a filter, so it neither
   # summons the bar nor keeps the "nothing listed" state off the page.
   defp narrowed?(%{assigns: assigns}) do
-    Enum.any?([assigns.category, assigns.condition, assigns.price_min, assigns.price_max]) or
-      assigns.query != ""
+    assigns.query != "" or in_force(assigns) != []
   end
 
-  # A price or a condition narrows the shelf without appearing in the heading
-  # the way a term or a category does, so the copy above the grid has to stop
-  # claiming to be everything on offer.
+  # A facet that narrows the shelf without appearing in the heading the way a
+  # term or a category does makes the copy above the grid stop claiming to be
+  # everything on offer.
   defp filtered?(%{assigns: assigns}) do
-    Enum.any?([assigns.condition, assigns.price_min, assigns.price_max])
+    Enum.any?(in_force(assigns), &(&1.key != :category))
+  end
+
+  defp in_force(assigns) do
+    Enum.filter(assigns.facets, &Discovery.in_force?(&1, assigns.filters))
   end
 
   defp listings(%{assigns: assigns}, page) do
     Listings.browse_listings!(
-      %{
-        query: assigns.query,
-        category_slug: assigns.category || "",
-        condition: assigns.condition || "",
-        price_min: assigns.price_min,
-        price_max: assigns.price_max,
-        sort: assigns.sort
-      },
+      %{query: assigns.query, filters: assigns.filters, sort: assigns.sort},
       page: [limit: @per_page, offset: (page - 1) * @per_page, count: true]
     )
   end
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    {:noreply, push_patch(socket, to: browse_path(sort: socket.assigns.sort))}
+    {:noreply, push_patch(socket, to: address(socket, filters: %{}, q: nil))}
   end
 
-  def handle_event("drop_query", _params, socket), do: narrow(socket, q: nil)
-
-  def handle_event("drop_category", _params, socket), do: narrow(socket, category: nil)
-
-  def handle_event("drop_condition", _params, socket), do: narrow(socket, condition: nil)
-
-  def handle_event("drop_price", _params, socket),
-    do: narrow(socket, price_min: nil, price_max: nil)
-
-  def handle_event("apply_price", params, socket) do
-    narrow(socket, price_min: price(params, "price_min"), price_max: price(params, "price_max"))
+  def handle_event("drop_query", _params, socket) do
+    {:noreply, push_patch(socket, to: address(socket, q: nil))}
   end
 
-  defp narrow(socket, changed) do
-    {:noreply, push_patch(socket, to: browse_path(Keyword.merge(socket.assigns.facets, changed)))}
+  # One handler for every facet, named by the chip that was clicked: a facet
+  # added to the declarations is droppable without a handler of its own.
+  def handle_event("drop_facet", %{"facet" => key}, socket) do
+    {:noreply, push_patch(socket, to: address(socket, filters: dropped(socket, key)))}
+  end
+
+  # A range arrives as the address states it, so what a buyer typed is read by
+  # the same code that reads a link. Its facet's own values are cleared first,
+  # so emptying both ends removes the narrowing rather than leaving the old one
+  # standing.
+  def handle_event("apply_facet", %{"facet" => key} = params, socket) do
+    stated =
+      Map.merge(dropped(socket, key), Discovery.from_params(params, socket.assigns.facet_options))
+
+    {:noreply, push_patch(socket, to: address(socket, filters: stated))}
+  end
+
+  defp dropped(socket, key) do
+    Enum.reduce(socket.assigns.facets, socket.assigns.filters, fn facet, filters ->
+      if to_string(facet.key) == key, do: Map.delete(filters, facet.key), else: filters
+    end)
+  end
+
+  # Every parameter in force, with only what the caller names changed, so a
+  # control that changes one facet leaves the term, the order and the other
+  # facets standing rather than dropping whatever it forgot.
+  defp address(socket, changed) do
+    changed
+    |> Keyword.put_new(:q, socket.assigns.query)
+    |> Keyword.put_new(:filters, socket.assigns.filters)
+    |> Keyword.put_new(:sort, socket.assigns.sort)
+    |> browse_path()
   end
 
   # Built rather than interpolated, so a facet that is unset leaves no empty
   # parameter behind and the whole shelf is plainly `/`.
   defp browse_path(opts) do
-    params = [
-      q: opts[:q],
-      category: opts[:category],
-      condition: opts[:condition],
-      price_min: Money.amount(opts[:price_min]),
-      price_max: Money.amount(opts[:price_max]),
-      sort: sort_param(opts[:sort]),
-      page: page_param(opts[:page])
-    ]
+    params =
+      [q: opts[:q]] ++
+        Discovery.to_params(opts[:filters] || %{}) ++
+        [sort: sort_param(opts[:sort]), page: page_param(opts[:page])]
 
     case Enum.reject(params, fn {_key, value} -> value in [nil, ""] end) do
       [] -> ~p"/"
@@ -269,7 +256,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
       current_path={~p"/"}
       query={@query}
       categories={@search_categories}
-      category={@category}
+      category={@filters[:category]}
     >
       <%!-- No breadcrumb: this is where the trail every other page draws
             starts, and a crumb pointing at the page you are on is noise. --%>
@@ -283,28 +270,19 @@ defmodule MercatoWeb.Listings.BrowseLive do
               narrow, and a bar of filters over an empty shelf reads as though
               the filters are what emptied it. --%>
         <.filter_bar :if={@listings != [] or @narrowed?} id="browse-filters">
-          <%!-- md:contents, so the pill joins the bar's flex row directly and the
-                wrapper hiding it below md leaves no gap behind. --%>
+          <%!-- md:contents, so the pills join the bar's flex row directly and the
+                wrapper hiding them below md leaves no gap behind. Only the
+                facets that asked for the bar are drawn; the rest wait in the
+                sheet, which holds every one of them. --%>
           <div class="hidden md:contents">
-            <.filter_menu
-              id="browse-category"
-              label={@category_name || gettext("Category")}
-              name={gettext("Category")}
-              active={not is_nil(@category)}
-              class="w-64 max-h-72 overflow-y-auto"
-            >
-              <.category_choices facets={@facets} categories={@search_categories} />
-            </.filter_menu>
-
-            <.filter_menu
-              id="browse-price"
-              label={gettext("Price")}
-              name={gettext("Price range")}
-              role="dialog"
-              class="w-72 gap-3 p-3.5"
-            >
-              <.price_fields prefix="browse-price" min={@price_min} max={@price_max} />
-            </.filter_menu>
+            <.facet_menu
+              :for={facet <- @facets}
+              :if={facet.placement == :bar}
+              facet={facet}
+              filters={@filters}
+              options={@facet_options}
+              path={&browse_path(q: @query, filters: &1, sort: @sort)}
+            />
           </div>
 
           <.filter_menu
@@ -313,7 +291,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
             name={gettext("Sort")}
             class="w-60"
           >
-            <.sort_choices prefix="browse-sort" facets={@facets} />
+            <.sort_choices prefix="browse-sort" query={@query} filters={@filters} sort={@sort} />
           </.filter_menu>
 
           <div class="flex-1"></div>
@@ -335,26 +313,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
               removable
               phx-click="drop_query"
             />
-            <.filter_chip
-              :if={@category_name}
-              id="browse-chip-category"
-              label={@category_name}
-              removable
-              phx-click="drop_category"
-            />
-            <.filter_chip
-              :if={@condition}
-              id="browse-chip-condition"
-              label={Listings.condition_label(@condition)}
-              removable
-              phx-click="drop_condition"
-            />
-            <.filter_chip
-              :if={@price_min || @price_max}
-              id="browse-chip-price"
-              label={price_label(@price_min, @price_max)}
-              removable
-              phx-click="drop_price"
+            <.facet_chip
+              :for={facet <- @facets}
+              facet={facet}
+              filters={@filters}
+              options={@facet_options}
             />
             <button
               type="button"
@@ -374,47 +337,22 @@ defmodule MercatoWeb.Listings.BrowseLive do
         <%!-- Everything the bar holds, plus room for the facets that do not fit
               it — one sheet rather than a second bar below md. --%>
         <.sheet id="browse-filters-sheet" title={gettext("All filters")}>
-          <section class="flex flex-col gap-3">
-            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
-              {gettext("Category")}
-            </h3>
-            <div class="flex flex-wrap gap-2">
-              <.filter_chip
-                label={gettext("All categories")}
-                selected={is_nil(@category)}
-                patch={browse_path(Keyword.put(@facets, :category, nil))}
-              />
-              <.filter_chip
-                :for={category <- @search_categories}
-                label={category.name}
-                selected={category.slug == @category}
-                patch={browse_path(Keyword.put(@facets, :category, category.slug))}
-              />
-            </div>
-          </section>
-
-          <section class="flex flex-col gap-3">
-            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
-              {gettext("Price")}
-            </h3>
-            <.price_fields prefix="browse-sheet-price" min={@price_min} max={@price_max} />
-          </section>
-
-          <%!-- Left out where the marketplace configures no conditions: a
-                services or digital-goods instance has none to offer, and a
-                facet with nothing in it reads as a page that failed to load. --%>
-          <section :if={@conditions != []} class="flex flex-col gap-3">
-            <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
-              {gettext("Condition")}
-            </h3>
-            <.condition_choices facets={@facets} conditions={@conditions} />
-          </section>
+          <%!-- Every declared facet, including the ones the bar had no room
+                for, so the same narrowing is reachable at every width. A facet
+                with nothing to offer draws nothing. --%>
+          <.facet_section
+            :for={facet <- @facets}
+            facet={facet}
+            filters={@filters}
+            options={@facet_options}
+            path={&browse_path(q: @query, filters: &1, sort: @sort)}
+          />
 
           <section class="flex flex-col gap-3">
             <h3 class="text-caption-lg font-bold uppercase tracking-wide text-ink-500">
               {gettext("Sort")}
             </h3>
-            <.sort_choices prefix="browse-sheet-sort" facets={@facets} />
+            <.sort_choices prefix="browse-sheet-sort" query={@query} filters={@filters} sort={@sort} />
           </section>
 
           <:footer>
@@ -491,7 +429,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
         <.pager
           page={@page}
           pages={@pages}
-          path={&browse_path(Keyword.put(@facets, :page, &1))}
+          path={&browse_path(q: @query, filters: @filters, sort: @sort, page: &1)}
           total={@total}
           page_size={@per_page}
           class="pt-2"
@@ -501,55 +439,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
     """
   end
 
-  # The bar and the sheet offer the same facets, so each is written once and
-  # rendered in both. They live here rather than in components/ui/ because only
-  # this page has these facets to offer.
-  attr :facets, :list, required: true, doc: "every facet in force, so a pick changes only its own"
-  attr :categories, :list, required: true
-
-  defp category_choices(assigns) do
-    ~H"""
-    <.filter_option
-      id="browse-category-any"
-      label={gettext("All categories")}
-      selected={is_nil(@facets[:category])}
-      patch={browse_path(Keyword.put(@facets, :category, nil))}
-    />
-    <.filter_option
-      :for={category <- @categories}
-      id={"browse-category-#{category.slug}"}
-      label={category.name}
-      selected={category.slug == @facets[:category]}
-      patch={browse_path(Keyword.put(@facets, :category, category.slug))}
-    />
-    """
-  end
-
-  attr :facets, :list, required: true
-  attr :conditions, :list, required: true
-
-  defp condition_choices(assigns) do
-    ~H"""
-    <.filter_option
-      id="browse-condition-any"
-      label={gettext("Any condition")}
-      selected={is_nil(@facets[:condition])}
-      patch={browse_path(Keyword.put(@facets, :condition, nil))}
-    />
-    <%!-- Worded by the domain, not here: the list is what the operator
-          configured, so it is data rather than copy to translate. --%>
-    <.filter_option
-      :for={condition <- @conditions}
-      id={"browse-condition-#{condition}"}
-      label={Listings.condition_label(condition)}
-      selected={condition == @facets[:condition]}
-      patch={browse_path(Keyword.put(@facets, :condition, condition))}
-    />
-    """
-  end
-
+  # An order is offered by this page rather than declared as a facet, since it
+  # states how the shelf is read rather than what is on it.
   attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
-  attr :facets, :list, required: true
+  attr :query, :string, required: true
+  attr :filters, :map, required: true
+  attr :sort, :atom, required: true
 
   defp sort_choices(assigns) do
     assigns = assign(assigns, :options, sort_options())
@@ -559,57 +454,11 @@ defmodule MercatoWeb.Listings.BrowseLive do
       :for={{order, label} <- @options}
       id={"#{@prefix}-#{order}"}
       label={label}
-      selected={order == @facets[:sort]}
-      patch={browse_path(Keyword.put(@facets, :sort, order))}
+      selected={order == @sort}
+      patch={browse_path(q: @query, filters: @filters, sort: order)}
     />
     """
   end
-
-  # A range is stated by typing rather than by picking, so it is submitted
-  # rather than patched on every keystroke: half a range is a bound the buyer
-  # has not finished writing, and applying it would empty the grid underneath
-  # them mid-word.
-  attr :prefix, :string, required: true, doc: "the bar and the sheet both draw these"
-  attr :min, :integer, default: nil
-  attr :max, :integer, default: nil
-
-  defp price_fields(assigns) do
-    ~H"""
-    <.form for={%{}} id={"#{@prefix}-form"} phx-submit="apply_price" class="flex flex-col gap-2.5">
-      <div class="flex items-end gap-2.5">
-        <.input
-          type="number"
-          id={"#{@prefix}-min"}
-          name="price_min"
-          value={Money.amount(@min)}
-          label={gettext("Min")}
-          min="0"
-          step="0.01"
-        />
-        <.input
-          type="number"
-          id={"#{@prefix}-max"}
-          name="price_max"
-          value={Money.amount(@max)}
-          label={gettext("Max")}
-          min="0"
-          step="0.01"
-        />
-      </div>
-      <.button type="submit" size="sm">{gettext("Apply")}</.button>
-    </.form>
-    """
-  end
-
-  # Three whole messages rather than one built from a fragment and a bound:
-  # which end is open changes the sentence, not just a word inside it.
-  defp price_label(min, nil), do: gettext("From %{min}", min: money(min))
-  defp price_label(nil, max), do: gettext("Up to %{max}", max: money(max))
-
-  defp price_label(min, max),
-    do: gettext("%{min} – %{max}", min: money(min), max: money(max))
-
-  defp money(amount), do: Money.format(amount, Listings.currency())
 
   # A filtered shelf is counted rather than described: the facets in force are
   # already named by the chips, and a count is the one claim that stays true

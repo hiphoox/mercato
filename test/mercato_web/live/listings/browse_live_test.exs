@@ -690,14 +690,18 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
     test "offers every condition the marketplace configures, in the sheet", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "#browse-condition-new", "New")
-      assert has_element?(view, "#browse-condition-like_new", "Like new")
+      options = view |> element("#browse-sheet-condition") |> render()
+
+      assert options =~ ~s(value="new")
+      assert options =~ "Like new"
     end
 
     test "picks a condition from the sheet", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      view |> element("#browse-condition-good") |> render_click()
+      view
+      |> form("#browse-sheet-condition-form", %{"condition" => "good"})
+      |> render_change()
 
       assert_patched(view, "/?condition=good")
     end
@@ -705,14 +709,14 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
     test "marks the condition in force as chosen", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/?condition=new")
 
-      assert has_element?(view, ~s{#browse-condition-new[aria-checked="true"]})
-      refute has_element?(view, ~s{#browse-condition-any[aria-checked="true"]})
+      assert view |> element("#browse-sheet-condition") |> render() =~
+               ~s(<option selected="" value="new">)
     end
 
     test "offers a way back to every condition at once", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/?condition=new")
 
-      view |> element("#browse-condition-any") |> render_click()
+      view |> form("#browse-sheet-condition-form", %{"condition" => ""}) |> render_change()
 
       assert_patched(view, "/")
     end

@@ -36,7 +36,7 @@ defmodule MercatoWeb.Listings.BrowseLiveNoConditionsTest do
     {:ok, view, _html} = live(conn, ~p"/")
 
     assert has_element?(view, "#browse-filters-sheet")
-    refute has_element?(view, "#browse-condition-any")
+    refute has_element?(view, "#browse-sheet-condition")
   end
 
   test "ignores a condition asked for by hand, since there are none to ask for", %{conn: conn} do
