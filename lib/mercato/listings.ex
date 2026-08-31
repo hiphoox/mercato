@@ -5,7 +5,20 @@ defmodule Mercato.Listings do
   """
 
   use Ash.Domain,
-    otp_app: :mercato
+    otp_app: :mercato,
+    extensions: [AshJsonApi.Domain]
+
+  json_api do
+    routes do
+      base_route "/listings", Mercato.Listings.Listing do
+        index :suggest_titles, route: "/suggest"
+      end
+
+      base_route "/categories", Mercato.Listings.Category do
+        index :suggest, route: "/suggest"
+      end
+    end
+  end
 
   resources do
     resource Mercato.Listings.Listing do
@@ -13,6 +26,8 @@ defmodule Mercato.Listings do
       define :update_listing, action: :update
       define :delete_listing, action: :destroy
       define :list_listings, action: :read
+      define :browse_listings, action: :browse
+      define :suggest_listing_titles, action: :suggest_titles
       define :get_listing, action: :get, get_by: [:id]
       define :get_listing_by_public_id, action: :get_by_public_id, get_by: [:public_id]
       define :list_seller_listings, action: :list_for_seller, args: [:seller_id]
@@ -29,6 +44,7 @@ defmodule Mercato.Listings do
     resource Mercato.Listings.Category do
       define :create_category, action: :create
       define :list_categories, action: :read
+      define :suggest_categories, action: :suggest
     end
 
     resource Mercato.Listings.ListingImage do
@@ -75,6 +91,25 @@ defmodule Mercato.Listings do
 
   def condition_label(condition) when is_binary(condition) do
     condition |> String.replace("_", " ") |> String.capitalize()
+  end
+
+  @doc """
+  The conditions a buyer may narrow the grid by, already worded.
+
+  Value and wording together, in the order the marketplace lists them, so a
+  control offering them needs to know neither how a condition is stored nor
+  how it reads.
+  """
+  def condition_options do
+    Enum.map(conditions(), &{&1, condition_label(&1)})
+  end
+
+  @doc """
+  The catalog a buyer may narrow the grid by, keyed the way a URL names a
+  category and worded the way the operator named it.
+  """
+  def category_options do
+    Enum.map(list_categories!(query: [sort: :name]), &{&1.slug, &1.name})
   end
 
   @default_image_types ["image/jpeg", "image/png", "image/webp"]

@@ -53,6 +53,8 @@ defmodule Mercato.MixProject do
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
       {:ash_archival, "~> 2.0"},
+      {:ash_json_api, "~> 1.0"},
+      {:open_api_spex, "~> 3.0"},
       {:ash_sqlite, "~> 0.2.17"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},

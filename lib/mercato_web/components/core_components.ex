@@ -356,6 +356,8 @@ defmodule MercatoWeb.CoreComponents do
   attr :label, :string, required: true
   attr :selected, :boolean, default: false
   attr :removable, :boolean, default: false, doc: "renders as an applied-filter chip"
+  attr :patch, :string, default: nil, doc: "picking the chip patches here instead of acting"
+  attr :navigate, :string, default: nil
   attr :class, :any, default: nil
   attr :rest, :global, include: ~w(disabled name value)
 
@@ -381,18 +383,32 @@ defmodule MercatoWeb.CoreComponents do
   end
 
   def filter_chip(assigns) do
+    assigns =
+      assign(assigns, :classes, [
+        "inline-flex items-center h-8 px-3.5 rounded-full border transition-colors no-underline",
+        "text-caption-lg font-semibold whitespace-nowrap cursor-pointer",
+        assigns.selected && "bg-ink-900 border-ink-900 text-white dark:bg-white dark:text-ink-900",
+        !assigns.selected &&
+          "bg-white dark:bg-ink-900 border-ink-900 dark:border-ink-100 text-ink-900 dark:text-white hover:bg-bg-2 dark:hover:bg-ink-700",
+        assigns.class
+      ])
+
     ~H"""
+    <.link
+      :if={@patch || @navigate}
+      patch={@patch}
+      navigate={@navigate}
+      aria-pressed={to_string(@selected)}
+      class={@classes}
+      {@rest}
+    >
+      {@label}
+    </.link>
     <button
+      :if={!@patch && !@navigate}
       type="button"
       aria-pressed={to_string(@selected)}
-      class={[
-        "inline-flex items-center h-8 px-3.5 rounded-full border transition-colors",
-        "text-caption-lg font-semibold whitespace-nowrap cursor-pointer",
-        @selected && "bg-ink-900 border-ink-900 text-white dark:bg-white dark:text-ink-900",
-        !@selected &&
-          "bg-white dark:bg-ink-900 border-ink-900 dark:border-ink-100 text-ink-900 dark:text-white hover:bg-bg-2 dark:hover:bg-ink-700",
-        @class
-      ]}
+      class={@classes}
       {@rest}
     >
       {@label}

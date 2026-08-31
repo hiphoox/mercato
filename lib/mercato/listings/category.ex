@@ -6,15 +6,46 @@ defmodule Mercato.Listings.Category do
   seed data, not by letting sellers invent categories as they go.
   """
 
-  use Ash.Resource, otp_app: :mercato, domain: Mercato.Listings, data_layer: AshSqlite.DataLayer
+  use Ash.Resource,
+    otp_app: :mercato,
+    domain: Mercato.Listings,
+    data_layer: AshSqlite.DataLayer,
+    extensions: [AshJsonApi.Resource]
 
   sqlite do
     table "categories"
     repo Mercato.Repo
   end
 
+  json_api do
+    type "category"
+
+    # An allowlist, not a subtraction: a field added later is not exposed until
+    # it is named here.
+    show_fields([:name, :slug])
+
+    # The route answers one prepared question. Deriving filter and sort would
+    # turn it into a general query surface over the catalog.
+    derive_filter?(false)
+    derive_sort?(false)
+  end
+
   actions do
     defaults [:read]
+
+    read :suggest do
+      description "Categories whose name matches a term, as the search box offers them."
+
+      argument :query, :string do
+        constraints allow_empty?: true
+        allow_nil? true
+        default ""
+      end
+
+      filter expr(icontains(name, ^arg(:query)))
+
+      prepare build(sort: [:name], limit: 5)
+    end
 
     create :create do
       primary? true

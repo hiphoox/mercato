@@ -15,6 +15,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   import MercatoWeb.UI.Avatar
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.Menu
+  import MercatoWeb.UI.Pager
 
   alias Mercato.Accounts
 
@@ -94,7 +95,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # `:update` policy can only widen the first of the two — so the answer is the
   # same for every account on the page, and the check costs a query each time.
   defp assign_can_change_status(socket) do
-    actor = socket.assigns.current_user
+    actor = socket.assigns.current_scope.user
 
     assign(socket, :can_change_status?, Accounts.can_change_status?(actor, actor, :active))
   end
@@ -132,7 +133,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # answer "yes" for an admin who holds no `user:delete` at all. Every non-self
   # row gives the same answer, so one of them settles the whole page.
   defp assign_can_delete_accounts(socket) do
-    %{current_user: actor, accounts: accounts} = socket.assigns
+    %{current_scope: %{user: actor}, accounts: accounts} = socket.assigns
 
     can? =
       case Enum.find(accounts, &(&1.id != actor.id)) do
@@ -144,7 +145,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   end
 
   defp load_accounts(socket) do
-    %{query: query, status: status, page: page, current_user: actor} = socket.assigns
+    %{query: query, status: status, page: page, current_scope: %{user: actor}} = socket.assigns
 
     {:ok, results} =
       Accounts.list_accounts(%{query: query, status: status},
@@ -166,7 +167,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   # chips describe the platform, not the current search. A chip shifting while
   # the user types would make it useless as a starting point for narrowing down.
   defp load_status_counts(socket) do
-    actor = socket.assigns.current_user
+    actor = socket.assigns.current_scope.user
 
     counts =
       Map.new(@status_values, fn status ->
@@ -197,10 +198,6 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   def handle_event("clear_filters", _params, socket) do
     {:noreply, apply_filters(socket, query: "", status: nil, page: 1)}
-  end
-
-  def handle_event("page", %{"to" => to}, socket) do
-    {:noreply, apply_filters(socket, page: parse_page(to))}
   end
 
   def handle_event("change_status", %{"id" => id, "status" => status}, socket) do
@@ -251,7 +248,7 @@ defmodule MercatoWeb.Admin.UsersLive do
       # say whose account went.
       name = display_name(account)
 
-      case Accounts.delete_account(account, actor: socket.assigns.current_user) do
+      case Accounts.delete_account(account, actor: socket.assigns.current_scope.user) do
         :ok -> {:ok, name}
         {:error, _} -> :error
       end
@@ -269,7 +266,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   defp change_status(socket, account, status)
        when is_map(account) and status not in [nil, :deleted] do
     if actionable?(socket.assigns, account) do
-      case Accounts.change_status(account, status, %{}, actor: socket.assigns.current_user) do
+      case Accounts.change_status(account, status, %{}, actor: socket.assigns.current_scope.user) do
         {:ok, updated} -> {:ok, updated}
         {:error, _} -> :error
       end
@@ -282,7 +279,7 @@ defmodule MercatoWeb.Admin.UsersLive do
 
   defp actionable?(%{can_change_status?: false}, _account), do: false
 
-  defp actionable?(%{current_user: %{id: actor_id}}, account) do
+  defp actionable?(%{current_scope: %{user: %{id: actor_id}}}, account) do
     account.id != actor_id and not deleted?(account)
   end
 
@@ -303,7 +300,16 @@ defmodule MercatoWeb.Admin.UsersLive do
       page: socket.assigns.page
     ]
 
-    push_patch(socket, to: ~p"/admin/users?#{filter_params(Keyword.merge(current, overrides))}")
+    push_patch(socket, to: users_path(Keyword.merge(current, overrides)))
+  end
+
+  # Built rather than interpolated, so the unfiltered listing on its first page
+  # is plainly `/admin/users` rather than trailing an empty query string.
+  defp users_path(opts) do
+    case filter_params(opts) do
+      [] -> ~p"/admin/users"
+      params -> ~p"/admin/users?#{params}"
+    end
   end
 
   # Only non-default values reach the URL, so the unfiltered listing stays a
@@ -324,10 +330,9 @@ defmodule MercatoWeb.Admin.UsersLive do
   def render(assigns) do
     ~H"""
     <Layouts.app
+      categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/admin/users"}
     >
       <div class="flex flex-col gap-6">
@@ -533,9 +538,12 @@ defmodule MercatoWeb.Admin.UsersLive do
             </div>
           </div>
 
-          <.pagination
+          <%!-- The same control the browse grid pages with: an admin walking a
+                table and a buyer walking a shelf are doing the same thing. --%>
+          <.pager
             page={@page}
-            last_page={@last_page}
+            pages={@last_page}
+            path={&users_path(query: @query, status: @status, page: &1)}
             total={@total}
             page_size={@page_size}
             class={[
@@ -648,52 +656,6 @@ defmodule MercatoWeb.Admin.UsersLive do
     """
   end
 
-  attr :page, :integer, required: true
-  attr :last_page, :integer, required: true
-  attr :total, :integer, required: true
-  attr :page_size, :integer, required: true
-  attr :class, :any, default: nil
-
-  defp pagination(assigns) do
-    ~H"""
-    <div class={["flex flex-wrap items-center justify-between gap-3", @class]}>
-      <span aria-live="polite" class="text-caption-lg text-ink-500">
-        {page_label(@page, @last_page, @total, @page_size)}
-      </span>
-      <div class="flex items-center gap-2">
-        <.page_button id="prev-page" to={@page - 1} disabled={@page <= 1}>{gettext("Previous")}</.page_button>
-        <.page_button id="next-page" to={@page + 1} disabled={@page >= @last_page}>
-          {gettext("Next")}
-        </.page_button>
-      </div>
-    </div>
-    """
-  end
-
-  attr :id, :string, required: true
-  attr :to, :integer, required: true
-  attr :disabled, :boolean, required: true
-  slot :inner_block, required: true
-
-  defp page_button(assigns) do
-    ~H"""
-    <button
-      id={@id}
-      type="button"
-      disabled={@disabled}
-      phx-click="page"
-      phx-value-to={@to}
-      class={[
-        "inline-flex items-center h-8 px-3 rounded-md text-caption-lg font-semibold transition-colors",
-        "bg-ink-100 text-ink-900 hover:brightness-95 cursor-pointer",
-        "disabled:bg-ink-100 disabled:text-ink-300 disabled:cursor-not-allowed disabled:hover:brightness-100"
-      ]}
-    >
-      {render_slot(@inner_block)}
-    </button>
-    """
-  end
-
   defp status_label(status) do
     Enum.find_value(statuses(), gettext("Unknown"), &(&1.value == status && &1.label))
   end
@@ -782,22 +744,6 @@ defmodule MercatoWeb.Admin.UsersLive do
       true ->
         Calendar.strftime(at, "%d %b %Y")
     end
-  end
-
-  defp page_label(_page, _last_page, 0, _page_size), do: ""
-
-  defp page_label(page, last_page, total, page_size) do
-    first = (page - 1) * page_size + 1
-    last = min(page * page_size, total)
-
-    gettext(
-      "Showing %{first}–%{last} of %{total} · page %{page} of %{last_page}",
-      first: first,
-      last: last,
-      total: total,
-      page: page,
-      last_page: last_page
-    )
   end
 
   defp dimmed(account), do: deleted?(account) && "opacity-55"

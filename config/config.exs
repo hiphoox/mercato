@@ -39,6 +39,7 @@ config :spark,
         :authentication,
         :token,
         :user_identity,
+        :json_api,
         :resource,
         :code_interface,
         :actions,
@@ -55,8 +56,18 @@ config :spark,
         :identities
       ]
     ],
-    "Ash.Domain": [section_order: [:resources, :policies, :authorization, :domain, :execution]]
+    "Ash.Domain": [
+      section_order: [:json_api, :resources, :policies, :authorization, :domain, :execution]
+    ]
   ]
+
+# JSON:API's media type, so content negotiation accepts it under the "json"
+# format the router already declares.
+config :mime,
+  extensions: %{"json" => "application/vnd.api+json"},
+  types: %{"application/vnd.api+json" => ["json"]}
+
+config :ash_json_api, show_public_calculations_when_loaded?: false
 
 # The single currency every price on this instance is denominated in, as an
 # ISO 4217 code. Prices are stored in this currency's minor units.

@@ -4,7 +4,16 @@ defmodule Mercato.Accounts do
   """
 
   use Ash.Domain,
-    otp_app: :mercato
+    otp_app: :mercato,
+    extensions: [AshJsonApi.Domain]
+
+  json_api do
+    routes do
+      base_route "/sellers", Mercato.Accounts.User do
+        index :suggest_sellers, route: "/suggest"
+      end
+    end
+  end
 
   resources do
     resource Mercato.Accounts.Token
@@ -14,6 +23,7 @@ defmodule Mercato.Accounts do
       define :delete_account, action: :delete_account
       define :get_seller, action: :get_seller, args: [:handle]
       define :list_accounts, action: :list_accounts
+      define :suggest_sellers, action: :suggest_sellers
       define :sign_in_with_password, action: :sign_in_with_password, args: [:email, :password]
       define :sign_in_with_token, action: :sign_in_with_token, args: [:token]
       define :sign_in_with_magic_link, action: :sign_in_with_magic_link, args: [:token]

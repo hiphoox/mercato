@@ -3,13 +3,15 @@ type: explore
 title: Users Todo
 description: Backlog of user-account capabilities, split into MUST and NICE TO HAVE.
 tags: [users, todo, backlog, auth, roles]
-timestamp: 2026-08-24T00:00:00Z
+timestamp: 2026-08-31T00:00:00Z
 ---
 
 Working backlog for user accounts — signup, login, logout, roles and permissions. Domain rules for what already exists live in [docs/domain/users/](../domain/users/index.md); this file tracks what is left to build.
 
 - **MUST** — required before the feature is complete.
 - **NICE TO HAVE** — the extension surface, built when a real use case asks for it.
+
+Item 44 is the exception to that split: it is a MUST, but for [orders-todo.md](orders-todo.md) rather than for this area, which is why it sits in this file unbuilt while everything else in MUST is done.
 
 ## MUST
 
@@ -22,6 +24,10 @@ Working backlog for user accounts — signup, login, logout, roles and permissio
 
 38. [x] `restricted` status (blocks messaging/commenting, still allows buy/sell) — add once a messaging/comments feature exists to gate
 39. [x] Soft-delete + anonymization on account deletion (clear PII, keep `id`/history) — split out of the Domain model MUST list; design and build as its own todo
+
+### Fulfillment details
+
+44. [ ] Address held against a user, captured when an action first needs it rather than at signup — a seller's origin before publishing, a buyer's destination at checkout. Phase 1 for orders rather than for users: publish cannot be gated on a shipping origin that does not exist, and checkout cannot ask for a destination it has nowhere to put. The rules for what an address holds and who may read it are [shipping-todo.md](shipping-todo.md); this item is only the account's side of it
 
 ---
 
@@ -57,6 +63,10 @@ Working backlog for user accounts — signup, login, logout, roles and permissio
 
 43. [ ] Seller activity indicator derived from `last_active_at`, shown on the seller's card and profile
 
-### Out of scope for this feature (belongs to future features)
+### Owned by other areas
 
-42. [ ] Addresses, bank accounts, referrals, moderation roles (curator/invisible-moderator) — future shipping/payments/social features
+42. [ ] Bank/payout account details — see [payments-todo.md](payments-todo.md)
+45. [ ] Referrals, and the credit a referral issues — needs platform credit, see [payments-todo.md](payments-todo.md)
+46. [ ] Moderation roles (curator, invisible moderator) — see [admin-todo.md](admin-todo.md)
+47. [ ] Vacation mode: a seller flag pausing their own availability without pausing each listing by hand, set and cleared by the seller rather than an admin, and distinct from an account status
+48. [ ] Notification preferences per category and channel — no area owns notifications yet

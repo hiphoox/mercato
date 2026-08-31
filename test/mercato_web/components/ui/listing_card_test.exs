@@ -123,4 +123,26 @@ defmodule MercatoWeb.UI.ListingCardTest do
       refute %{} |> query("article") |> LazyHTML.attribute("class") |> hd() =~ "opacity-"
     end
   end
+
+  describe "corner" do
+    test "renders nothing in the corner unless given something" do
+      assert %{} |> query("[data-role=corner]") |> Enum.empty?()
+    end
+
+    test "pins what it is given to the card's top-right" do
+      corner = query(%{corner: slot(:corner, "Add")}, "[data-role=corner]")
+
+      assert LazyHTML.text(corner) =~ "Add"
+      assert corner |> LazyHTML.attribute("class") |> hd() =~ "absolute"
+    end
+
+    test "keeps the row's text clear of the corner below md, where they share a line" do
+      classes = %{corner: slot(:corner, "Add")} |> query("[data-role=title]") |> Enum.count()
+
+      assert classes == 1
+
+      assert %{corner: slot(:corner, "Add")} |> document() |> LazyHTML.to_html() =~
+               "pr-11 md:pr-0"
+    end
+  end
 end

@@ -11,7 +11,7 @@ defmodule Mercato.Listings.Listing do
     domain: Mercato.Listings,
     data_layer: AshSqlite.DataLayer,
     authorizers: [Ash.Policy.Authorizer],
-    extensions: [AshArchival.Resource]
+    extensions: [AshArchival.Resource, AshJsonApi.Resource]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Accounts.User.Status, as: SellerStatus
@@ -20,6 +20,17 @@ defmodule Mercato.Listings.Listing do
   sqlite do
     table "listings"
     repo Mercato.Repo
+  end
+
+  json_api do
+    type "listing"
+
+    # An allowlist, not a subtraction: a field added later is not exposed until
+    # it is named here.
+    show_fields([:title])
+
+    derive_filter?(false)
+    derive_sort?(false)
   end
 
   archive do
@@ -65,6 +76,90 @@ defmodule Mercato.Listings.Listing do
       # Same load as `:get` above: this is the same page reached the way the
       # public reaches it, and the two differ only in what they key on.
       prepare build(load: [:display_price, :seller, :category, images: :url])
+    end
+
+    read :browse do
+      description "Every listing on offer, as the public browse grid shows them."
+
+      argument :query, :string do
+        description "Free-text search over the listing's title and description."
+        constraints allow_empty?: true
+        allow_nil? false
+        default ""
+      end
+
+      # An atom rather than a type enumerating the orders, because the orders
+      # are configuration: a marketplace declares the ones its own catalog
+      # sorts by, and a type fixed at compile time could not be extended
+      # without being edited. Unset is the marketplace's own default, which is
+      # what lets a caller read the plain shelf without naming one; the
+      # preparation below refuses an order nobody offers.
+      argument :sort, :atom do
+        description "The order the grid is read in, named as the marketplace declares it."
+      end
+
+      # One argument for every narrowing rather than one apiece, because the
+      # narrowings are configuration: a marketplace declares the facets its own
+      # catalog has, and an action naming them one by one could not be extended
+      # without being edited. Keyed by facet, and shaped by that facet's kind —
+      # a value for one chosen from a list, a pair of ends for a range.
+      #
+      # Prices are stated in minor units, like the column they are compared
+      # against, so the web layer reads what a buyer typed and nothing here has
+      # to know about decimals. An end left out is open rather than zero, which
+      # is what lets a buyer state one side of a range and leave the other
+      # alone.
+      argument :filters, :map do
+        description "The facets in force, keyed the way the marketplace declares them."
+        allow_nil? false
+        default %{}
+      end
+
+      # A disjunction over the two columns rather than a search against them
+      # joined: concatenating columns is not compilable to SQLite at all. The
+      # match is case-insensitive; see the expression module for why contains/2
+      # is unusable here. An empty term matches everything, which is what makes
+      # the unsearched grid and a cleared search the same read.
+      #
+      # Only the term is filtered here. What the facets narrow is declared
+      # rather than written out, so it is applied by a preparation below.
+      filter expr(icontains(title, ^arg(:query)) or icontains(description, ^arg(:query)))
+
+      # Offset rather than keyset, because the grid offers numbered pages and a
+      # keyset cursor cannot answer "page 7" without walking the six before it.
+      # Counted, so the heading can say how many matched rather than how many
+      # fit on the page. Not required, so a caller wanting the whole shelf —
+      # a test, a future export — still reads it as a plain list.
+      pagination offset?: true, countable: true, required?: false, max_page_size: 96
+
+      prepare build(load: [:display_price, :seller, images: :url])
+      prepare Mercato.Listings.Listing.Preparations.Facets
+      prepare Mercato.Listings.Listing.Preparations.SortOrder
+    end
+
+    read :suggest_titles do
+      description "Titles matching a term, as the search box completes them."
+
+      argument :query, :string do
+        constraints allow_empty?: true
+        allow_nil? true
+        default ""
+      end
+
+      argument :category_slug, :string do
+        constraints allow_empty?: true
+        allow_nil? true
+        default ""
+      end
+
+      filter expr(
+               icontains(title, ^arg(:query)) and
+                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug))
+             )
+
+      # Over-fetched, then folded down to one per title by the preparation.
+      prepare build(sort: [published_at: :desc, inserted_at: :desc], limit: 20)
+      prepare Mercato.Listings.Listing.Preparations.DistinctTitles
     end
 
     read :list_for_seller do
@@ -234,18 +329,17 @@ defmodule Mercato.Listings.Listing do
   policies do
     # Filtering rather than refusing, so a public browse gets the listings on
     # offer instead of an error. A seller sees their own whatever state it is in.
-    # Browsing and opening one share the rule: a listing reachable in a grid and
-    # a listing reachable by its own URL are the same set.
-    #
     # A listing is only as public as the account behind it: a seller the
-    # marketplace no longer shows to strangers takes their listings out of
-    # public view with them, without anything per-listing changing. The list of
-    # statuses is the one the seller's own profile page is gated on, read from
-    # where it is declared rather than restated, so the two can never disagree
-    # about whether a seller is still on the marketplace.
     policy action([:read, :get, :get_by_public_id]) do
       authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
       authorize_if expr(seller_id == ^actor(:id))
+    end
+
+    # Deliberately without the "or it is mine" clause the reads above carry. The
+    # browse grid is the marketplace as a stranger sees it, so a seller browsing
+    # it must not find their own drafts and paused listings mixed into the shelf
+    policy action([:browse, :suggest_titles]) do
+      authorize_if expr(status == :active and seller.status in ^SellerStatus.has_public_profile())
     end
 
     # Deliberately narrower than the seller's own view and wider than the detail

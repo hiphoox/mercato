@@ -14,10 +14,12 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
 
   use MercatoWeb, :live_view
 
+  import MercatoWeb.UI.AddToCart
   import MercatoWeb.UI.Avatar
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.EmptyState
   import MercatoWeb.UI.ListingCard
+  import MercatoWeb.UI.ListingGrid
   import MercatoWeb.UI.ListingStatusBadge
 
   alias Mercato.Accounts
@@ -75,10 +77,9 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
 
     ~H"""
     <Layouts.app
+      current_scope={@current_scope}
+      categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
       current_path={~p"/users/#{@handle}"}
     >
       <.seller_gone :if={is_nil(@seller)} />
@@ -123,6 +124,9 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
                 <.badge :if={condition(listing)} kind="neutral">{condition(listing)}</.badge>
               </:badges>
               <:meta>Listed {when_listed(listing)}</:meta>
+              <:corner>
+                <.add_to_cart id={"add-to-cart-#{listing.id}"} />
+              </:corner>
             </.listing_card>
           </.listing_grid>
 
@@ -294,16 +298,6 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
         {render_slot(@inner_block)}
       </h2>
       <span class="text-body-sm text-ink-500">{pluralize(@count, @unit)}</span>
-    </div>
-    """
-  end
-
-  slot :inner_block, required: true
-
-  defp listing_grid(assigns) do
-    ~H"""
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(15.5rem,1fr))] md:gap-5">
-      {render_slot(@inner_block)}
     </div>
     """
   end

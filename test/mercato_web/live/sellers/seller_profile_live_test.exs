@@ -218,4 +218,41 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
   defp sold_cards(html) do
     html |> LazyHTML.from_fragment() |> LazyHTML.query("[id^='sold-listing-']") |> Enum.count()
   end
+
+  describe "adding a seller's listing to a cart" do
+    test "offers the action on what is on offer", %{conn: conn, seller: seller} do
+      listing = on_offer!(seller)
+
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
+
+      assert has_element?(view, "#on-offer-listing-#{listing.id} #add-to-cart-#{listing.id}")
+    end
+
+    test "leaves it off a sold listing, which is a record rather than an offer", %{
+      conn: conn,
+      seller: seller
+    } do
+      sold = sold!(seller)
+
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
+
+      assert has_element?(view, "#sold-listing-#{sold.id}")
+      refute has_element?(view, "#add-to-cart-#{sold.id}")
+    end
+
+    # The page is deliberately the same for its owner as for a stranger, so it
+    # can be used to check what buyers see. The account view is where a seller
+    # manages what they listed.
+    test "offers it to the seller too, since the page is a storefront", %{
+      conn: conn,
+      seller: seller
+    } do
+      listing = on_offer!(seller)
+
+      conn = conn |> Plug.Test.init_test_session(%{}) |> Helpers.store_in_session(seller)
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
+
+      assert has_element?(view, "#add-to-cart-#{listing.id}")
+    end
+  end
 end

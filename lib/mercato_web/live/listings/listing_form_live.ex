@@ -68,7 +68,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   defp load_listing(socket, %{"id" => id}) do
-    case Listings.get_my_listing(id, actor: socket.assigns.current_user) do
+    case Listings.get_my_listing(id, actor: socket.assigns.current_scope.user) do
       # Sold is terminal, so there is nothing here to compose: the listing is
       # the record of a sale rather than something still being offered.
       {:ok, %{status: :sold}} ->
@@ -90,7 +90,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   defp assign_form(socket) do
     opts = [
-      actor: socket.assigns.current_user,
+      actor: socket.assigns.current_scope.user,
       as: "listing",
       transform_params: &to_minor/2,
       transform_errors: &readable/2
@@ -183,7 +183,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   def handle_event("make_cover", %{"id" => id}, socket) do
     with %{} = image <- photo(socket, id),
          {:ok, _promoted} <-
-           Listings.set_listing_image_cover(image, actor: socket.assigns.current_user) do
+           Listings.set_listing_image_cover(image, actor: socket.assigns.current_scope.user) do
       {:noreply, still_writing(socket, socket.assigns.listing)}
     else
       _refused ->
@@ -193,7 +193,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   def handle_event("remove_photo", %{"id" => id}, socket) do
     with %{} = image <- photo(socket, id),
-         :ok <- Listings.delete_listing_image(image, actor: socket.assigns.current_user) do
+         :ok <- Listings.delete_listing_image(image, actor: socket.assigns.current_scope.user) do
       {:noreply, still_writing(socket, socket.assigns.listing)}
     else
       # Refusing a removal is the gallery's own business — most often a listing
@@ -206,7 +206,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   def handle_event("delete", _params, socket) do
     listing = socket.assigns.listing
 
-    case Listings.delete_listing(listing, actor: socket.assigns.current_user) do
+    case Listings.delete_listing(listing, actor: socket.assigns.current_scope.user) do
       :ok ->
         {:noreply,
          socket
@@ -221,7 +221,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   def handle_event("resume", _params, socket) do
-    case Listings.resume_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
+    case Listings.resume_listing(socket.assigns.listing, actor: socket.assigns.current_scope.user) do
       {:ok, resumed} ->
         {:noreply,
          socket
@@ -236,7 +236,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   def handle_event("pause", _params, socket) do
-    case Listings.pause_listing(socket.assigns.listing, actor: socket.assigns.current_user) do
+    case Listings.pause_listing(socket.assigns.listing, actor: socket.assigns.current_scope.user) do
       {:ok, paused} ->
         {:noreply,
          socket
@@ -277,7 +277,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   end
 
   defp saved(socket, listing, true) do
-    case Listings.publish_listing(listing, actor: socket.assigns.current_user) do
+    case Listings.publish_listing(listing, actor: socket.assigns.current_scope.user) do
       {:ok, published} ->
         socket
         |> reload(published)
@@ -374,7 +374,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   defp attach_waiting(socket, listing) do
     socket
     |> consume_uploaded_entries(:photos, fn %{path: path}, entry ->
-      {:ok, attach(listing, File.read!(path), entry.client_name, socket.assigns.current_user)}
+      {:ok,
+       attach(listing, File.read!(path), entry.client_name, socket.assigns.current_scope.user)}
     end)
     |> Enum.find_value(&(&1 != :ok && &1))
   end
@@ -407,7 +408,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     listing = socket.assigns.listing
     bytes = consume_uploaded_entry(socket, entry, &{:ok, File.read!(&1.path)})
 
-    case attach(listing, bytes, entry.client_name, socket.assigns.current_user) do
+    case attach(listing, bytes, entry.client_name, socket.assigns.current_scope.user) do
       :ok -> {:noreply, still_writing(socket, listing)}
       message -> {:noreply, assign(socket, :gallery_error, message)}
     end
@@ -449,7 +450,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   # the price are loaded as every other way into this page has them.
   defp reload(socket, listing) do
     listing =
-      case Listings.get_my_listing(listing.id, actor: socket.assigns.current_user) do
+      case Listings.get_my_listing(listing.id, actor: socket.assigns.current_scope.user) do
         {:ok, reloaded} -> reloaded
         {:error, _reason} -> listing
       end
@@ -472,10 +473,9 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   def render(assigns) do
     ~H"""
     <Layouts.app
+      categories={@search_categories}
       flash={@flash}
-      current_scope={assigns[:current_scope]}
-      current_user={@current_user}
-      admin?={@admin?}
+      current_scope={@current_scope}
       current_path={~p"/users/me/listings"}
     >
       <div id="listing-form-page" class="flex flex-col gap-6">
