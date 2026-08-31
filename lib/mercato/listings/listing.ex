@@ -139,6 +139,13 @@ defmodule Mercato.Listings.Listing do
                  (^arg(:condition) == "" or condition == ^arg(:condition))
              )
 
+      # Offset rather than keyset, because the grid offers numbered pages and a
+      # keyset cursor cannot answer "page 7" without walking the six before it.
+      # Counted, so the heading can say how many matched rather than how many
+      # fit on the page. Not required, so a caller wanting the whole shelf —
+      # a test, a future export — still reads it as a plain list.
+      pagination offset?: true, countable: true, required?: false, max_page_size: 96
+
       prepare build(load: [:display_price, :seller, images: :url])
       prepare Mercato.Listings.Listing.Preparations.SortOrder
     end

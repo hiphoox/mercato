@@ -27,7 +27,16 @@ defmodule MercatoWeb.Listings.BrowseLive do
   all, so an instance selling services or digital goods never draws a facet
   with nothing in it.
 
-  Paging is not here yet.
+  The page is a fourth query-string parameter, and numbered rather than
+  scrolled for the same reason the rest of them are there: a shelf reached by
+  scrolling cannot be linked, shared, or returned to. It is not a facet
+  though — it says where you are in a result set rather than what the set is —
+  so changing any facet drops it and starts again at the first page, which is
+  what every control here does for free by building its link from the facets.
+
+  How many fit a page is decided here rather than by the resource: it follows
+  from how many tiles fill a grid, which is a question about this page and not
+  about a listing.
   """
 
   use MercatoWeb, :live_view
@@ -37,6 +46,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
   import MercatoWeb.UI.FilterBar
   import MercatoWeb.UI.ListingCard
   import MercatoWeb.UI.ListingGrid
+  import MercatoWeb.UI.Pager
   import MercatoWeb.UI.Sheet
 
   alias Mercato.Listings
@@ -45,9 +55,16 @@ defmodule MercatoWeb.Listings.BrowseLive do
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
+  # Divides evenly by every column count the grid actually resolves to, so the
+  # last row of a full page is never left short by one tile.
+  @per_page 24
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :conditions, Listings.conditions())}
+    {:ok,
+     socket
+     |> assign(:conditions, Listings.conditions())
+     |> assign(:per_page, @per_page)}
   end
 
   @impl true
@@ -64,12 +81,34 @@ defmodule MercatoWeb.Listings.BrowseLive do
       |> assign(:price_max, price(params, "price_max"))
       |> assign(:condition, condition(params))
 
-    {:noreply,
-     socket
-     |> assign(:facets, facets(socket))
-     |> assign(:narrowed?, narrowed?(socket))
-     |> assign(:filtered?, filtered?(socket))
-     |> assign(:listings, listings(socket))}
+    socket =
+      socket
+      |> assign(:facets, facets(socket))
+      |> assign(:narrowed?, narrowed?(socket))
+      |> assign(:filtered?, filtered?(socket))
+
+    {:noreply, paged(socket, page(params))}
+  end
+
+  # A page beyond the end is a stale link rather than an error, the same
+  # forgiveness a hand-typed order or category gets — but it takes the read to
+  # know where the end is, so it is asked for and then landed back on the first
+  # page, rather than guessed at beforehand.
+  defp paged(socket, wanted) do
+    {page, number} = at(socket, wanted)
+
+    socket
+    |> assign(:listings, page.results)
+    |> assign(:total, page.count)
+    |> assign(:page, number)
+    |> assign(:pages, ceil(page.count / @per_page))
+  end
+
+  defp at(socket, wanted) do
+    case listings(socket, wanted) do
+      %{results: [], count: count} when count > 0 and wanted > 1 -> {listings(socket, 1), 1}
+      page -> {page, wanted}
+    end
   end
 
   defp scope(params, categories) do
@@ -85,6 +124,16 @@ defmodule MercatoWeb.Listings.BrowseLive do
     named = params |> Map.get("sort", "") |> to_string()
 
     Enum.find(SortOrder.values(), :newest, &(to_string(&1) == named))
+  end
+
+  # A number that is not one, or one below the first page, is read as no page
+  # asked for. Where it lands past the last page is settled after the read, in
+  # `at/2`, since nothing here knows yet how long the shelf is.
+  defp page(params) do
+    case params |> Map.get("page", "") |> to_string() |> Integer.parse() do
+      {number, ""} when number > 0 -> number
+      _unreadable -> 1
+    end
   end
 
   # Read as a person types it, in major units, and held in the minor units the
@@ -136,15 +185,18 @@ defmodule MercatoWeb.Listings.BrowseLive do
     Enum.any?([assigns.condition, assigns.price_min, assigns.price_max])
   end
 
-  defp listings(%{assigns: assigns}) do
-    Listings.browse_listings!(%{
-      query: assigns.query,
-      category_slug: assigns.category || "",
-      condition: assigns.condition || "",
-      price_min: assigns.price_min,
-      price_max: assigns.price_max,
-      sort: assigns.sort
-    })
+  defp listings(%{assigns: assigns}, page) do
+    Listings.browse_listings!(
+      %{
+        query: assigns.query,
+        category_slug: assigns.category || "",
+        condition: assigns.condition || "",
+        price_min: assigns.price_min,
+        price_max: assigns.price_max,
+        sort: assigns.sort
+      },
+      page: [limit: @per_page, offset: (page - 1) * @per_page, count: true]
+    )
   end
 
   @impl true
@@ -178,7 +230,8 @@ defmodule MercatoWeb.Listings.BrowseLive do
       condition: opts[:condition],
       price_min: Money.amount(opts[:price_min]),
       price_max: Money.amount(opts[:price_max]),
-      sort: sort_param(opts[:sort])
+      sort: sort_param(opts[:sort]),
+      page: page_param(opts[:page])
     ]
 
     case Enum.reject(params, fn {_key, value} -> value in [nil, ""] end) do
@@ -191,6 +244,12 @@ defmodule MercatoWeb.Listings.BrowseLive do
   # one address rather than two that render the same page.
   defp sort_param(order) when order in [nil, :newest], do: nil
   defp sort_param(order), do: to_string(order)
+
+  # The first page is the absence of the parameter, for the same reason the
+  # default order is: the plain shelf keeps one address, and the page is left
+  # out of the facets so that changing any of them lands back here.
+  defp page_param(number) when number in [nil, 1], do: nil
+  defp page_param(number), do: to_string(number)
 
   # Derived from the type, so an order added to the resource reaches the bar
   # without being listed a second time here. The labels stay clauses rather
@@ -216,8 +275,8 @@ defmodule MercatoWeb.Listings.BrowseLive do
             starts, and a crumb pointing at the page you are on is noise. --%>
       <div id="browse" class="flex flex-col gap-6">
         <.header>
-          {heading(@query, @category_name, @listings, @filtered?)}
-          <:subtitle>{subtitle(@query, @category_name, @listings, @filtered?)}</:subtitle>
+          {heading(@query, @category_name, @total, @filtered?)}
+          <:subtitle>{subtitle(@query, @category_name, @total, @filtered?)}</:subtitle>
         </.header>
 
         <%!-- Left out when the marketplace itself is empty: there is nothing to
@@ -425,6 +484,18 @@ defmodule MercatoWeb.Listings.BrowseLive do
             </:corner>
           </.listing_card>
         </.listing_grid>
+
+        <%!-- Built from the facets rather than from the address, so a page
+              link carries the term, the scope and the order in force without
+              this page having to parse back what it just wrote. --%>
+        <.pager
+          page={@page}
+          pages={@pages}
+          path={&browse_path(Keyword.put(@facets, :page, &1))}
+          total={@total}
+          page_size={@per_page}
+          class="pt-2"
+        />
       </div>
     </Layouts.app>
     """
@@ -543,58 +614,58 @@ defmodule MercatoWeb.Listings.BrowseLive do
   # A filtered shelf is counted rather than described: the facets in force are
   # already named by the chips, and a count is the one claim that stays true
   # whichever of them is doing the narrowing.
-  defp heading("", _category, [], true), do: gettext("Nothing matches those filters")
+  defp heading("", _category, 0, true), do: gettext("Nothing matches those filters")
 
-  defp heading("", _category, listings, true) do
-    ngettext("%{count} listing matches", "%{count} listings match", length(listings))
+  defp heading("", _category, total, true) do
+    ngettext("%{count} listing matches", "%{count} listings match", total)
   end
 
-  defp heading("", nil, _listings, _filtered?), do: gettext("Everything on offer")
+  defp heading("", nil, _total, _filtered?), do: gettext("Everything on offer")
 
-  defp heading("", category, [], _filtered?),
+  defp heading("", category, 0, _filtered?),
     do: gettext("Nothing in %{category} yet", category: category)
 
-  defp heading("", category, _listings, _filtered?),
+  defp heading("", category, _total, _filtered?),
     do: gettext("Everything in %{category}", category: category)
 
-  defp heading(query, _category, [], _filtered?),
+  defp heading(query, _category, 0, _filtered?),
     do: gettext("No results for “%{query}”", query: query)
 
-  defp heading(query, _category, listings, _filtered?) do
+  defp heading(query, _category, total, _filtered?) do
     ngettext(
       "%{count} result for “%{query}”",
       "%{count} results for “%{query}”",
-      length(listings),
+      total,
       query: query
     )
   end
 
-  defp subtitle("", _category, [], true),
+  defp subtitle("", _category, 0, true),
     do: gettext("Nothing on offer matches those filters.")
 
-  defp subtitle("", nil, _listings, true), do: gettext("Everything on offer that matches.")
+  defp subtitle("", nil, _total, true), do: gettext("Everything on offer that matches.")
 
-  defp subtitle("", category, _listings, true),
+  defp subtitle("", category, _total, true),
     do: gettext("Everything in %{category} that matches.", category: category)
 
-  defp subtitle("", nil, _listings, _filtered?),
+  defp subtitle("", nil, _total, _filtered?),
     do: gettext("Every listing on offer, from every seller.")
 
-  defp subtitle("", category, [], _filtered?),
+  defp subtitle("", category, 0, _filtered?),
     do: gettext("Nothing is listed in %{category} yet.", category: category)
 
-  defp subtitle("", category, _listings, _filtered?),
+  defp subtitle("", category, _total, _filtered?),
     do: gettext("Every listing in %{category}, from every seller.", category: category)
 
-  defp subtitle(_query, nil, [], _filtered?), do: gettext("Nothing on offer matches that search.")
+  defp subtitle(_query, nil, 0, _filtered?), do: gettext("Nothing on offer matches that search.")
 
-  defp subtitle(_query, category, [], _filtered?),
+  defp subtitle(_query, category, 0, _filtered?),
     do: gettext("Nothing in %{category} matches that search.", category: category)
 
-  defp subtitle(_query, nil, _listings, _filtered?),
+  defp subtitle(_query, nil, _total, _filtered?),
     do: gettext("Everything on offer that matches.")
 
-  defp subtitle(_query, category, _listings, _filtered?),
+  defp subtitle(_query, category, _total, _filtered?),
     do: gettext("Everything in %{category} that matches.", category: category)
 
   defp no_results_headline("", nil), do: gettext("Nothing matches those filters")
