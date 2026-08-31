@@ -19,10 +19,10 @@ The order owns *what was bought and where it has got to*. What happens to the mo
 
 ### The order record
 
-1. [ ] `Order` resource with buyer, seller, listing, quantity, the price agreed at purchase, currency, status, and timestamps — the price is copied onto the order rather than read back from the listing, so a later price change cannot rewrite history
-2. [ ] One order covers one seller; a purchase spanning two sellers is two orders, since each is fulfilled and paid out separately
-3. [ ] Order states and their permitted transitions, with terminal states named
-4. [ ] Only the buyer and the seller of an order may read it; an admin may read any
+1. [x] `Order` resource with buyer, seller, listing, quantity, the price agreed at purchase, currency, status, and timestamps — the price is copied onto the order rather than read back from the listing, so a later price change cannot rewrite history
+2. [x] One order covers one seller; a purchase spanning two sellers is two orders, since each is fulfilled and paid out separately
+3. [x] Order states and their permitted transitions, with terminal states named
+4. [x] Only the buyer and the seller of an order may read it; an admin may read any
 
 ### Checkout
 
