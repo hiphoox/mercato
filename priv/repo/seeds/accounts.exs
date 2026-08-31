@@ -77,7 +77,7 @@ if Mix.env() == :dev do
   end
 
   register_with_role.("trader@example.com", "Trader", "Example", trader)
-  register_with_role.("admin@example.com", "Admin", "Example", admin)
+  operator = register_with_role.("admin@example.com", "Admin", "Example", admin)
 
   # A marketplace with one seller in it cannot be browsed, so dev gets several,
   # each of whom stocks their own listings in `listings.exs`.
@@ -85,4 +85,30 @@ if Mix.env() == :dev do
   register_with_role.("tom@example.com", "Tom", "Whitfield", trader)
   register_with_role.("aisha@example.com", "Aisha", "Khan", trader)
   register_with_role.("diego@example.com", "Diego", "Ferreira", trader)
+
+  # Bulk, so the admin listing runs past a single page and the pager under it
+  # has something to page. Numbered rather than named: the accounts above are
+  # who the seeded listings belong to and who a dev signs in as, while these
+  # only have to be rows.
+  filler = 50
+
+  # Not all active, so the status filter and the counts beside it have
+  # something to separate. Deletion is left out: it is terminal and erases the
+  # account's details, which makes a poor row to look at.
+  standing = fn
+    index when rem(index, 10) == 0 -> :banned
+    index when rem(index, 7) == 0 -> :restricted
+    _index -> :active
+  end
+
+  for index <- 1..filler do
+    account = register_with_role.("person#{index}@example.com", "Person", "#{index}", trader)
+    status = standing.(index)
+
+    # Only where it differs, so re-running the seeds leaves these alone rather
+    # than writing every account's standing back over itself.
+    if account.status != status do
+      Accounts.change_status!(account, status, actor: operator)
+    end
+  end
 end

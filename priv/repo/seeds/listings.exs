@@ -168,4 +168,57 @@ if Mix.env() == :dev do
       end
     end
   end
+
+  # Bulk, so the browse grid runs past a single page and the pager under it has
+  # something to page. Numbered rather than described: the stock above is what
+  # a page is read against when the copy matters, and fifty more hand-written
+  # listings would be fifty more things to keep plausible for no gain. Every
+  # one is active — a draft or a paused listing never reaches the grid, so it
+  # would add length here without adding any.
+  filler = 300
+  numbered = fn index -> "Listing #{index}" end
+
+  owners = Enum.map(stock, fn {email, _items} -> seller.(email) end)
+  slugs = categories |> Map.keys() |> Enum.sort()
+  conditions = Listings.conditions()
+
+  stocked? =
+    Enum.any?(
+      Listings.list_listings!(authorize?: false),
+      &String.starts_with?(&1.title, "Listing ")
+    )
+
+  # Spread round-robin rather than heaped on one seller or one category, so
+  # narrowing the grid still leaves more than a page to walk.
+  unless stocked? do
+    for index <- 1..filler do
+      owner = Enum.at(owners, rem(index, length(owners)))
+      colour = Enum.at(palette, rem(index, length(palette)))
+
+      listing =
+        Listings.create_listing!(
+          %{
+            title: numbered.(index),
+            description: "Filler stock, so the grid has more than one page of it.",
+            # Random rather than stepped, so ordering by price shuffles the grid
+            # against the order it was written in instead of agreeing with it.
+            price: :rand.uniform(50_000) + 500,
+            quantity: 1,
+            condition: Enum.at(conditions, rem(index, max(length(conditions), 1))),
+            category_id: Map.fetch!(categories, Enum.at(slugs, rem(index, length(slugs))))
+          },
+          actor: owner
+        )
+
+      # One photo rather than the two the stock above carries: this is length,
+      # not a gallery to move through, and fifty second uploads cost the seed
+      # run more than they show.
+      Listings.add_listing_image!(
+        %{listing_id: listing.id, image: swatch.(colour), filename: "photo-1.png"},
+        actor: owner
+      )
+
+      Listings.publish_listing!(listing, actor: owner)
+    end
+  end
 end
