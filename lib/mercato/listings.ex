@@ -93,6 +93,25 @@ defmodule Mercato.Listings do
     condition |> String.replace("_", " ") |> String.capitalize()
   end
 
+  @doc """
+  The conditions a buyer may narrow the grid by, already worded.
+
+  Value and wording together, in the order the marketplace lists them, so a
+  control offering them needs to know neither how a condition is stored nor
+  how it reads.
+  """
+  def condition_options do
+    Enum.map(conditions(), &{&1, condition_label(&1)})
+  end
+
+  @doc """
+  The catalog a buyer may narrow the grid by, keyed the way a URL names a
+  category and worded the way the operator named it.
+  """
+  def category_options do
+    Enum.map(list_categories!(query: [sort: :name]), &{&1.slug, &1.name})
+  end
+
   @default_image_types ["image/jpeg", "image/png", "image/webp"]
 
   @doc """

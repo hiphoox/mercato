@@ -187,7 +187,7 @@ defmodule Mercato.Listings.ListingBrowseTest do
       chair = on_offer!(seller, category_id: furniture.id)
       on_offer!(seller, category_id: outdoor.id)
 
-      assert [found] = Listings.browse_listings!(%{category_slug: "furniture"})
+      assert [found] = Listings.browse_listings!(%{filters: %{category: "furniture"}})
       assert found.id == chair.id
     end
 
@@ -199,7 +199,7 @@ defmodule Mercato.Listings.ListingBrowseTest do
       on_offer!(seller, category_id: furniture.id)
       on_offer!(seller, category_id: outdoor.id)
 
-      assert length(Listings.browse_listings!(%{category_slug: ""})) == 2
+      assert length(Listings.browse_listings!(%{filters: %{category: ""}})) == 2
     end
 
     test "defaults to the whole shelf when no slug is given", %{
@@ -219,7 +219,7 @@ defmodule Mercato.Listings.ListingBrowseTest do
     } do
       on_offer!(seller, category_id: furniture.id)
 
-      assert Listings.browse_listings!(%{category_slug: "harpsichords"}) == []
+      assert Listings.browse_listings!(%{filters: %{category: "harpsichords"}}) == []
     end
 
     test "narrows by the term and the scope together", %{
@@ -232,7 +232,7 @@ defmodule Mercato.Listings.ListingBrowseTest do
       on_offer!(seller, title: "Two-person tent", category_id: furniture.id)
 
       assert [found] =
-               Listings.browse_listings!(%{query: "chair", category_slug: "furniture"})
+               Listings.browse_listings!(%{query: "chair", filters: %{category: "furniture"}})
 
       assert found.id == chair.id
     end
@@ -243,7 +243,7 @@ defmodule Mercato.Listings.ListingBrowseTest do
     } do
       generate(listing(actor: seller, category_id: furniture.id))
 
-      assert Listings.browse_listings!(%{category_slug: "furniture"}) == []
+      assert Listings.browse_listings!(%{filters: %{category: "furniture"}}) == []
     end
   end
 
@@ -314,33 +314,36 @@ defmodule Mercato.Listings.ListingBrowseTest do
     end
 
     test "leaves out what costs less than the floor asked for", ctx do
-      ids = Listings.browse_listings!(%{price_min: 5_000}) |> Enum.map(& &1.id)
+      ids = Listings.browse_listings!(%{filters: %{price: %{min: 5_000}}}) |> Enum.map(& &1.id)
 
       assert Enum.sort(ids) == Enum.sort([ctx.middling.id, ctx.dear.id])
     end
 
     test "leaves out what costs more than the ceiling asked for", ctx do
-      ids = Listings.browse_listings!(%{price_max: 5_000}) |> Enum.map(& &1.id)
+      ids = Listings.browse_listings!(%{filters: %{price: %{max: 5_000}}}) |> Enum.map(& &1.id)
 
       assert Enum.sort(ids) == Enum.sort([ctx.cheap.id, ctx.middling.id])
     end
 
     test "keeps a listing priced exactly at either bound, since a range includes its ends", ctx do
       ids =
-        Listings.browse_listings!(%{price_min: 5_000, price_max: 5_000}) |> Enum.map(& &1.id)
+        Listings.browse_listings!(%{filters: %{price: %{min: 5_000, max: 5_000}}})
+        |> Enum.map(& &1.id)
 
       assert ids == [ctx.middling.id]
     end
 
     test "reads an unset bound as no bound at all", ctx do
-      ids = Listings.browse_listings!(%{price_min: nil, price_max: nil}) |> Enum.map(& &1.id)
+      ids =
+        Listings.browse_listings!(%{filters: %{price: %{min: nil, max: nil}}})
+        |> Enum.map(& &1.id)
 
       assert Enum.sort(ids) ==
                Enum.sort([ctx.cheap.id, ctx.middling.id, ctx.dear.id])
     end
 
     test "returns nothing when the range excludes everything on offer" do
-      assert Listings.browse_listings!(%{price_min: 100_000}) == []
+      assert Listings.browse_listings!(%{filters: %{price: %{min: 100_000}}}) == []
     end
 
     test "narrows by term and by price together", %{seller: seller} do
@@ -348,7 +351,8 @@ defmodule Mercato.Listings.ListingBrowseTest do
       on_offer!(seller, title: "Oak chair", price: 40_000)
 
       ids =
-        Listings.browse_listings!(%{query: "chair", price_max: 10_000}) |> Enum.map(& &1.id)
+        Listings.browse_listings!(%{query: "chair", filters: %{price: %{max: 10_000}}})
+        |> Enum.map(& &1.id)
 
       assert ids == [chair.id]
     end
@@ -364,26 +368,26 @@ defmodule Mercato.Listings.ListingBrowseTest do
     end
 
     test "returns only what is in the condition asked for", ctx do
-      ids = Listings.browse_listings!(%{condition: "new"}) |> Enum.map(& &1.id)
+      ids = Listings.browse_listings!(%{filters: %{condition: "new"}}) |> Enum.map(& &1.id)
 
       assert ids == [ctx.pristine.id]
     end
 
     test "leaves out a listing whose seller stated no condition", ctx do
-      ids = Listings.browse_listings!(%{condition: "fair"}) |> Enum.map(& &1.id)
+      ids = Listings.browse_listings!(%{filters: %{condition: "fair"}}) |> Enum.map(& &1.id)
 
       assert ids == [ctx.worn.id]
     end
 
     test "reads an unstated condition as no narrowing, not as a listing with none", ctx do
-      ids = Listings.browse_listings!(%{condition: ""}) |> Enum.map(& &1.id)
+      ids = Listings.browse_listings!(%{filters: %{condition: ""}}) |> Enum.map(& &1.id)
 
       assert Enum.sort(ids) ==
                Enum.sort([ctx.pristine.id, ctx.worn.id, ctx.unstated.id])
     end
 
     test "returns nothing for a condition nothing on offer is in" do
-      assert Listings.browse_listings!(%{condition: "like_new"}) == []
+      assert Listings.browse_listings!(%{filters: %{condition: "like_new"}}) == []
     end
   end
 end

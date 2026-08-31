@@ -88,42 +88,27 @@ defmodule Mercato.Listings.Listing do
         default ""
       end
 
-      argument :category_slug, :string do
-        description "Narrows the grid to one category, named the way its URL names it."
-        constraints allow_empty?: true
-        allow_nil? false
-        default ""
-      end
-
       argument :sort, Mercato.Listings.Listing.SortOrder do
         description "The order the grid is read in."
         allow_nil? false
         default :newest
       end
 
-      # Minor units, like the column they are compared against, so the web layer
-      # reads what a buyer typed and nothing here has to know about decimals.
-      # Nil is an open end rather than a bound of zero, which is what lets a
-      # buyer state one side of the range and leave the other alone.
-      argument :price_min, :integer do
-        description "The least a listing may cost, in minor units."
-        constraints min: 0
-      end
-
-      argument :price_max, :integer do
-        description "The most a listing may cost, in minor units."
-        constraints min: 0
-      end
-
-      # A plain string rather than the `Condition` type: the type refuses a
-      # value the marketplace no longer configures, and a stale link should land
-      # on an empty grid rather than on an error. Empty is no narrowing, the
-      # same way it is for the category above.
-      argument :condition, :string do
-        description "Narrows the grid to one of the conditions the marketplace configures."
-        constraints allow_empty?: true
+      # One argument for every narrowing rather than one apiece, because the
+      # narrowings are configuration: a marketplace declares the facets its own
+      # catalog has, and an action naming them one by one could not be extended
+      # without being edited. Keyed by facet, and shaped by that facet's kind —
+      # a value for one chosen from a list, a pair of ends for a range.
+      #
+      # Prices are stated in minor units, like the column they are compared
+      # against, so the web layer reads what a buyer typed and nothing here has
+      # to know about decimals. An end left out is open rather than zero, which
+      # is what lets a buyer state one side of a range and leave the other
+      # alone.
+      argument :filters, :map do
+        description "The facets in force, keyed the way the marketplace declares them."
         allow_nil? false
-        default ""
+        default %{}
       end
 
       # A disjunction over the two columns rather than a search against them
@@ -131,13 +116,10 @@ defmodule Mercato.Listings.Listing do
       # match is case-insensitive; see the expression module for why contains/2
       # is unusable here. An empty term matches everything, which is what makes
       # the unsearched grid and a cleared search the same read.
-      filter expr(
-               (icontains(title, ^arg(:query)) or icontains(description, ^arg(:query))) and
-                 (^arg(:category_slug) == "" or category.slug == ^arg(:category_slug)) and
-                 (is_nil(^arg(:price_min)) or price >= ^arg(:price_min)) and
-                 (is_nil(^arg(:price_max)) or price <= ^arg(:price_max)) and
-                 (^arg(:condition) == "" or condition == ^arg(:condition))
-             )
+      #
+      # Only the term is filtered here. What the facets narrow is declared
+      # rather than written out, so it is applied by a preparation below.
+      filter expr(icontains(title, ^arg(:query)) or icontains(description, ^arg(:query)))
 
       # Offset rather than keyset, because the grid offers numbered pages and a
       # keyset cursor cannot answer "page 7" without walking the six before it.
@@ -147,6 +129,7 @@ defmodule Mercato.Listings.Listing do
       pagination offset?: true, countable: true, required?: false, max_page_size: 96
 
       prepare build(load: [:display_price, :seller, images: :url])
+      prepare Mercato.Listings.Listing.Preparations.Facets
       prepare Mercato.Listings.Listing.Preparations.SortOrder
     end
 
