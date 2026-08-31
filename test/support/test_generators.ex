@@ -91,6 +91,38 @@ defmodule Mercato.TestGenerators do
   end
 
   @doc """
+  A listing of `seller`'s that is on offer, gallery and all.
+
+  Publishing is what most tests outside the listings area actually want: a
+  draft is invisible to everyone but its seller, so nothing can be bought.
+  """
+  def offered_listing(seller, opts \\ []) do
+    listing = generate(listing(Keyword.put(opts, :actor, seller)))
+    generate(listing_image(listing: listing))
+
+    Mercato.Listings.publish_listing!(listing, actor: seller)
+  end
+
+  @doc """
+  An order placed by `opts[:buyer]` on `opts[:listing]`, generating either if
+  it is not given.
+  """
+  def order(opts \\ []) do
+    {buyer, opts} = Keyword.pop_lazy(opts, :buyer, fn -> generate(user()) end)
+
+    {listing, opts} =
+      Keyword.pop_lazy(opts, :listing, fn -> offered_listing(generate(user())) end)
+
+    changeset_generator(
+      Mercato.Orders.Order,
+      :place,
+      actor: buyer,
+      defaults: [listing_id: listing.id],
+      overrides: opts
+    )
+  end
+
+  @doc """
   The smallest bytes that a type check will accept as a PNG.
 
   A real signature rather than arbitrary content, because an upload is
