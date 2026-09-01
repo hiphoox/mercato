@@ -90,7 +90,7 @@ config :mercato, :listing_max_images, 10
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Mercato.Orders, Mercato.Listings, Mercato.Accounts],
+  ash_domains: [Mercato.Carts, Mercato.Orders, Mercato.Listings, Mercato.Accounts],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint
