@@ -3,7 +3,7 @@ type: architecture
 title: Commerce UX Patterns
 description: Interaction patterns for browsing, purchasing, selling, and order tracking — proven e-commerce conventions plus C2C-specific patterns.
 tags: [ui, ux, commerce, patterns]
-timestamp: 2026-08-13T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 See [ui-components.md](ui-components.md) for the buttons, badges, and chips used in these patterns.
@@ -34,7 +34,7 @@ The default, always-available path — standard e-commerce, no negotiation requi
 
 - **Cart** (drawer on desktop, full page on mobile): line items with thumbnail, title, price, quantity stepper, and remove action; subtotal updates live as quantities change; a `critical`-variant "Checkout" button (see [ui-components.md](ui-components.md)).
 - **Empty cart**: same empty-state pattern as elsewhere (see [Notifications & Feedback](#notifications--feedback)) with a primary action back to browsing.
-- **Cart persistence**: a signed-in user's cart survives across sessions and devices; a guest's cart survives the session at minimum.
+- **Cart persistence**: a signed-in user's cart survives across sessions and devices; a guest's cart survives their session and becomes theirs when they sign in, carrying whatever they had already added.
 - **Guest checkout**: purchasing without creating an account first is available by default — requiring account creation before checkout is a proven source of cart abandonment. Account creation can still be offered post-purchase.
 - **Checkout steps**: Shipping address → Shipping method (cost + ETA shown per option) → Payment → Review. A returning buyer with a saved address and payment method can collapse this to a single review-and-confirm screen.
 - **Address book**: saved shipping addresses, selectable at checkout, editable without leaving the flow.

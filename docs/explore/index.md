@@ -3,7 +3,7 @@ type: index
 title: Explore Docs
 description: Map of docs/explore/ — research, decisions, and per-area backlogs for capabilities not yet implemented.
 tags: [explore, index, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Map of `docs/explore/`. This section holds everything the project doesn't have yet: research findings, decisions taken ahead of implementation, and the backlogs tracking what is left to build. Once a capability is actually built, the rules governing it move to the section that owns it (usually `architecture/` or `domain/`) and are reconciled against the real code.
@@ -22,7 +22,7 @@ One file per area, each split into **MUST** (Phase 1 MVP) and **NICE TO HAVE** (
 
 **The purchase, and what it needs**
 
-- [orders-todo.md](orders-todo.md) — Buying a listing: the order record, checkout, fulfillment states, and seeing a purchase through.
+- [orders-todo.md](orders-todo.md) — Buying a listing: the order record, the cart, checkout, fulfillment states, and seeing a purchase through.
 - [payments-todo.md](payments-todo.md) — The money: charging a buyer, holding it in escrow, commission, and paying a seller out.
 - [shipping-todo.md](shipping-todo.md) — Getting a bought listing to its buyer, and the fulfillment methods an instance configures.
 - [disputes-todo.md](disputes-todo.md) — What happens when a buyer is unhappy, and who decides the fate of held funds.
