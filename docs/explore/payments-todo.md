@@ -3,7 +3,7 @@ type: explore
 title: Payments Todo
 description: Backlog of taking a buyer's money, holding it, and paying a seller out, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [payments, escrow, payouts, commission, todo, backlog, mvp]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for the money in a purchase: charging the buyer, holding the funds while the order runs, and paying the seller out. What was bought and where it has got to is [orders-todo.md](orders-todo.md); this file covers only what happens to the money.
@@ -30,8 +30,8 @@ Balances live in a double-entry ledger: every money movement is an immutable set
 
 5. [ ] Funds captured at checkout are held by the platform rather than credited to the seller
 6. [ ] Releasing held funds is an operation of its own, separate from capturing them, and reversible after the fact so a dispute resolved late can claw money back
-7. [ ] Order completion is what makes held funds payable — see [orders-todo.md](orders-todo.md)
-8. [ ] Funds stay held while a dispute is open, and their fate is decided by the dispute's outcome — see [disputes-todo.md](disputes-todo.md)
+7. [ ] Order completion is what makes held funds payable — needs [orders 18](orders-todo.md)
+8. [ ] Funds stay held while a dispute is open, and their fate is decided by the dispute's outcome — needs [disputes 9](disputes-todo.md)
 9. [ ] Cancellation before fulfillment refunds the buyer in full
 
 ### The seller's balance
@@ -77,5 +77,18 @@ Balances live in a double-entry ledger: every money movement is an immutable set
 
 | Area | Why |
 | :--- | :--- |
-| [orders-todo.md](orders-todo.md) | Funds are held against an order and released by its completion |
+| [orders-todo.md](orders-todo.md) | Funds are held against an order and released by its completion. Mutual: orders waits on payments in turn |
+| [disputes-todo.md](disputes-todo.md) | A held payment cannot settle while a dispute is open, and the dispute's outcome is what decides it. Mutual: disputes waits on payments in turn |
+| [admin-todo.md](admin-todo.md) | The commission rule becomes operator-editable there, in Phase 2 |
 | Notifications | Payment received, payout sent, and payout failed all need to reach a person; no area owns notifications yet |
+
+## Depended on by
+
+| Area | Why |
+| :--- | :--- |
+| [orders-todo.md](orders-todo.md) | Checkout authorizes a payment before the order exists, and completion releases it. Mutual |
+| [disputes-todo.md](disputes-todo.md) | A dispute decides the fate of held funds; without a hold it decides nothing. Mutual |
+| [offers-todo.md](offers-todo.md) | An offer commits a buyer to a price, which is only binding if it can be charged |
+| [listings-todo.md](listings-todo.md) | The net-payout estimate shown before publish needs the commission rule |
+| [users-todo.md](users-todo.md) | Payout account details, and the credit a referral issues |
+| [admin-todo.md](admin-todo.md) | A seller's balance and payout history to display, and the commission rule to make editable |

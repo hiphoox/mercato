@@ -3,7 +3,7 @@ type: explore
 title: Disputes Todo
 description: Backlog of what happens when a buyer is unhappy with a completed purchase, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [disputes, returns, refunds, escrow, todo, backlog, mvp]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for what happens when a purchase goes wrong. The order it is raised against is [orders-todo.md](orders-todo.md), and the held funds it decides the fate of are [payments-todo.md](payments-todo.md).
@@ -30,7 +30,7 @@ This area exists because escrow demands it. Holding a buyer's payment until deli
 6. [ ] Every dispute reaches an operator queue regardless of what the seller said, since agreement alone cannot move money
 7. [ ] Operator sees the order, both parties, what was claimed, and the evidence, and decides
 8. [ ] Outcomes: refund the buyer in full, refund in part, or complete the order in the seller's favour
-9. [ ] The outcome is what settles the held funds — see [payments-todo.md](payments-todo.md)
+9. [ ] The outcome is what settles the held funds — needs [payments 6](payments-todo.md)
 10. [ ] Dispute states and their terminal transitions, with an order unable to complete while one is open
 
 ### Authorization & record
@@ -65,6 +65,17 @@ This area exists because escrow demands it. Holding a buyer's payment until deli
 | Area | Why |
 | :--- | :--- |
 | [orders-todo.md](orders-todo.md) | There is nothing to dispute until an order can complete |
-| [payments-todo.md](payments-todo.md) | A dispute decides the fate of held funds; without a hold it decides nothing |
+| [payments-todo.md](payments-todo.md) | A dispute decides the fate of held funds; without a hold it decides nothing. Mutual: payments waits on disputes in turn |
 | [admin-todo.md](admin-todo.md) | Every dispute ends at an operator queue |
+| [shipping-todo.md](shipping-todo.md) | A refund that requires the item back needs a return leg to track |
 | Notifications | Raised, responded to, and resolved all need to reach a person; no area owns notifications yet |
+| Private messaging | The pre-operator negotiation between the two parties; no area owns it yet |
+
+## Depended on by
+
+| Area | Why |
+| :--- | :--- |
+| [payments-todo.md](payments-todo.md) | Held funds cannot settle while a dispute is open, and its outcome is what decides them. Mutual |
+| [reviews-todo.md](reviews-todo.md) | Whether an order ended in a dispute changes whether it is reviewable |
+| [admin-todo.md](admin-todo.md) | The queue an operator works through |
+| [users-todo.md](users-todo.md) | A seller's dispute rate feeding their account standing, in Phase 2 |

@@ -20,6 +20,18 @@ Map of `docs/explore/`. This section holds everything the project doesn't have y
 
 One file per area, each split into **MUST** (Phase 1 MVP) and **NICE TO HAVE** (Phase 2). Read the one for your area before picking up work, to check whether a capability is already built or still planned.
 
+### Item numbers are permanent
+
+An item keeps the number it is given. A new item takes the next free number wherever it sits in the list, and a removed item's number is retired rather than reused, so gaps and out-of-order runs are expected. This is what makes a number safe to cite from another file.
+
+### Dependencies
+
+Each backlog ends with its edges to other areas. **Waiting on** is what must exist before its own work can start; **Depended on by** is the areas whose work needs this one. A missing section means no edges in that direction. An edge is named as satisfied where the area it points at is already built.
+
+An item blocked by one specific item elsewhere names it inline as `area n`, linked to that area's file — `needs [payments 6](payments-todo.md)`. Only items genuinely blocked carry one.
+
+Three pairs are mutual, and say so on both sides: orders and payments, users and shipping, payments and disputes. Each holds a piece the other needs, so neither finishes first.
+
 **The purchase, and what it needs**
 
 - [orders-todo.md](orders-todo.md) — Buying a listing: the order record, the cart, checkout, fulfillment states, and seeing a purchase through.

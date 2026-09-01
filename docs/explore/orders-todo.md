@@ -37,9 +37,9 @@ _The card's add-to-cart control already ships, drawn deliberately ahead of the c
 ### Checkout
 
 10. [ ] Checkout reached either from a listing's buy action or from a seller group in the cart, stating what is being bought, from whom, and at what total
-11. [ ] Checkout totals broken into their parts — item price, fulfillment cost where there is one, and platform fee where the instance charges one — rather than one opaque number
-12. [ ] Buyer's fulfillment details captured at checkout where the instance requires them, prefilled from the account where there is one and editable — see [users-todo.md](users-todo.md)
-13. [ ] Placing an order authorizes payment before the order exists, so an order is never created against a payment that failed — see [payments-todo.md](payments-todo.md)
+11. [ ] Checkout totals broken into their parts — item price, fulfillment cost where there is one, and platform fee where the instance charges one — rather than one opaque number — needs [shipping 8](shipping-todo.md) for the fulfillment line and [payments 11](payments-todo.md) for the fee
+12. [ ] Buyer's fulfillment details captured at checkout where the instance requires them, prefilled from the account where there is one and editable — needs [users 44](users-todo.md) for somewhere to hold them and [shipping 5](shipping-todo.md) for what an address is
+13. [ ] Placing an order authorizes payment before the order exists, so an order is never created against a payment that failed — needs [payments 1](payments-todo.md)
 14. [ ] A listing that sold while the buyer was in checkout fails the purchase rather than overselling
 15. [ ] A visitor buys without creating an account, with account creation offered once the purchase is done
 16. [ ] What identifies a guest buyer on their order, and how they reach it afterwards without signing in
@@ -49,7 +49,7 @@ _The card's add-to-cart control already ships, drawn deliberately ahead of the c
 17. [ ] Seller marks the order fulfilled, which is what starts the buyer's confirmation window
 18. [ ] Buyer confirms delivery, completing the order
 19. [ ] Automatic completion after a configured window with no confirmation and no dispute, so an inattentive buyer cannot strand a seller's money indefinitely
-20. [ ] Completion is what releases the held payment — see [payments-todo.md](payments-todo.md)
+20. [ ] Completion is what releases the held payment — needs [payments 6](payments-todo.md)
 21. [ ] Either party may cancel before fulfillment, refunding in full
 22. [ ] A configured reminder schedule while an order waits on the seller to fulfill, and automatic cancellation at the end of it
 
@@ -60,7 +60,7 @@ _The card's add-to-cart control already ships, drawn deliberately ahead of the c
 
 ### Fulfillment
 
-25. [ ] Publish blocked until the seller satisfies the configured fulfillment prerequisites; the shipped-goods default requires a shipping-origin address, and a marketplace of services or digital goods configures none — moved from [listings-todo.md](listings-todo.md), where the rule lives on publish but the prerequisites do not exist to check. The seller address it needs is [users-todo.md](users-todo.md) item 44
+25. [ ] Publish blocked until the seller satisfies the configured fulfillment prerequisites; the shipped-goods default requires a shipping-origin address, and a marketplace of services or digital goods configures none — moved from [listings-todo.md](listings-todo.md), where the rule lives on publish but the prerequisites do not exist to check — needs [shipping 1](shipping-todo.md) for the prerequisites to read and [users 44](users-todo.md) for the seller's address
 
 ### Seeing an order through
 
@@ -82,14 +82,27 @@ _The card's add-to-cart control already ships, drawn deliberately ahead of the c
 - [ ] Order-placed, order-fulfilled and order-completed events other areas subscribe to — the trigger for [reviews-todo.md](reviews-todo.md), [analytics-todo.md](analytics-todo.md), and notifications
 - [ ] Configurable completion window and reminder schedule, admin-editable rather than deploy-time — see [admin-todo.md](admin-todo.md)
 
+## Waiting on
+
+| Area | Why |
+| :--- | :--- |
+| [payments-todo.md](payments-todo.md) | Checkout cannot authorize a payment, and completion cannot release one, until there is somewhere to hold money. Mutual: payments waits on orders in turn |
+| [users-todo.md](users-todo.md) | Checkout has nowhere to put a destination address until an account can hold one |
+| [shipping-todo.md](shipping-todo.md) | The fulfillment method in force is what decides what checkout asks the buyer for |
+| [admin-todo.md](admin-todo.md) | The completion window and reminder schedule become operator-editable there, in Phase 2 |
+| [listings-todo.md](listings-todo.md) | Something to buy. Already built, so this is satisfied |
+
 ## Depended on by
 
 An order is the event most other areas hang off. These are waiting on it:
 
-| Area | What it needs |
+| Area | Why |
 | :--- | :--- |
-| [payments-todo.md](payments-todo.md) | Something to hold funds against and release on |
+| [payments-todo.md](payments-todo.md) | Something to hold funds against and release on. Mutual: orders waits on payments in turn |
 | [shipping-todo.md](shipping-todo.md) | Something to generate a label for and track against |
 | [disputes-todo.md](disputes-todo.md) | Something to dispute |
 | [reviews-todo.md](reviews-todo.md) | A completed transaction to review |
 | [offers-todo.md](offers-todo.md) | A checkout for an accepted offer to start |
+| [analytics-todo.md](analytics-todo.md) | Something for a view to convert into |
+| [admin-todo.md](admin-todo.md) | Purchases for an operator to read when answering "where is mine" |
+| [listings-todo.md](listings-todo.md) | The sold event a listing raises is raised by a purchase completing |
