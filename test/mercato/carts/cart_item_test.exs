@@ -3,6 +3,7 @@ defmodule Mercato.Carts.CartItemTest do
 
   import Mercato.TestGenerators
 
+  alias Mercato.Accounts.Scope
   alias Mercato.Carts
 
   setup do
@@ -56,7 +57,7 @@ defmodule Mercato.Carts.CartItemTest do
       assert {:error, %Ash.Error.Invalid{}} = Carts.add_to_cart(draft.id, %{}, actor: ctx.buyer)
     end
 
-    test "refuses a visitor acting as nobody", ctx do
+    test "refuses a visitor carrying nothing to be told apart by", ctx do
       listing = offered_listing(ctx.seller)
 
       assert {:error, %Ash.Error.Invalid{}} = Carts.add_to_cart(listing.id, %{}, actor: nil)
@@ -192,5 +193,135 @@ defmodule Mercato.Carts.CartItemTest do
     end
   end
 
+  describe "a visitor's cart" do
+    test "gathers a listing against the token the visitor carries", ctx do
+      listing = offered_listing(ctx.seller)
+
+      assert {:ok, line} = Carts.add_to_cart(listing.id, %{}, scope: visitor())
+      assert line.user_id == nil
+      assert line.listing_id == listing.id
+    end
+
+    test "raises the quantity of the line already there rather than adding a second", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+
+      {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 2}, scope: visitor)
+      {:ok, line} = Carts.add_to_cart(listing.id, %{quantity: 3}, scope: visitor)
+
+      assert line.quantity == 5
+      assert [_only_one] = Carts.list_cart!(scope: visitor)
+    end
+
+    test "reads back to the visitor who gathered it", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor)
+
+      assert [line] = Carts.list_cart!(scope: visitor)
+      assert line.listing.title == listing.title
+    end
+
+    test "is another visitor's cart no more than it is anyone else's", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor())
+
+      assert Carts.list_cart!(scope: visitor()) == []
+      assert Carts.list_cart!(actor: ctx.buyer) == []
+    end
+
+    test "is not read by a signed-in buyer carrying no token", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor())
+
+      assert cart_lines(ctx.buyer) == []
+    end
+
+    test "is nobody else's to change", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, line} = Carts.add_to_cart(listing.id, %{}, scope: visitor())
+
+      assert {:error, _} = Carts.set_cart_quantity(line, %{quantity: 9}, scope: visitor())
+      assert {:error, _} = Carts.remove_from_cart(line, actor: ctx.buyer)
+    end
+
+    test "is the visitor's own to change and to empty", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, line} = Carts.add_to_cart(listing.id, %{}, scope: visitor)
+
+      assert {:ok, changed} = Carts.set_cart_quantity(line, %{quantity: 4}, scope: visitor)
+      assert changed.quantity == 4
+      assert :ok = Carts.remove_from_cart(changed, scope: visitor)
+      assert Carts.list_cart!(scope: visitor) == []
+    end
+
+    test "belongs to the account rather than the token once there is an account", ctx do
+      listing = offered_listing(ctx.seller)
+      scope = %{visitor() | user: ctx.buyer}
+
+      assert {:ok, line} = Carts.add_to_cart(listing.id, %{}, scope: scope)
+      assert line.user_id == ctx.buyer.id
+      assert cart_lines(ctx.buyer) != []
+    end
+  end
+
+  describe "signing in" do
+    test "carries what the visitor had gathered into their account's cart", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 2}, scope: visitor)
+
+      assert :ok = Carts.claim_cart(ctx.buyer, visitor.guest_token)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert line.listing_id == listing.id
+      assert line.quantity == 2
+    end
+
+    test "sums a line the account already had with the one gathered as a visitor", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 2}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 3}, scope: visitor)
+
+      assert :ok = Carts.claim_cart(ctx.buyer, visitor.guest_token)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert line.quantity == 5
+    end
+
+    test "leaves nothing behind against the token", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor)
+
+      assert :ok = Carts.claim_cart(ctx.buyer, visitor.guest_token)
+      assert Carts.list_cart!(scope: visitor) == []
+    end
+
+    test "drops a listing that stopped being buyable rather than failing", ctx do
+      gone = offered_listing(ctx.seller)
+      still_there = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(gone.id, %{}, scope: visitor)
+      {:ok, _} = Carts.add_to_cart(still_there.id, %{}, scope: visitor)
+
+      Mercato.Listings.pause_listing!(gone, actor: ctx.seller)
+
+      assert :ok = Carts.claim_cart(ctx.buyer, visitor.guest_token)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert line.listing_id == still_there.id
+    end
+
+    test "is untroubled by a visitor who gathered nothing", ctx do
+      assert :ok = Carts.claim_cart(ctx.buyer, Carts.new_guest_token())
+      assert cart_lines(ctx.buyer) == []
+    end
+  end
+
   defp cart_lines(actor), do: Carts.list_cart!(actor: actor)
+
+  defp visitor, do: Scope.for_user(nil, Carts.new_guest_token())
 end

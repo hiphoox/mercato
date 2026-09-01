@@ -5,6 +5,10 @@ defmodule Mercato.Carts.CartItem do
   A line holds no price. What a listing costs is the listing's to say until a
   purchase agrees it, so a cart shows what a seller is asking now rather than
   what they were asking when the line was added.
+
+  It belongs either to an account or to a visitor's guest token, never to
+  both and never to neither: an account is not needed to gather a cart, only
+  to buy one. Signing in claims the token's lines for the account.
   """
 
   use Ash.Resource,
@@ -53,12 +57,13 @@ defmodule Mercato.Carts.CartItem do
       accept [:quantity]
 
       # The same listing added twice is one line the buyer meant to buy more
-      # of, not two lines they have to reconcile by hand.
+      # of, not two lines they have to reconcile by hand. Which identity says
+      # so depends on who is buying, so `AttachToBuyer` names it rather than
+      # the action, which cannot know.
       upsert? true
-      upsert_identity :unique_user_listing
       upsert_fields [:quantity]
 
-      change relate_actor(:user)
+      change Changes.AttachToBuyer
       change Changes.CopyFromListing
       change Changes.SumWithExistingLine
     end
@@ -74,23 +79,43 @@ defmodule Mercato.Carts.CartItem do
   end
 
   policies do
-    # Filtering rather than refusing, so a stranger reads an empty cart and
-    # somebody else's line reads as absent rather than forbidden.
-    policy action_type(:read) do
-      authorize_if expr(user_id == ^actor(:id))
-    end
-
+    # Whose a new line is is settled by `AttachToBuyer` from the actor and the
+    # token, neither of which the caller supplies as an attribute.
     policy action_type(:create) do
-      authorize_if relating_to_actor(:user)
+      authorize_if always()
     end
 
-    policy action_type([:update, :destroy]) do
+    # One rule for reading and for changing, since a line is one person's on
+    # both counts: the account's when they are signed in, or the visitor's
+    # when it carries the token the line was gathered against.
+    #
+    # Two checks rather than one `or`, because a check that mentions the actor
+    # is refused outright when there is no actor — a visitor would never reach
+    # the half of it that is about them. The token is guarded against being
+    # absent for the opposite reason: with no token, it must not match every
+    # line that has none either.
+    #
+    # It filters on a read rather than refusing, so a stranger reads an empty
+    # cart and somebody else's line reads as absent rather than forbidden.
+    policy action_type([:read, :update, :destroy]) do
       authorize_if expr(user_id == ^actor(:id))
+
+      authorize_if expr(
+                     not is_nil(^context([:shared, :guest_token])) and
+                       guest_token == ^context([:shared, :guest_token])
+                   )
     end
   end
 
   attributes do
     uuid_primary_key :id
+
+    # What tells one visitor's cart from another's before either has an
+    # account. Never public: it is a secret the browser holds, not a field a
+    # caller sets.
+    attribute :guest_token, :string do
+      constraints min_length: 1
+    end
 
     attribute :quantity, :integer do
       allow_nil? false
@@ -104,8 +129,9 @@ defmodule Mercato.Carts.CartItem do
   end
 
   relationships do
+    # Nil while the cart is a visitor's. It gains an owner when they sign in,
+    # not when they gathered the line.
     belongs_to :user, Mercato.Accounts.User do
-      allow_nil? false
       public? true
     end
 
@@ -125,5 +151,10 @@ defmodule Mercato.Carts.CartItem do
 
   identities do
     identity :unique_user_listing, [:user_id, :listing_id]
+
+    # A second identity rather than one over both owners: SQLite counts NULLs
+    # as distinct in a unique index, so each of these only ever binds the rows
+    # that actually have the owner it names.
+    identity :unique_guest_listing, [:guest_token, :listing_id]
   end
 end

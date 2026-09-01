@@ -10,6 +10,8 @@ defmodule Mercato.Carts do
 
   use Ash.Domain, otp_app: :mercato
 
+  alias Mercato.Accounts.Scope
+
   resources do
     resource Mercato.Carts.CartItem do
       define :add_to_cart, action: :add, args: [:listing_id]
@@ -17,6 +19,36 @@ defmodule Mercato.Carts do
       define :set_cart_quantity, action: :set_quantity
       define :remove_from_cart, action: :remove
     end
+  end
+
+  @doc """
+  A fresh token for a visitor with no account, minted per browser.
+
+  Random rather than derived from anything about the visitor: it is the only
+  thing standing between one guest cart and another, so it is a secret and
+  nothing else.
+  """
+  def new_guest_token, do: Base.url_encode64(:crypto.strong_rand_bytes(32), padding: false)
+
+  @doc """
+  Takes over the lines gathered against `guest_token` for `user`.
+
+  What a visitor gathered is theirs once they have an account to gather it
+  into, so signing in claims it rather than asking them to gather it again.
+  Each line is added the ordinary way, so a listing already in the account's
+  cart is summed with the one gathered as a visitor rather than duplicated,
+  and one that stopped being buyable in between is simply dropped — a sign-in
+  is not the place to fail over a listing somebody else bought first.
+  """
+  def claim_cart(user, guest_token) do
+    visitor = Scope.for_user(nil, guest_token)
+
+    for line <- list_cart!(scope: visitor) do
+      add_to_cart(line.listing_id, %{quantity: line.quantity}, actor: user)
+      remove_from_cart!(line, scope: visitor)
+    end
+
+    :ok
   end
 
   @doc """

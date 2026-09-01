@@ -25,9 +25,15 @@ defmodule Mercato.Carts.CartItem.Changes.SumWithExistingLine do
     end)
   end
 
+  # The source context travels with the read as well as the actor: a visitor
+  # is told apart by the token it carries, and without it the line they
+  # already have reads as absent.
   defp existing_line(listing_id, context) do
     Mercato.Carts.CartItem
-    |> Ash.Query.for_read(:line_for_listing, %{listing_id: listing_id}, actor: context.actor)
+    |> Ash.Query.for_read(:line_for_listing, %{listing_id: listing_id},
+      actor: context.actor,
+      context: context.source_context
+    )
     |> Ash.read_one()
   end
 end
