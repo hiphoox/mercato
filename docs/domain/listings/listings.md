@@ -14,9 +14,11 @@ Every listing belongs to exactly one seller, and a seller may hold any number of
 
 ## Public identifier
 
-Every listing carries a short public identifier, separate from the one the platform holds it by internally. It is eight characters drawn from digits and letters, with the characters a reader could mistake for one another left out, so it survives being copied off a screen or read aloud.
+Every listing carries a public identifier, separate from the one the platform holds it by internally. It is a uuid: random, so a link says nothing about how many listings the marketplace holds or in what order they arrived, and wide enough that two listings sharing one is not a case anything has to handle.
 
-The identifier is assigned when the listing is created and never changes. A seller has no say in it and no way to supply one, and no two listings share one.
+Keeping it apart from the internal identifier is what keeps that one off the wire. The internal identifier never appears in a link, so it stays out of browser history, server logs, and anything a reader copies; and the public one can be replaced if a link is shared further than it was meant to go, without disturbing what the platform holds the listing by.
+
+The identifier is assigned when the listing is created and never changes on its own. A seller has no say in it and no way to supply one, and no two listings share one.
 
 This is what a listing's public address is built from: the address carries the title as well, for whoever reads the link, but only the identifier says which listing is meant. A seller may retitle freely and every link already shared keeps working.
 

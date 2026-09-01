@@ -20,9 +20,11 @@ An order can only be placed against a listing the buyer can see, so a draft or a
 
 ## Public reference
 
-Every order carries a short public identifier, separate from the one the platform holds it by internally. It is eight characters drawn from digits and letters, with the characters a reader could mistake for one another left out, so it survives being quoted in a support conversation or read aloud.
+Every order carries a public identifier, separate from the one the platform holds it by internally. It is a uuid: random, so a reference says nothing about how many orders the marketplace has taken or in what order they arrived, and wide enough that two orders sharing one is not a case anything has to handle.
 
-The identifier is assigned when the order is placed and never changes. A buyer has no say in it and no way to supply one, and no two orders share one.
+Keeping it apart from the internal identifier is what keeps that one off the wire. The internal identifier never appears in a link, so it stays out of browser history, server logs, and anything a buyer copies into a support conversation.
+
+The identifier is assigned when the order is placed and never changes on its own. A buyer has no say in it and no way to supply one, and no two orders share one.
 
 ## The price agreed at purchase
 
