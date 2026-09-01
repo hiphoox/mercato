@@ -110,6 +110,51 @@ defmodule Mercato.Carts.CartItemTest do
 
       assert cart_lines(generate(user())) == []
     end
+
+    test "counts a group by how many of each line the buyer wants", ctx do
+      one = offered_listing(ctx.seller, quantity: 5)
+      two = offered_listing(ctx.seller, quantity: 5)
+
+      {:ok, _} = Carts.add_to_cart(one.id, %{quantity: 2}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(two.id, %{quantity: 3}, actor: ctx.buyer)
+
+      assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
+      assert group.item_count == 5
+    end
+
+    test "totals a group at what its seller is asking now", ctx do
+      one = offered_listing(ctx.seller, price: 1500, quantity: 5)
+      two = offered_listing(ctx.seller, price: 4000)
+
+      {:ok, _} = Carts.add_to_cart(one.id, %{quantity: 2}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(two.id, %{}, actor: ctx.buyer)
+
+      assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
+      assert group.total == "$70.00"
+    end
+
+    test "totals one line at its listing's price, as many times as it is wanted", ctx do
+      listing = offered_listing(ctx.seller, price: 1500, quantity: 5)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 3}, actor: ctx.buyer)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert Carts.line_total(line) == "$45.00"
+    end
+
+    test "totals the whole cart across every seller in it", ctx do
+      mine = offered_listing(ctx.seller, price: 1500)
+      theirs = offered_listing(generate(user()), price: 4000)
+
+      {:ok, _} = Carts.add_to_cart(mine.id, %{}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(theirs.id, %{}, actor: ctx.buyer)
+
+      assert ctx.buyer |> cart_lines() |> Carts.cart_total() == "$55.00"
+    end
+
+    test "totals an empty cart at nothing rather than at nowhere", ctx do
+      assert cart_lines(ctx.buyer) == []
+      assert Carts.cart_total([]) == "$0.00"
+    end
   end
 
   describe "changing what is in the cart" do
