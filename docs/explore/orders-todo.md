@@ -26,10 +26,10 @@ The order owns *what was bought and where it has got to*. What happens to the mo
 
 ### Cart
 
-_The card's add-to-cart control already ships, drawn deliberately ahead of the cart it will write to._
+_The card's add-to-cart control gathers into the cart from browse and from a seller's storefront alike._
 
 5. [x] A cart holding listings from several sellers at once, grouped by seller
-6. [ ] A visitor may fill a cart without an account; it survives their session, and becomes theirs if they sign in
+6. [x] A visitor may fill a cart without an account; it survives their session, and becomes theirs if they sign in
 7. [ ] One checkout per seller group, since each group becomes its own order
 8. [ ] What happens to a carted listing that sells to someone else first
 9. [ ] Cart retention: how long a listing stays in a cart before it is dropped

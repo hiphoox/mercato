@@ -1,8 +1,8 @@
 ---
 type: domain
 title: Carts
-description: Business rules for a buyer's cart — the lines it holds, the seller grouping it reads in, and who may see one.
-tags: [domain, carts, buying]
+description: Business rules for a buyer's cart — the lines it holds, the seller grouping it reads in, whose it is, and who may see one.
+tags: [domain, carts, buying, guest]
 timestamp: 2026-09-01T00:00:00Z
 ---
 
@@ -34,6 +34,18 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
 
+## Whose it is
+
+A cart belongs either to an account or to a visitor without one. An account is needed to buy a cart, not to gather one, so a visitor gathers against a token their browser holds for the visit.
+
+A line has one owner or the other, never both and never neither.
+
+## Signing in
+
+Signing in claims what the visitor gathered for the account, and the token keeps nothing. A listing the account had already gathered has the two quantities summed, the same as adding it twice would. A listing that stopped being buyable in the meantime is dropped, since a sign-in does not fail over something somebody else bought first.
+
+From then on the visitor gathers into the account, not the token.
+
 ## Who may see one
 
-A cart is readable and changeable only by the person whose it is. Somebody else's line reads as absent rather than refused, and a person with nothing gathered reads an empty cart rather than an error.
+A cart is readable and changeable only by the person whose it is — the account it belongs to, or whoever carries the token it was gathered against. Somebody else's line reads as absent rather than refused, and a person with nothing gathered reads an empty cart rather than an error.

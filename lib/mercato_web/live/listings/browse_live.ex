@@ -57,6 +57,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
   alias Mercato.Listings
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
+  on_mount MercatoWeb.Carts.Gathering
 
   # Divides evenly by every column count the grid actually resolves to, so the
   # last row of a full page is never left short by one tile.
@@ -426,7 +427,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
             </:badges>
             <:meta>{seller_handle(listing)} · {listed_ago(listing)}</:meta>
             <:corner>
-              <.add_to_cart id={"add-to-cart-#{listing.id}"} />
+              <.add_to_cart id={"add-to-cart-#{listing.id}"} listing_id={listing.id} />
             </:corner>
           </.listing_card>
         </.listing_grid>

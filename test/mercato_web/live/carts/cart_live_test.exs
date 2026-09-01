@@ -21,9 +21,10 @@ defmodule MercatoWeb.Carts.CartLiveTest do
   end
 
   describe "access" do
-    test "redirects a signed-out visitor to sign-in", %{conn: _conn} do
-      assert {:error, {:redirect, %{to: "/sign-in"}}} =
-               live(Phoenix.ConnTest.build_conn(), ~p"/cart")
+    test "lets a visitor with no account in, a cart being gathered before it is bought" do
+      {:ok, view, _html} = live(Phoenix.ConnTest.build_conn(), ~p"/cart")
+
+      assert has_element?(view, "#cart")
     end
 
     test "lets a signed-in buyer in", ctx do

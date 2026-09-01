@@ -6,6 +6,9 @@ defmodule MercatoWeb.Carts.CartLive do
   it is built from are shaped so a drawer can render the same groups and rows
   later without either of them changing.
 
+  Open to a visitor with no account: a cart is gathered before it is bought,
+  and what is gathered belongs to whoever gathered it, account or not.
+
   Nothing here is agreed. Prices are read off the listings as they stand now,
   so a seller repricing changes what the cart shows — which is the point, and
   the opposite of an order, where the price is copied at the moment of purchase.
@@ -20,7 +23,7 @@ defmodule MercatoWeb.Carts.CartLive do
 
   alias Mercato.Carts
 
-  on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
+  on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -35,7 +38,7 @@ defmodule MercatoWeb.Carts.CartLive do
   end
 
   defp load_cart(socket) do
-    lines = Carts.list_cart!(actor: socket.assigns.current_scope.user)
+    lines = Carts.list_cart!(scope: socket.assigns.current_scope)
 
     socket
     |> assign(:lines, lines)
@@ -48,7 +51,7 @@ defmodule MercatoWeb.Carts.CartLive do
     with %{} = line <- Enum.find(socket.assigns.lines, &(&1.id == id)),
          {:ok, _changed} <-
            Carts.set_cart_quantity(line, %{quantity: String.to_integer(quantity)},
-             actor: socket.assigns.current_scope.user
+             scope: socket.assigns.current_scope
            ) do
       {:noreply, load_cart(socket)}
     else
@@ -65,7 +68,7 @@ defmodule MercatoWeb.Carts.CartLive do
 
   def handle_event("remove", %{"id" => id}, socket) do
     with %{} = line <- Enum.find(socket.assigns.lines, &(&1.id == id)),
-         :ok <- Carts.remove_from_cart(line, actor: socket.assigns.current_scope.user) do
+         :ok <- Carts.remove_from_cart(line, scope: socket.assigns.current_scope) do
       {:noreply,
        socket
        |> load_cart()

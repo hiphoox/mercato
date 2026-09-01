@@ -3,25 +3,24 @@ defmodule MercatoWeb.UI.AddToCart do
   The control that puts a listing in the buyer's cart, as a card offers it.
 
   A component of its own rather than a button written into each grid: browse
-  and a seller's storefront offer the same action on the same object, and the
-  cart it will write to does not exist yet — when it does, this is the one
-  place that learns about it.
+  and a seller's storefront offer the same action on the same object.
 
   Round and iconic because it sits over the photo rather than in the card's
   flow, where a worded button would cover the thing being sold. The name it
   drops is carried by its accessible name instead, the way the header's own
   cart control carries its.
 
-  Drawn ahead of the cart it will write to, so it renders as the live control
-  it is going to be rather than as a disabled one — what it does on a click is
-  this component's to add, and nothing else has to change when it does.
+  Pressing it gathers the listing, handled once by
+  `MercatoWeb.Carts.Gathering` rather than by each page that draws a card, so
+  a grid does not have to know how a cart is written to in order to offer one.
 
-      <.add_to_cart id={"add-to-cart-\#{listing.id}"} />
+      <.add_to_cart id={"add-to-cart-\#{listing.id}"} listing_id={listing.id} />
   """
   use MercatoWeb, :html
 
   @doc "Renders the action as a control pinned to a card's corner."
   attr :id, :string, required: true
+  attr :listing_id, :string, required: true
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -30,6 +29,8 @@ defmodule MercatoWeb.UI.AddToCart do
     <button
       type="button"
       id={@id}
+      phx-click="add_to_cart"
+      phx-value-listing={@listing_id}
       aria-label={gettext("Add to cart")}
       class={
         [
