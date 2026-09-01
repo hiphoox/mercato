@@ -12,6 +12,8 @@ defmodule MercatoWeb.AuthController do
         _ -> "You are now signed in"
       end
 
+    Mercato.Carts.claim_cart(user, MercatoWeb.GuestToken.token(conn))
+
     conn
     |> delete_session(:return_to)
     |> store_in_session(user)

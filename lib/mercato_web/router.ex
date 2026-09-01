@@ -13,6 +13,7 @@ defmodule MercatoWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug MercatoWeb.GuestToken
     plug MercatoWeb.AdminAccess
   end
 
@@ -26,6 +27,7 @@ defmodule MercatoWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes,
+      session: {MercatoWeb.GuestToken, :live_session, []},
       on_mount: [{MercatoWeb.SearchScope, :categories}] do
       # in each liveview, add one of the following at the top of the module:
       #
