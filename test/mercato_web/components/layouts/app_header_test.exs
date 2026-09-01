@@ -279,6 +279,12 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
     test "is shown to signed-in users" do
       assert [current_scope: %Scope{user: @user}] |> query("#app-cart") |> Enum.count() == 1
     end
+
+    test "opens the cart" do
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-cart")
+             |> LazyHTML.attribute("href") == ["/cart"]
+    end
   end
 
   describe "user menu" do

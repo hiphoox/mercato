@@ -43,6 +43,13 @@ defmodule MercatoWeb.Router do
       # prefix, so it sits above the grouping below rather than inside it.
       live "/", Listings.BrowseLive
 
+      # What the buyer has gathered, and where a seller's group of it is paid
+      # for. Each is about itself rather than about a listing or an account, so
+      # each is addressed at the top level rather than under one of the prefixes
+      # below.
+      live "/cart", Carts.CartLive
+      live "/checkout", Checkout.CheckoutLive
+
       # Grouped by the resource the page is about, so a new page for one of them
       # can only land inside its own prefix.
       scope "/users" do
