@@ -12,11 +12,10 @@ defmodule Mercato.Listings.ListingPublicIdTest do
       assert public_id != ""
     end
 
-    test "is short and free of characters a reader could mistake for another" do
+    test "is a uuid, so nothing has to guard against two listings sharing one" do
       %{public_id: public_id} = generate(listing())
 
-      assert String.length(public_id) == 8
-      assert public_id =~ ~r/\A[0-9abcdefghjkmnpqrstvwxyz]+\z/
+      assert {:ok, ^public_id} = Ash.Type.cast_input(Ash.Type.UUID, public_id, [])
     end
 
     test "differs from one listing to the next" do
@@ -43,7 +42,7 @@ defmodule Mercato.Listings.ListingPublicIdTest do
             title: "Chosen title",
             price: 1000,
             category_id: generate(category()).id,
-            public_id: "chosen00"
+            public_id: Ash.UUID.generate()
           },
           actor: seller
         )

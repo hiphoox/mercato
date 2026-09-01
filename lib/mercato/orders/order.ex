@@ -16,7 +16,6 @@ defmodule Mercato.Orders.Order do
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Orders.Order.Changes
-  alias Mercato.PublicId
 
   sqlite do
     table "orders"
@@ -74,11 +73,12 @@ defmodule Mercato.Orders.Order do
     uuid_primary_key :id
 
     # The identifier the order's URL is built from, distinct from the primary
-    # key so a reference a buyer quotes stays short and the internal key stays
-    # internal. Absent from every action's `accept`, so nothing can supply one.
-    attribute :public_id, :string do
+    # key so the internal key never leaves the server and this one stays free to
+    # be re-minted. Absent from every action's `accept`, so nothing can supply
+    # one.
+    attribute :public_id, :uuid do
       allow_nil? false
-      default &PublicId.generate/0
+      default &Ash.UUID.generate/0
       public? true
     end
 
@@ -146,8 +146,8 @@ defmodule Mercato.Orders.Order do
   end
 
   identities do
-    # A minted id is random rather than checked, so the database is what makes
-    # two orders sharing one an error instead of a silent collision.
+    # 122 bits of randomness make a collision unreachable in practice; the index
+    # is what keeps that a fact rather than an assumption.
     identity :unique_public_id, [:public_id]
   end
 end

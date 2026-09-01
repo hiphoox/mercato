@@ -92,8 +92,10 @@ defmodule Mercato.Orders.OrderTest do
   end
 
   describe "the public reference" do
-    test "is eight characters a reader cannot mistake", ctx do
-      assert String.match?(place!(ctx).public_id, ~r/^[0-9abcdefghjkmnpqrstvwxyz]{8}$/)
+    test "is a uuid, so nothing has to guard against two orders sharing one", ctx do
+      public_id = place!(ctx).public_id
+
+      assert {:ok, ^public_id} = Ash.Type.cast_input(Ash.Type.UUID, public_id, [])
     end
 
     test "names the order in its own right", ctx do
@@ -103,7 +105,7 @@ defmodule Mercato.Orders.OrderTest do
     end
 
     test "is not something the buyer supplies", ctx do
-      assert {:error, %Ash.Error.Invalid{}} = place(ctx, public_id: "aaaaaaaa")
+      assert {:error, %Ash.Error.Invalid{}} = place(ctx, public_id: Ash.UUID.generate())
     end
   end
 
