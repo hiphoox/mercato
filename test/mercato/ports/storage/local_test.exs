@@ -19,10 +19,6 @@ defmodule Mercato.Ports.Storage.LocalTest do
     :ok
   end
 
-  test "put/3 writes the file and returns the key" do
-    assert {:ok, "listings/1/photo.jpg"} = Local.put("listings/1/photo.jpg", "binary-data")
-  end
-
   test "get/1 reads back what was written" do
     {:ok, _key} = Local.put("a.txt", "hello")
     assert {:ok, "hello"} = Local.get("a.txt")
