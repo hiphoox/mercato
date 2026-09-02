@@ -19,6 +19,7 @@ defmodule Mercato.Carts.CartItem do
 
   alias Mercato.Carts.CartItem.Changes
   alias Mercato.Carts.CartItem.Preparations
+  alias Mercato.Carts.CartItem.Validations
 
   sqlite do
     table "cart_items"
@@ -122,6 +123,11 @@ defmodule Mercato.Carts.CartItem do
 
       change Changes.AttachToBuyer
       change Changes.CopyFromListing
+
+      # After the listing is read and before the line is summed with one
+      # already there: it is the seller the listing named that decides this.
+      validate Validations.NotYourOwnListing
+
       change Changes.SumWithExistingLine
     end
 

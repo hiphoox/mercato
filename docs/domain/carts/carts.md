@@ -54,6 +54,8 @@ A listing its seller deletes outright leaves the carts holding it. There is noth
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
 
+A seller may not gather their own listing: nobody buys from themselves, and the money would be going where it came from. Their own storefront and their own card in a grid offer them no way to, and a line gathered before signing in is dropped when the account it turns out to belong to claims the cart.
+
 ## What the count says
 
 Every page carries the cart control, and it counts what the buyer has gathered: quantities rather than lines, so a line of three counts three, and only what can still be bought. A cart holding nothing buyable counts nothing at all.

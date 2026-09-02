@@ -126,7 +126,9 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
                 <.badge :if={condition(listing)} kind="neutral">{condition(listing)}</.badge>
               </:badges>
               <:meta>Listed {when_listed(listing)}</:meta>
-              <:corner>
+              <%!-- The one thing a seller's own storefront does not offer them:
+                    gathering it would be refused, nobody buying from themselves. --%>
+              <:corner :if={!Listings.own?(listing, @current_scope.user)}>
                 <.add_to_cart id={"add-to-cart-#{listing.id}"} listing_id={listing.id} />
               </:corner>
             </.listing_card>

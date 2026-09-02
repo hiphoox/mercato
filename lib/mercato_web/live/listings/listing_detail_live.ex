@@ -284,7 +284,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
                 condition={Listings.condition_label(@listing.condition)}
                 status={@listing.status}
                 quantity={@listing.quantity}
-                owner?={owner?(@listing, @current_scope.user)}
+                owner?={Listings.own?(@listing, @current_scope.user)}
                 signed_in?={!is_nil(@current_scope.user)}
                 edit_path={~p"/listings/#{@listing.id}/edit"}
                 sold_at={@listing.updated_at}
@@ -318,11 +318,8 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
     """
   end
 
-  defp owner?(listing, %{id: id}), do: listing.seller_id == id
-  defp owner?(_listing, _viewer), do: false
-
   defp buyable?(listing, viewer) do
-    listing.status == :active and not owner?(listing, viewer)
+    listing.status == :active and not Listings.own?(listing, viewer)
   end
 
   # Draft and paused are worded apart on purpose: a draft was never public, and
@@ -330,7 +327,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   defp owner_banner(nil, _viewer), do: nil
 
   defp owner_banner(listing, viewer) do
-    if owner?(listing, viewer), do: banner(listing.status)
+    if Listings.own?(listing, viewer), do: banner(listing.status)
   end
 
   defp banner(:active) do

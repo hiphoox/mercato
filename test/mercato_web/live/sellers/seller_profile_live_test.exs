@@ -240,16 +240,24 @@ defmodule MercatoWeb.Sellers.SellerProfileLiveTest do
       refute has_element?(view, "#add-to-cart-#{sold.id}")
     end
 
-    # The page is deliberately the same for its owner as for a stranger, so it
-    # can be used to check what buyers see. The account view is where a seller
-    # manages what they listed.
-    test "offers it to the seller too, since the page is a storefront", %{
-      conn: conn,
-      seller: seller
-    } do
+    # The page is otherwise the same for its owner as for a stranger, so it can
+    # be used to check what buyers see. The one control that goes is the one
+    # that would be refused: nobody buys from themselves.
+    test "leaves it off the seller's own storefront", %{conn: conn, seller: seller} do
       listing = on_offer!(seller)
 
       conn = conn |> Plug.Test.init_test_session(%{}) |> Helpers.store_in_session(seller)
+      {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
+
+      assert has_element?(view, "#on-offer-listing-#{listing.id}")
+      refute has_element?(view, "#add-to-cart-#{listing.id}")
+    end
+
+    test "keeps offering it on somebody else's storefront", %{conn: conn, seller: seller} do
+      listing = on_offer!(seller)
+      buyer = generate(user())
+
+      conn = conn |> Plug.Test.init_test_session(%{}) |> Helpers.store_in_session(buyer)
       {:ok, view, _html} = live(conn, ~p"/users/#{seller.handle}")
 
       assert has_element?(view, "#add-to-cart-#{listing.id}")
