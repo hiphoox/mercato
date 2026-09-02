@@ -34,7 +34,7 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
 
-A checkout names the seller whose group it is. A seller whose group holds nothing buyable names no checkout, and neither does a seller who does not exist — both lead back to the cart, saying that what was there is no longer available.
+A checkout names the seller whose group it is. A seller whose group holds nothing buyable names no checkout, and neither does a seller who does not exist — both lead back to the cart, saying that what was there is no longer available. A group that emptied by lapsing is told apart from one that emptied any other way, and says that the cart cleared itself rather than that the goods went.
 
 ## When a listing stops being buyable
 
@@ -49,6 +49,14 @@ A listing its seller deletes outright leaves the carts holding it. There is noth
 ## What may be gathered
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
+
+## How long a line keeps
+
+A line stays in the cart for as long as the marketplace's retention window, counted from the last time the buyer touched it. Adding its listing again or changing how many they want renews it; opening the cart and scrolling past it does not.
+
+Past that, the line is dropped outright. A buyer who comes back to a lapsed line finds it gone rather than marked, and adding the listing again starts a fresh line of one rather than restoring the quantity that lapsed. The window applies the same way to an account's cart and to a visitor's.
+
+The window is set by the operator in whole days — see [marketplace settings](../settings/marketplace-settings.md) — because how long an intention to buy stays meaningful depends on what is being sold.
 
 ## Whose it is
 

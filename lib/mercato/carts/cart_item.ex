@@ -18,6 +18,7 @@ defmodule Mercato.Carts.CartItem do
     authorizers: [Ash.Policy.Authorizer]
 
   alias Mercato.Carts.CartItem.Changes
+  alias Mercato.Carts.CartItem.Preparations
 
   sqlite do
     table "cart_items"
@@ -41,11 +42,38 @@ defmodule Mercato.Carts.CartItem do
       end
 
       filter expr(listing_id == ^arg(:listing_id))
+
+      prepare Preparations.DropExpired
+    end
+
+    read :lapsed_for_seller do
+      description "The buyer's lines from one seller that have fallen outside the window."
+
+      argument :seller_id, :uuid do
+        allow_nil? false
+      end
+
+      argument :cutoff, :utc_datetime_usec do
+        allow_nil? false
+      end
+
+      filter expr(seller_id == ^arg(:seller_id) and updated_at < ^arg(:cutoff))
+    end
+
+    read :expired do
+      description "Lines left untouched past the retention window, whosever they are."
+
+      argument :cutoff, :utc_datetime_usec do
+        allow_nil? false
+      end
+
+      filter expr(updated_at < ^arg(:cutoff))
     end
 
     read :list_mine do
       description "Everything the buyer has gathered, in the order a cart reads."
 
+      prepare Preparations.DropExpired
       prepare build(load: :seller, sort: [seller_id: :asc, inserted_at: :asc])
       prepare &load_carted_listing/2
     end
@@ -59,6 +87,7 @@ defmodule Mercato.Carts.CartItem do
 
       filter expr(seller_id == ^arg(:seller_id))
 
+      prepare Preparations.DropExpired
       prepare build(load: :seller, sort: [inserted_at: :asc])
       prepare &load_carted_listing/2
     end

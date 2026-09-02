@@ -3,6 +3,8 @@ defmodule Mercato.TestGenerators do
 
   use Ash.Generator
 
+  import Ecto.Query, only: [from: 2]
+
   alias Mercato.Accounts
   alias Mercato.Accounts.{Permission, Role, RolePermission, UserRole}
 
@@ -17,6 +19,24 @@ defmodule Mercato.TestGenerators do
       {:ok, nil} -> Accounts.create_settings!(%{key => value}, authorize?: false)
       {:ok, settings} -> Accounts.update_settings!(settings, %{key => value}, authorize?: false)
     end
+  end
+
+  @doc """
+  Backdates a cart line by `seconds`, as though the buyer had left it untouched.
+
+  Straight through the repo: no action backdates a line, and a test of the
+  retention window cares about a line that has sat untouched rather than about
+  how it came to sit.
+  """
+  def age_cart_line(line, seconds) do
+    then = DateTime.add(DateTime.utc_now(), -seconds, :second)
+
+    Mercato.Repo.update_all(
+      from(c in Mercato.Carts.CartItem, where: c.id == ^line.id),
+      set: [updated_at: then]
+    )
+
+    line
   end
 
   @doc """

@@ -48,6 +48,18 @@ defmodule MercatoWeb.Checkout.CheckoutLiveTest do
       assert flash["error"] =~ "no longer available"
     end
 
+    test "says a lapsed group lapsed rather than that it went", ctx do
+      put_setting(:cart_retention_seconds, 60)
+      listing = offered_listing(ctx.seller)
+      {:ok, line} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+      age_cart_line(line, 120)
+
+      assert {:error, {:live_redirect, %{to: "/cart", flash: flash}}} =
+               live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      assert flash["error"] =~ "sat in your cart too long"
+    end
+
     test "sends the buyer back where the seller is not one at all", ctx do
       assert {:error, {:live_redirect, %{to: "/cart"}}} =
                live(ctx.conn, ~p"/checkout?#{[seller: Ash.UUID.generate()]}")

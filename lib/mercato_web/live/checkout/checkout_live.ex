@@ -9,7 +9,9 @@ defmodule MercatoWeb.Checkout.CheckoutLive do
 
   A seller naming no group of the buyer's is not a checkout at all — a stranger's
   id, a seller they have gathered nothing from, and no seller at all lead back to
-  the cart alike, rather than to an empty page that looks payable.
+  the cart alike, rather than to an empty page that looks payable. A group that
+  emptied by lapsing says so in its own words: a cart clearing itself after the
+  buyer left it alone is not the same news as what they gathered having gone.
 
   Open to a visitor with no account: gathering a cart never needed one and
   neither does buying it. What identifies a guest on the order they place — an
@@ -34,19 +36,30 @@ defmodule MercatoWeb.Checkout.CheckoutLive do
   @impl true
   def handle_params(params, _uri, socket) do
     case group_for(params["seller"], socket.assigns.current_scope) do
+      # Their own cart clearing itself after they left it alone, which is not
+      # the same news as what they gathered having gone.
+      {:error, :lapsed} ->
+        {:noreply,
+         back(
+           socket,
+           gettext(
+             "What you had from that seller sat in your cart too long and was cleared. Add it again to buy it."
+           )
+         )}
+
       # The cart offers no checkout for a seller it holds nothing from, so an
       # empty group is one that emptied.
-      nil ->
+      {:error, :gone} ->
         {:noreply, back(socket, gettext("What you had from that seller is no longer available."))}
 
-      %{buyable?: false} ->
+      {:ok, %{buyable?: false}} ->
         {:noreply,
          back(
            socket,
            gettext("Something in that group is no longer available. Remove it to check out.")
          )}
 
-      group ->
+      {:ok, group} ->
         {:noreply, assign(socket, :group, group)}
     end
   end
@@ -59,12 +72,12 @@ defmodule MercatoWeb.Checkout.CheckoutLive do
 
   defp group_for(seller_id, scope) when is_binary(seller_id) do
     case UUID.cast_input(seller_id, []) do
-      {:ok, uuid} -> Carts.seller_group(uuid, scope: scope)
-      _not_a_uuid -> nil
+      {:ok, uuid} -> Carts.checkout_group(uuid, scope: scope)
+      _not_a_uuid -> {:error, :gone}
     end
   end
 
-  defp group_for(_seller_id, _scope), do: nil
+  defp group_for(_seller_id, _scope), do: {:error, :gone}
 
   @impl true
   def render(assigns) do

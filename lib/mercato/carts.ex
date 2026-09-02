@@ -11,16 +11,41 @@ defmodule Mercato.Carts do
   use Ash.Domain, otp_app: :mercato
 
   alias Mercato.Accounts.Scope
+  alias Mercato.Accounts.Setting
 
   resources do
     resource Mercato.Carts.CartItem do
       define :add_to_cart, action: :add, args: [:listing_id]
       define :list_cart, action: :list_mine
       define :list_seller_cart, action: :list_for_seller, args: [:seller_id]
+      define :list_lapsed_seller_cart, action: :lapsed_for_seller, args: [:seller_id, :cutoff]
       define :set_cart_quantity, action: :set_quantity
       define :remove_from_cart, action: :remove
     end
   end
+
+  @doc """
+  How long a line the buyer has not touched stays in their cart, in seconds.
+
+  A cart binds nobody, so a line nobody has revisited in this long says
+  nothing about what its owner still means to buy, and is dropped rather than
+  kept forever. Operator-set, since how long an intention keeps depends on
+  what is being sold.
+
+  Seconds rather than the days an operator sets it in, so a window short
+  enough to watch pass is expressible.
+  """
+  def retention_seconds, do: Setting.get(:cart_retention_seconds)
+
+  @doc """
+  The moment a line must have been touched since to still be in a cart.
+
+  Touched rather than added: raising a line's quantity or adding its listing
+  again says the buyer still means to buy it, and renews it. Opening the cart
+  does not — a line the buyer keeps scrolling past is exactly the one the
+  window is for.
+  """
+  def retention_cutoff, do: DateTime.add(DateTime.utc_now(), -retention_seconds(), :second)
 
   @doc """
   A fresh token for a visitor with no account, minted per browser.
@@ -106,6 +131,27 @@ defmodule Mercato.Carts do
     |> list_seller_cart!(opts)
     |> group_by_seller()
     |> List.first()
+  end
+
+  @doc """
+  One seller's group as a checkout finds it, or why there is none to pay for.
+
+  A checkout that cannot go ahead has to say which thing happened, and the two
+  read nothing alike to the buyer: `:lapsed` is their own cart clearing itself
+  after they left it alone, and `:gone` is what they gathered no longer being
+  there to buy.
+
+  What lapsed is read before the group is, since reading a cart is also what
+  clears it: afterwards there is nothing left to tell the two apart by.
+  """
+  def checkout_group(seller_id, opts) do
+    lapsed = list_lapsed_seller_cart!(seller_id, retention_cutoff(), opts)
+
+    case {seller_group(seller_id, opts), lapsed} do
+      {nil, [_lapsed | _rest]} -> {:error, :lapsed}
+      {nil, []} -> {:error, :gone}
+      {group, _lapsed} -> {:ok, group}
+    end
   end
 
   @doc """
