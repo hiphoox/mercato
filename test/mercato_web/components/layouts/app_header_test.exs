@@ -272,12 +272,18 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
   end
 
   describe "cart" do
-    test "is hidden from signed-out visitors, who have no cart" do
-      assert [current_scope: %Scope{}] |> query("#app-cart") |> Enum.count() == 0
+    test "is offered to signed-out visitors, who gather a cart without an account" do
+      assert [current_scope: %Scope{}] |> query("#app-cart") |> Enum.count() == 1
     end
 
     test "is shown to signed-in users" do
       assert [current_scope: %Scope{user: @user}] |> query("#app-cart") |> Enum.count() == 1
+    end
+
+    test "opens the cart" do
+      assert [current_scope: %Scope{user: @user}]
+             |> query("#app-cart")
+             |> LazyHTML.attribute("href") == ["/cart"]
     end
   end
 

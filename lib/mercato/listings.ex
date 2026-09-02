@@ -8,6 +8,8 @@ defmodule Mercato.Listings do
     otp_app: :mercato,
     extensions: [AshJsonApi.Domain]
 
+  alias Mercato.Accounts.Setting
+
   json_api do
     routes do
       base_route "/listings", Mercato.Listings.Listing do
@@ -29,6 +31,7 @@ defmodule Mercato.Listings do
       define :browse_listings, action: :browse
       define :suggest_listing_titles, action: :suggest_titles
       define :get_listing, action: :get, get_by: [:id]
+      define :get_listing_for_cart_line, action: :for_cart_line, get_by: [:id]
       define :get_listing_by_public_id, action: :get_by_public_id, get_by: [:public_id]
       define :list_seller_listings, action: :list_for_seller, args: [:seller_id]
       define :list_my_listings, action: :list_mine
@@ -55,26 +58,22 @@ defmodule Mercato.Listings do
     end
   end
 
-  @default_currency "USD"
-
   @doc """
   The single currency every price on this instance is denominated in.
 
   One value for the whole marketplace, not a per-listing choice — a listing
   stamps this at creation so its price stays readable if the setting changes.
   """
-  def currency, do: Application.get_env(:mercato, :currency, @default_currency)
-
-  @default_conditions ["new", "like_new", "good", "fair"]
+  def currency, do: Setting.get(:currency)
 
   @doc """
   The conditions a seller may pick from, in display order.
 
-  Configurable per instance so the field fits what is being sold: a vehicle
-  marketplace replaces the list, and one selling services or digital goods
-  sets it to `[]`, which leaves every listing's condition blank.
+  Set per instance so the field fits what is being sold: a vehicle marketplace
+  replaces the list, and one selling services or digital goods empties it,
+  which leaves every listing's condition blank.
   """
-  def conditions, do: Application.get_env(:mercato, :listing_conditions, @default_conditions)
+  def conditions, do: Setting.get(:listing_conditions)
 
   @doc """
   How a stored condition reads to a person.
@@ -112,24 +111,16 @@ defmodule Mercato.Listings do
     Enum.map(list_categories!(query: [sort: :name]), &{&1.slug, &1.name})
   end
 
-  @default_image_types ["image/jpeg", "image/png", "image/webp"]
-
   @doc """
   The image types a listing's gallery accepts.
 
   Matched against the file's own leading bytes rather than the name it arrives
   under, so renaming a file does not get it past the check.
   """
-  def image_types, do: Application.get_env(:mercato, :listing_image_types, @default_image_types)
-
-  @default_image_max_bytes 5_242_880
+  def image_types, do: Setting.get(:listing_image_types)
 
   @doc "The largest image a listing's gallery accepts, in bytes."
-  def image_max_bytes do
-    Application.get_env(:mercato, :listing_image_max_bytes, @default_image_max_bytes)
-  end
-
-  @default_min_images 1
+  def image_max_bytes, do: Setting.get(:listing_image_max_bytes)
 
   @doc """
   How few images a listing may go on offer with.
@@ -137,10 +128,8 @@ defmodule Mercato.Listings do
   Zero drops the requirement, which is what a marketplace selling services or
   digital goods wants.
   """
-  def min_images, do: Application.get_env(:mercato, :listing_min_images, @default_min_images)
-
-  @default_max_images 10
+  def min_images, do: Setting.get(:listing_min_images)
 
   @doc "How many images a listing's gallery holds at most."
-  def max_images, do: Application.get_env(:mercato, :listing_max_images, @default_max_images)
+  def max_images, do: Setting.get(:listing_max_images)
 end

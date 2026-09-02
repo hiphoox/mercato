@@ -3,7 +3,7 @@ type: architecture
 title: UI Components
 description: The rules every Mercato UI component follows, and the variant vocabulary components name their states from.
 tags: [ui, design, components]
-timestamp: 2026-08-25T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here, [ui-guidelines.md](ui-guidelines.md) for the principles behind them, and [liveview.md](liveview.md) for which tier a component belongs in.
@@ -82,4 +82,4 @@ The names a component draws from when it needs a variant. Which of these a given
 
 Holds, in reading order: the sidebar toggle, the logo, a search field, a primary "Sell" call to action, the cart, and the account control. Sell is the bar's filled action. Every account both buys and sells, so listing something is the thing the marketplace is for rather than a minority errand — it carries the primary fill even though the bar is on every screen, and a screen's own primary action sits alongside it without conflict: one starts something, the other finishes it. Below `md` the bar wraps and Sell keeps its icon but drops its label, which its accessible name then carries alone.
 
-The toggle, Sell and the cart are shown to a signed-in user only: there is no sidebar to toggle, nothing to list under, and no cart to open otherwise.
+The toggle and Sell are shown to a signed-in user only: there is no sidebar to toggle and nothing to list under otherwise. The cart is shown to everyone, since a visitor may fill one before they have an account.

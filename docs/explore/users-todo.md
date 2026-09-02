@@ -3,7 +3,7 @@ type: explore
 title: Users Todo
 description: Backlog of user-account capabilities, split into MUST and NICE TO HAVE.
 tags: [users, todo, backlog, auth, roles]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for user accounts — signup, login, logout, roles and permissions. Domain rules for what already exists live in [docs/domain/users/](../domain/users/index.md); this file tracks what is left to build.
@@ -27,7 +27,7 @@ Item 44 is the exception to that split: it is a MUST, but for [orders-todo.md](o
 
 ### Fulfillment details
 
-44. [ ] Address held against a user, captured when an action first needs it rather than at signup — a seller's origin before publishing, a buyer's destination at checkout. Phase 1 for orders rather than for users: publish cannot be gated on a shipping origin that does not exist, and checkout cannot ask for a destination it has nowhere to put. The rules for what an address holds and who may read it are [shipping-todo.md](shipping-todo.md); this item is only the account's side of it
+44. [ ] Address held against a user, captured when an action first needs it rather than at signup — a seller's origin before publishing, a buyer's destination at checkout. Phase 1 for orders rather than for users: publish cannot be gated on a shipping origin that does not exist, and checkout cannot ask for a destination it has nowhere to put. This item is only the account's side of it — needs [shipping 5](shipping-todo.md) and [shipping 6](shipping-todo.md) for what an address holds, and [shipping 7](shipping-todo.md) for who may read one
 
 ---
 
@@ -70,3 +70,21 @@ Item 44 is the exception to that split: it is a MUST, but for [orders-todo.md](o
 46. [ ] Moderation roles (curator, invisible moderator) — see [admin-todo.md](admin-todo.md)
 47. [ ] Vacation mode: a seller flag pausing their own availability without pausing each listing by hand, set and cleared by the seller rather than an admin, and distinct from an account status
 48. [ ] Notification preferences per category and channel — no area owns notifications yet
+
+## Waiting on
+
+| Area | Why |
+| :--- | :--- |
+| [shipping-todo.md](shipping-todo.md) | An account can hold an address, but what one holds and who may read it are decided there. Mutual: shipping waits on users in turn |
+| [payments-todo.md](payments-todo.md) | Payout account details, and the credit a referral issues |
+| [admin-todo.md](admin-todo.md) | Moderation roles are an admin concern layered on the role model |
+| [disputes-todo.md](disputes-todo.md) | A seller's dispute rate feeding their account standing, in Phase 2 |
+| Notifications | Per-category, per-channel preferences need channels to exist; no area owns notifications yet |
+
+## Depended on by
+
+| Area | Why |
+| :--- | :--- |
+| [orders-todo.md](orders-todo.md) | Checkout captures a destination address and publish requires an origin; both need an account able to hold one |
+| [shipping-todo.md](shipping-todo.md) | An address hangs off an account. Mutual |
+| [social-todo.md](social-todo.md) | A restricted account cannot comment, which needs account status to gate on |

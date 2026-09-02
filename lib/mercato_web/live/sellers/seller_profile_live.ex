@@ -34,6 +34,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
   @new_seller_days 30
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
+  on_mount MercatoWeb.Carts.Gathering
 
   @impl true
   def mount(%{"handle" => handle}, _session, socket) do
@@ -125,7 +126,7 @@ defmodule MercatoWeb.Sellers.SellerProfileLive do
               </:badges>
               <:meta>Listed {when_listed(listing)}</:meta>
               <:corner>
-                <.add_to_cart id={"add-to-cart-#{listing.id}"} />
+                <.add_to_cart id={"add-to-cart-#{listing.id}"} listing_id={listing.id} />
               </:corner>
             </.listing_card>
           </.listing_grid>

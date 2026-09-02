@@ -3,7 +3,7 @@ type: explore
 title: Reviews Todo
 description: Backlog of the reputation two parties build by trading with each other, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [reviews, ratings, reputation, trust, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for the reputation a user accrues by trading. A review belongs to a finished order rather than to a listing or a person, which is why it is its own area — see [orders-todo.md](orders-todo.md).
@@ -48,6 +48,8 @@ Reputation is what a peer-to-peer marketplace substitutes for a brand. A buyer c
 | :--- | :--- |
 | [orders-todo.md](orders-todo.md) | Only a completed order produces a review; this cannot start before orders ship |
 | [disputes-todo.md](disputes-todo.md) | Whether an order ended in a dispute changes whether it is reviewable |
+| [admin-todo.md](admin-todo.md) | A reported review needs the same moderation queue a reported listing goes to |
+| [discovery-todo.md](discovery-todo.md) | Ranking for reputation to feed into. Already built, so this is satisfied |
 | Notifications | A review window opening and closing needs to reach a person; no area owns notifications yet |
 
 ## Related

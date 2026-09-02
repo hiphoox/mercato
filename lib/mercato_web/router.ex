@@ -13,6 +13,7 @@ defmodule MercatoWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug MercatoWeb.GuestToken
     plug MercatoWeb.AdminAccess
   end
 
@@ -26,6 +27,7 @@ defmodule MercatoWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes,
+      session: {MercatoWeb.GuestToken, :live_session, []},
       on_mount: [{MercatoWeb.SearchScope, :categories}] do
       # in each liveview, add one of the following at the top of the module:
       #
@@ -42,6 +44,13 @@ defmodule MercatoWeb.Router do
       # in particular — it is addressed as the site root rather than under a
       # prefix, so it sits above the grouping below rather than inside it.
       live "/", Listings.BrowseLive
+
+      # What the buyer has gathered, and where a seller's group of it is paid
+      # for. Each is about itself rather than about a listing or an account, so
+      # each is addressed at the top level rather than under one of the prefixes
+      # below.
+      live "/cart", Carts.CartLive
+      live "/checkout", Checkout.CheckoutLive
 
       # Grouped by the resource the page is about, so a new page for one of them
       # can only land inside its own prefix.
@@ -68,6 +77,7 @@ defmodule MercatoWeb.Router do
 
       scope "/admin" do
         live "/users", Admin.UsersLive
+        live "/settings", Admin.SettingsLive
       end
     end
   end

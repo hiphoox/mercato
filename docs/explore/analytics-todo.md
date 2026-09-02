@@ -3,7 +3,7 @@ type: explore
 title: Analytics Todo
 description: Backlog of seller-facing listing performance metrics.
 tags: [analytics, metrics, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for measuring how a listing performs. Metrics are recorded as their own event data and read back on demand; a listing carries no counter of its own, which is why this is not part of [listings-todo.md](listings-todo.md).
@@ -29,3 +29,4 @@ Nothing here is required for the Phase 1 MVP.
 | Area | Why |
 | :--- | :--- |
 | [orders-todo.md](orders-todo.md) | A conversion rate needs something to convert into; view counts alone are traffic, not performance |
+| [listings-todo.md](listings-todo.md) | Something whose performance is worth measuring. Already built, so this is satisfied |

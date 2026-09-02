@@ -3,7 +3,41 @@ defmodule Mercato.TestGenerators do
 
   use Ash.Generator
 
+  import Ecto.Query, only: [from: 2]
+
+  alias Mercato.Accounts
   alias Mercato.Accounts.{Permission, Role, RolePermission, UserRole}
+
+  @doc """
+  Sets one platform setting for the test that calls it.
+
+  The settings row is written inside the test's own sandbox, so a test tuning
+  what the marketplace sells stays isolated from every other one.
+  """
+  def put_setting(key, value) do
+    case Accounts.current_settings(authorize?: false, not_found_error?: false) do
+      {:ok, nil} -> Accounts.create_settings!(%{key => value}, authorize?: false)
+      {:ok, settings} -> Accounts.update_settings!(settings, %{key => value}, authorize?: false)
+    end
+  end
+
+  @doc """
+  Backdates a cart line by `seconds`, as though the buyer had left it untouched.
+
+  Straight through the repo: no action backdates a line, and a test of the
+  retention window cares about a line that has sat untouched rather than about
+  how it came to sit.
+  """
+  def age_cart_line(line, seconds) do
+    then = DateTime.add(DateTime.utc_now(), -seconds, :second)
+
+    Mercato.Repo.update_all(
+      from(c in Mercato.Carts.CartItem, where: c.id == ^line.id),
+      set: [updated_at: then]
+    )
+
+    line
+  end
 
   @doc """
   Puts `user` in a fresh role granted `permission_name`.
@@ -86,6 +120,38 @@ defmodule Mercato.TestGenerators do
         image: png_bytes(),
         filename: sequence(:listing_image_filename, &"image-#{&1}.png")
       ],
+      overrides: opts
+    )
+  end
+
+  @doc """
+  A listing of `seller`'s that is on offer, gallery and all.
+
+  Publishing is what most tests outside the listings area actually want: a
+  draft is invisible to everyone but its seller, so nothing can be bought.
+  """
+  def offered_listing(seller, opts \\ []) do
+    listing = generate(listing(Keyword.put(opts, :actor, seller)))
+    generate(listing_image(listing: listing))
+
+    Mercato.Listings.publish_listing!(listing, actor: seller)
+  end
+
+  @doc """
+  An order placed by `opts[:buyer]` on `opts[:listing]`, generating either if
+  it is not given.
+  """
+  def order(opts \\ []) do
+    {buyer, opts} = Keyword.pop_lazy(opts, :buyer, fn -> generate(user()) end)
+
+    {listing, opts} =
+      Keyword.pop_lazy(opts, :listing, fn -> offered_listing(generate(user())) end)
+
+    changeset_generator(
+      Mercato.Orders.Order,
+      :place,
+      actor: buyer,
+      defaults: [listing_id: listing.id],
       overrides: opts
     )
   end

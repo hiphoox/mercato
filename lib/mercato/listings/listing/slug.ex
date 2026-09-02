@@ -23,14 +23,21 @@ defmodule Mercato.Listings.Listing.Slug do
     end
   end
 
+  # The id is a uuid, so it carries separators of its own: the whole shape has to
+  # be matched at the end rather than the last separator split on.
+  @public_id ~r/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/
+
   @doc """
   The public id inside a URL segment, whatever title preceded it.
 
-  Split from the end rather than parsed, because the title part may contain any
+  Matched from the end rather than parsed, because the title part may contain any
   number of separators and may no longer match the listing's current title.
   """
   def public_id(segment) when is_binary(segment) do
-    segment |> String.split("-") |> List.last()
+    case Regex.run(@public_id, segment) do
+      [public_id] -> public_id
+      nil -> segment
+    end
   end
 
   # Keeps only what reads unambiguously in a URL: everything else becomes a

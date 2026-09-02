@@ -3,7 +3,7 @@ type: explore
 title: Promotions Todo
 description: Backlog of seller and platform discount campaigns and price-drop promotion.
 tags: [promotions, discounts, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for discounting and promoting a listing's price. A campaign spans many listings and outlives any one of them, so it is its own entity rather than a listing field — see [listings-todo.md](listings-todo.md) for the per-listing original-price attribute it renders against.
@@ -30,6 +30,7 @@ Nothing here is required for the Phase 1 MVP.
 
 | Area | Why |
 | :--- | :--- |
-| [listings-todo.md](listings-todo.md) | The original-price attribute a discount renders against, item 46 |
+| [listings-todo.md](listings-todo.md) | The original-price attribute a discount renders against, [listings 46](listings-todo.md) |
 | [social-todo.md](social-todo.md) | A price drop notifies whoever saved the listing; without favorites it notifies nobody |
+| [shipping-todo.md](shipping-todo.md) | A seller absorbing part of the fulfillment cost needs a cost to absorb |
 | Notifications | The whole point of a price drop is that someone hears about it; no area owns notifications yet |

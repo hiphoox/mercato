@@ -7,7 +7,10 @@ defmodule MercatoWeb.UI.AddToCartTest do
 
   defp button(assigns \\ []) do
     LazyHTML.from_fragment(
-      render_component(&AddToCart.add_to_cart/1, Keyword.merge([id: "add-to-cart-1"], assigns))
+      render_component(
+        &AddToCart.add_to_cart/1,
+        Keyword.merge([id: "add-to-cart-1", listing_id: "listing-1"], assigns)
+      )
     )
   end
 
@@ -35,5 +38,10 @@ defmodule MercatoWeb.UI.AddToCartTest do
   # rather than dimmed — it is not the buyer who is missing something.
   test "is available, whatever exists behind it" do
     assert query("button") |> LazyHTML.attribute("disabled") == []
+  end
+
+  test "names the listing it gathers, so one handler serves every card" do
+    assert query("button") |> LazyHTML.attribute("phx-click") == ["add_to_cart"]
+    assert query("button") |> LazyHTML.attribute("phx-value-listing") == ["listing-1"]
   end
 end

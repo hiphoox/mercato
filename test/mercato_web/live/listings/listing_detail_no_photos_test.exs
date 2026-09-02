@@ -1,7 +1,5 @@
 defmodule MercatoWeb.Listings.ListingDetailNoPhotosTest do
-  # Not async: it reconfigures the instance's gallery minimum, which every other
-  # test publishing a listing reads.
-  use MercatoWeb.ConnCase, async: false
+  use MercatoWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Mercato.TestGenerators
@@ -9,10 +7,9 @@ defmodule MercatoWeb.Listings.ListingDetailNoPhotosTest do
   alias Mercato.Listings
 
   setup do
-    # A marketplace configuring no minimum is what makes a photoless listing
-    # legal, so the placeholder is a statement rather than a fault.
-    Application.put_env(:mercato, :listing_min_images, 0)
-    on_exit(fn -> Application.delete_env(:mercato, :listing_min_images) end)
+    # A marketplace setting no minimum is what makes a photoless listing legal,
+    # so the placeholder is a statement rather than a fault.
+    put_setting(:listing_min_images, 0)
 
     :ok
   end

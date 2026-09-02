@@ -3,7 +3,7 @@ type: explore
 title: Offers Todo
 description: Backlog of buyer offer and seller counter-offer negotiation on a listing.
 tags: [offers, negotiation, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for price negotiation on a listing. An offer is its own entity with its own lifecycle, expiry, and authorization rules — the listing it references is left unchanged until an offer is accepted, which is why this is not part of [listings-todo.md](listings-todo.md).
@@ -29,4 +29,5 @@ Nothing here is required for the Phase 1 MVP; a buyer buys at the asking price.
 | :--- | :--- |
 | [orders-todo.md](orders-todo.md) | Accepting an offer starts a checkout; until checkout exists there is nothing for an accepted offer to start, and building negotiation first would mean building it twice |
 | [payments-todo.md](payments-todo.md) | An offer commits a buyer to a price, which is only binding if it can be charged |
+| [listings-todo.md](listings-todo.md) | Something to negotiate the price of. Already built, so this is satisfied |
 | Notifications | An offer, a counter, and an expiry all need to reach a person; no area owns notifications yet |

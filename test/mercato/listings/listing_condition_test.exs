@@ -1,24 +1,15 @@
 defmodule Mercato.Listings.ListingConditionTest do
   @moduledoc """
-  The condition list is per-instance configuration, so these tests rewrite
-  application env and cannot run async.
+  The condition list is a platform setting, so these tests write the settings
+  row their own sandbox holds.
   """
-  use Mercato.DataCase, async: false
+  use Mercato.DataCase, async: true
 
   import Mercato.TestGenerators
 
   alias Mercato.Listings
 
   setup do
-    original = Application.get_env(:mercato, :listing_conditions)
-
-    on_exit(fn ->
-      case original do
-        nil -> Application.delete_env(:mercato, :listing_conditions)
-        list -> Application.put_env(:mercato, :listing_conditions, list)
-      end
-    end)
-
     %{seller: generate(user()), category: generate(category())}
   end
 
@@ -26,7 +17,7 @@ defmodule Mercato.Listings.ListingConditionTest do
     seller: seller,
     category: category
   } do
-    Application.put_env(:mercato, :listing_conditions, ["roadworthy", "project_car"])
+    put_setting(:listing_conditions, ["roadworthy", "project_car"])
 
     assert {:ok, listing} =
              Listings.create_listing(
@@ -59,7 +50,7 @@ defmodule Mercato.Listings.ListingConditionTest do
     seller: seller,
     category: category
   } do
-    Application.put_env(:mercato, :listing_conditions, [])
+    put_setting(:listing_conditions, [])
 
     assert {:error, %Ash.Error.Invalid{}} =
              Listings.create_listing(

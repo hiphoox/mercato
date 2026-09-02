@@ -188,10 +188,11 @@ defmodule MercatoWeb.Layouts.AppHeader do
         </.button>
       </div>
 
+      <%!-- Offered to a visitor with no account too: a cart is gathered before
+            it is bought, and gathering needs no account. --%>
       <.link
-        :if={@current_scope.user}
         id="app-cart"
-        navigate={~p"/"}
+        navigate={~p"/cart"}
         aria-label={gettext("Cart")}
         class={[
           "order-3 flex-none flex items-center justify-center size-12 md:size-14 rounded-md no-underline",

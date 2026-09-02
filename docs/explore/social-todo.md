@@ -3,7 +3,7 @@ type: explore
 title: Social Todo
 description: Backlog of social interactions on listings — favorites and public comments.
 tags: [social, favorites, comments, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for social interaction around a listing. Each capability here introduces its own entity that *points at* a listing rather than changing one, which is why it is not part of [listings-todo.md](listings-todo.md).
@@ -38,3 +38,20 @@ Two capabilities this area needs have no backlog of their own yet:
 
 - **Private messaging** — a buyer asking a seller a question before buying. Distinct from public comments, and needed by [disputes-todo.md](disputes-todo.md) for pre-operator negotiation.
 - **Notifications** — a favorite's price drop, a new comment, a new follower. Referenced here and in [promotions-todo.md](promotions-todo.md), owned by neither.
+
+## Waiting on
+
+| Area | Why |
+| :--- | :--- |
+| [users-todo.md](users-todo.md) | A restricted account cannot comment, which needs account status to gate on. Already built, so this is satisfied |
+| [listings-todo.md](listings-todo.md) | Something to favorite and comment on. Already built, so this is satisfied |
+| [discovery-todo.md](discovery-todo.md) | Ranking for following to feed into |
+| [admin-todo.md](admin-todo.md) | A reported comment needs the same moderation queue a reported listing goes to |
+| Notifications | A price drop, a new comment, and a new follower all need to reach a person; no area owns notifications yet |
+
+## Depended on by
+
+| Area | Why |
+| :--- | :--- |
+| [promotions-todo.md](promotions-todo.md) | A price drop notifies whoever saved the listing; without favorites it notifies nobody |
+| [admin-todo.md](admin-todo.md) | Comments and messages are where off-platform solicitation and spam actually happen |

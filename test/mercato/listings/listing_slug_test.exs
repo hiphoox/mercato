@@ -5,6 +5,8 @@ defmodule Mercato.Listings.ListingSlugTest do
 
   alias Mercato.Listings.Listing.Slug
 
+  @public_id "1f47693a-e1a6-4b06-ba29-28033858cf82"
+
   describe "slug/1" do
     test "reads as the title followed by the listing's public id" do
       listing = generate(listing(title: "Vintage Leather Jacket"))
@@ -21,12 +23,15 @@ defmodule Mercato.Listings.ListingSlugTest do
     test "keeps a long title from running away with the URL" do
       listing = generate(listing(title: String.duplicate("word ", 28) |> String.trim()))
 
-      [_ | _] = words = Slug.slug(listing) |> String.split("-")
+      slug = Slug.slug(listing)
 
       # Cut at a word boundary, so the tail is the public id rather than half a
       # word plus the public id.
-      assert Enum.all?(words, &(&1 in ["word", listing.public_id]))
-      assert String.length(Slug.slug(listing)) <= 80
+      assert Slug.public_id(slug) == listing.public_id
+
+      title_part = String.replace_suffix(slug, "-" <> listing.public_id, "")
+      assert Enum.all?(String.split(title_part, "-"), &(&1 == "word"))
+      assert String.length(slug) <= 100
     end
 
     test "reads an accented title as the letters underneath the accents" do
@@ -49,16 +54,20 @@ defmodule Mercato.Listings.ListingSlugTest do
   end
 
   describe "public_id/1" do
+    test "reads the id through a title that itself ends in hyphenated words" do
+      assert Slug.public_id("a-b-c-d-e-" <> @public_id) == @public_id
+    end
+
     test "takes the last segment, whatever the title contributed" do
-      assert Slug.public_id("vintage-leather-jacket-7f3k9m2p") == "7f3k9m2p"
+      assert Slug.public_id("vintage-leather-jacket-" <> @public_id) == @public_id
     end
 
     test "takes the whole param when the title contributed nothing" do
-      assert Slug.public_id("7f3k9m2p") == "7f3k9m2p"
+      assert Slug.public_id(@public_id) == @public_id
     end
 
     test "survives a title part that has since changed" do
-      assert Slug.public_id("something-else-entirely-7f3k9m2p") == "7f3k9m2p"
+      assert Slug.public_id("something-else-entirely-" <> @public_id) == @public_id
     end
   end
 end

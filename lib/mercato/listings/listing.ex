@@ -15,7 +15,7 @@ defmodule Mercato.Listings.Listing do
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Accounts.User.Status, as: SellerStatus
-  alias Mercato.Listings.Listing.{Calculations, PublicId}
+  alias Mercato.Listings.Listing.Calculations
 
   sqlite do
     table "listings"
@@ -50,6 +50,12 @@ defmodule Mercato.Listings.Listing do
 
   actions do
     defaults [:read]
+
+    read :for_cart_line do
+      description "One listing as the cart shows it, whatever state it has since moved to."
+
+      prepare build(load: [:display_price, :buyable?, images: :url])
+    end
 
     read :list_for_moderation do
       description "Every listing including those moderation has taken down."
@@ -360,6 +366,17 @@ defmodule Mercato.Listings.Listing do
 
     # Filtering, like :read above — a signed-out visitor gets an empty list
     # rather than an error, which is what the page can actually render.
+    # Two checks rather than one: a check mentioning the actor is refused where
+    # there is no actor, and the token must not match every line that has none.
+    policy action(:for_cart_line) do
+      authorize_if expr(exists(cart_items, user_id == ^actor(:id)))
+
+      authorize_if expr(
+                     not is_nil(^context([:shared, :guest_token])) and
+                       exists(cart_items, guest_token == ^context([:shared, :guest_token]))
+                   )
+    end
+
     policy action([:list_mine, :get_mine]) do
       authorize_if expr(seller_id == ^actor(:id))
     end
@@ -403,12 +420,13 @@ defmodule Mercato.Listings.Listing do
     uuid_primary_key :id
 
     # The identifier the public URL is built from, distinct from the primary
-    # key so a shared link stays short and the internal key stays internal.
-    # Absent from every action's `accept`, so nothing can supply or change one:
-    # a listing keeps the id it was minted with, and links survive every edit.
-    attribute :public_id, :string do
+    # key so the internal key never leaves the server and this one stays free to
+    # be re-minted. Absent from every action's `accept`, so nothing can supply or
+    # change one: a listing keeps the id it was minted with, and links survive
+    # every edit.
+    attribute :public_id, :uuid do
       allow_nil? false
-      default &PublicId.generate/0
+      default &Ash.UUID.generate/0
       public? true
     end
 
@@ -487,6 +505,10 @@ defmodule Mercato.Listings.Listing do
       sort position: :asc
       public? true
     end
+
+    has_many :cart_items, Mercato.Carts.CartItem do
+      domain Mercato.Carts
+    end
   end
 
   calculations do
@@ -496,11 +518,20 @@ defmodule Mercato.Listings.Listing do
     calculate :display_price, :string, Calculations.DisplayPrice do
       public? true
     end
+
+    calculate :buyable?,
+              :boolean,
+              expr(
+                status == :active and quantity > 0 and
+                  seller.status in ^SellerStatus.has_public_profile()
+              ) do
+      public? true
+    end
   end
 
   identities do
-    # A minted id is random rather than checked, so the database is what makes
-    # two listings sharing one an error instead of a silent collision.
+    # 122 bits of randomness make a collision unreachable in practice; the index
+    # is what keeps that a fact rather than an assumption.
     identity :unique_public_id, [:public_id]
   end
 end

@@ -3,7 +3,7 @@ type: domain
 title: Listings
 description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
 tags: [domain, listings, marketplace, pricing, categories, identifiers, visibility]
-timestamp: 2026-08-27T00:00:00Z
+timestamp: 2026-09-02T00:00:00Z
 ---
 
 A listing is what a seller publishes for a buyer to buy. The term is deliberately generic: the same entity covers physical goods, services, and rentals.
@@ -14,9 +14,11 @@ Every listing belongs to exactly one seller, and a seller may hold any number of
 
 ## Public identifier
 
-Every listing carries a short public identifier, separate from the one the platform holds it by internally. It is eight characters drawn from digits and letters, with the characters a reader could mistake for one another left out, so it survives being copied off a screen or read aloud.
+Every listing carries a public identifier, separate from the one the platform holds it by internally. It is a uuid: random, so a link says nothing about how many listings the marketplace holds or in what order they arrived, and wide enough that two listings sharing one is not a case anything has to handle.
 
-The identifier is assigned when the listing is created and never changes. A seller has no say in it and no way to supply one, and no two listings share one.
+Keeping it apart from the internal identifier is what keeps that one off the wire. The internal identifier never appears in a link, so it stays out of browser history, server logs, and anything a reader copies; and the public one can be replaced if a link is shared further than it was meant to go, without disturbing what the platform holds the listing by.
+
+The identifier is assigned when the listing is created and never changes on its own. A seller has no say in it and no way to supply one, and no two listings share one.
 
 This is what a listing's public address is built from: the address carries the title as well, for whoever reads the link, but only the identifier says which listing is meant. A seller may retitle freely and every link already shared keeps working.
 
@@ -85,6 +87,8 @@ A sold listing is the one exception, and only in one place: it is visible to eve
 
 A listing is also only as public as the account behind it. Where the marketplace no longer shows a seller to strangers — a banned account, a deleted one — their listings leave the public catalog with them: they are absent from browsing, from their own page, and from the seller's profile. The seller keeps them, in whatever state they were in, so an account restored gets its listings back on offer. A restricted account is still shown publicly, and so are its listings.
 
+Somebody holding a listing in their cart keeps seeing it, whatever state it has since moved to. This reaches only the listings they hold a line for and only tells them what they had already seen, so a cart names what left it rather than turning into anonymous rows. A listing moderation has taken down is outside this, being hidden from everyone.
+
 Moderation sees every listing whatever state it is in and whoever owns it, since a listing taken out of public view is the thing a report is usually about.
 
 ## Who may change a listing
@@ -95,7 +99,7 @@ Only the seller who owns a listing may edit it, publish it, pause it, resume it,
 
 A listing is removed in one of two ways, and they are not the same thing.
 
-A seller removing their own listing removes it outright — the listing and its gallery are gone, and the storage its images occupied is freed. This is only available for a listing that never sold: once a purchase has completed, the listing is the record of that sale and is kept for accounting and for settling disputes, whatever the seller would prefer.
+A seller removing their own listing removes it outright — the listing, its gallery, and the cart lines holding it are gone, and the storage its images occupied is freed. A cart binds nobody, so it never stands between a seller and being rid of a listing. This is only available for a listing that never sold: once a purchase has completed, the listing is the record of that sale and is kept for accounting and for settling disputes, whatever the seller would prefer.
 
 Moderation removing a listing keeps it. The listing stops being visible to anyone — its seller included — but the record and its images survive as an internal backup, so a listing taken down in error can be restored and a report about one can still be investigated. Because nothing is lost this way, moderation may take down a listing that has sold.
 

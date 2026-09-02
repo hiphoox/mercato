@@ -3,7 +3,7 @@ type: explore
 title: Admin Todo
 description: Backlog of admin capabilities for running the platform, starting with content moderation.
 tags: [admin, moderation, todo, backlog]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for admin-only capabilities. Account administration has its own backlog in [users-todo.md](users-todo.md); this file covers moderation of content sellers and buyers create.
@@ -36,7 +36,39 @@ Nothing here is required for the Phase 1 MVP. The listing side of a moderation d
 
 ### Marketplace settings
 
-The platform already holds a single admin-configurable settings record; the values a marketplace tunes are still spread across config files and only change on redeploy.
+The settings record and the screen over it are built, and the values a marketplace tunes today live there: currency, the listing condition list, allowed image types, the image size cap, the image count bounds, the cart retention window, and the handle change cooldown. What remains is the values other areas have yet to build.
 
-- [ ] Move the tunable values into that settings record so an operator edits them rather than a deployer: currency, the listing condition list, allowed image types, the image size cap, the image count bounds, the listing field bounds in [listings-todo.md](listings-todo.md), the declared browse filters in [discovery-todo.md](discovery-todo.md), the commission rule and completion window in [payments-todo.md](payments-todo.md), and the fulfillment methods in [shipping-todo.md](shipping-todo.md)
-- [ ] Settings screen in the admin dashboard for editing them, with the platform defaults still applying wherever nothing has been set
+- [x] Move the tunable values into that settings record so an operator edits them rather than a deployer
+- [x] Settings screen in the admin dashboard for editing them, with the platform defaults still applying wherever nothing has been set
+- [ ] The listing field bounds in [listings-todo.md](listings-todo.md), the commission rule and completion window in [payments-todo.md](payments-todo.md), and the fulfillment methods in [shipping-todo.md](shipping-todo.md), as each is built
+- [ ] The declared browse filters in [discovery-todo.md](discovery-todo.md), which stay in configuration for now: a facet declares where to read a value and how to parse it, which is a reference to code rather than a value an operator can type
+
+## Waiting on
+
+Nothing here is Phase 1, and most of it is a screen over behaviour another area owns:
+
+| Area | Why |
+| :--- | :--- |
+| [orders-todo.md](orders-todo.md) | Purchases to read when answering "where is mine" |
+| [payments-todo.md](payments-todo.md) | A seller balance and payout history to show, and the commission rule to make editable |
+| [disputes-todo.md](disputes-todo.md) | The queue an operator works through |
+| [social-todo.md](social-todo.md) | Comments and messages to moderate |
+| [shipping-todo.md](shipping-todo.md) | Methods and costs to make editable |
+| [listings-todo.md](listings-todo.md) | The field bounds to make editable. Already built, so this is satisfied |
+| [discovery-todo.md](discovery-todo.md) | The declared filters to make editable. Already built, so this is satisfied |
+
+## Depended on by
+
+Every area that wants a value an operator can change, rather than a deployer, ends here:
+
+| Area | Why |
+| :--- | :--- |
+| [listings-todo.md](listings-todo.md) | Field bounds |
+| [discovery-todo.md](discovery-todo.md) | Declared browse filters |
+| [orders-todo.md](orders-todo.md) | Completion window and reminder schedule |
+| [payments-todo.md](payments-todo.md) | Commission rule |
+| [shipping-todo.md](shipping-todo.md) | Fulfillment methods and their costs |
+| [disputes-todo.md](disputes-todo.md) | Dispute window and reason list, and the operator queue itself |
+| [social-todo.md](social-todo.md) | The moderation queue a reported comment feeds |
+| [reviews-todo.md](reviews-todo.md) | The moderation queue a reported review feeds |
+| [users-todo.md](users-todo.md) | Moderation roles |

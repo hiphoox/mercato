@@ -4,9 +4,7 @@ defmodule MercatoWeb.Listings.BrowseLiveNoConditionsTest do
   services or digital-goods instance, where every listing's condition is blank.
   """
 
-  # Not async: the configured list is application state, and swapping it would
-  # otherwise be seen by every test running alongside.
-  use MercatoWeb.ConnCase, async: false
+  use MercatoWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
   import Mercato.TestGenerators
@@ -14,15 +12,7 @@ defmodule MercatoWeb.Listings.BrowseLiveNoConditionsTest do
   alias Mercato.Listings
 
   setup do
-    original = Application.get_env(:mercato, :listing_conditions)
-    Application.put_env(:mercato, :listing_conditions, [])
-
-    on_exit(fn ->
-      case original do
-        nil -> Application.delete_env(:mercato, :listing_conditions)
-        list -> Application.put_env(:mercato, :listing_conditions, list)
-      end
-    end)
+    put_setting(:listing_conditions, [])
 
     seller = generate(user())
     listing = generate(listing(actor: seller, title: "An hour of tutoring"))

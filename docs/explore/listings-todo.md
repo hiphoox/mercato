@@ -3,7 +3,7 @@ type: explore
 title: Listings Todo
 description: Backlog of listing capabilities split into Phase 1 MVP musts and Phase 2 extension nice-to-haves.
 tags: [listings, todo, backlog, mvp]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for the `Listing` entity — the thing a seller publishes and a buyer buys. "Listing" is the generic term so the starter kit covers goods, services, and rentals without biasing toward retail.
@@ -87,7 +87,7 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 38. [ ] Category-scoped attribute sets, so a fashion marketplace adds size/brand/color and a rentals marketplace adds duration/deposit without a schema change
 39. [ ] Pluggable listing-type modules that contribute their own fields, validations, and detail-page sections
 40. [ ] Configurable state machine so a marketplace can add states such as `reserved` or `pending_approval`
-41. [ ] Listing-created and listing-sold events other features can subscribe to — the sold event is raised by order completion, see [orders-todo.md](orders-todo.md)
+41. [ ] Listing-created and listing-sold events other features can subscribe to — the sold event is raised by order completion, needs [orders 23](orders-todo.md)
 58. [ ] Config-supplied field bounds — title length range, description cap, minimum price, maximum quantity — so a marketplace of one-line service listings and one of long-form vehicle listings both fit without a code change, and admin-editable rather than deploy-time — see [admin-todo.md](admin-todo.md)
 
 ### Taxonomy
@@ -100,7 +100,7 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 ### Pricing
 
 46. [ ] Original-price field with strikethrough display
-47. [ ] Net-payout estimate shown before publish — needs the commission rule in [payments-todo.md](payments-todo.md)
+47. [ ] Net-payout estimate shown before publish — needs [payments 11](payments-todo.md) for the commission rule
 
 ### Inventory & variants
 
@@ -118,3 +118,25 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 55. [ ] Bulk upload — many images at once, grouped into per-listing drafts
 56. [ ] Field pre-fill from image analysis
 57. [ ] CSV import and export for sellers migrating a catalog
+
+## Waiting on
+
+| Area | Why |
+| :--- | :--- |
+| [orders-todo.md](orders-todo.md) | The sold event a listing raises is raised by a purchase completing |
+| [payments-todo.md](payments-todo.md) | The commission rule the net-payout estimate is calculated from |
+| [admin-todo.md](admin-todo.md) | The field bounds become operator-editable there, in Phase 2 |
+
+## Depended on by
+
+A listing is what every other area points at. Phase 1 here is built, so these are satisfied rather than blocked:
+
+| Area | Why |
+| :--- | :--- |
+| [discovery-todo.md](discovery-todo.md) | Something to browse, search, and rank |
+| [orders-todo.md](orders-todo.md) | Something to buy |
+| [offers-todo.md](offers-todo.md) | Something to negotiate the price of |
+| [social-todo.md](social-todo.md) | Something to favorite, comment on, and follow the seller of |
+| [promotions-todo.md](promotions-todo.md) | The original price a discount renders against |
+| [analytics-todo.md](analytics-todo.md) | Something whose performance is worth measuring |
+| [admin-todo.md](admin-todo.md) | Something to moderate, and the field bounds to make editable |

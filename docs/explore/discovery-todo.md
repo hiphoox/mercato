@@ -3,7 +3,7 @@ type: explore
 title: Discovery Todo
 description: Backlog of browse, search, filter, and ranking capabilities, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [discovery, search, todo, backlog, mvp]
-timestamp: 2026-08-31T12:00:00Z
+timestamp: 2026-09-01T00:00:00Z
 ---
 
 Working backlog for how a buyer finds a listing — browsing, searching, filtering, and ranking. The `Listing` entity itself is a separate concern; its fields, lifecycle, and authoring live in [listings-todo.md](listings-todo.md).
@@ -75,3 +75,18 @@ The free-text term stays outside the facet set for this reason: it is the engine
 ### Pricing intelligence
 
 - [ ] Suggested-price hint from comparable sold listings, surfaced to a seller at authoring time
+
+## Waiting on
+
+| Area | Why |
+| :--- | :--- |
+| [listings-todo.md](listings-todo.md) | Something to browse and search. Already built, so this is satisfied |
+| [admin-todo.md](admin-todo.md) | The declared browse filters become operator-editable there, in Phase 2 |
+
+## Depended on by
+
+| Area | Why |
+| :--- | :--- |
+| [social-todo.md](social-todo.md) | Following as a signal into ranking |
+| [reviews-todo.md](reviews-todo.md) | Reputation as a signal into ranking |
+| [admin-todo.md](admin-todo.md) | The declared filters to make editable |
