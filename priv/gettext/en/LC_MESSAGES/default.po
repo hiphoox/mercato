@@ -128,8 +128,9 @@ msgid "Add photos"
 msgstr ""
 
 #: lib/mercato_web/components/layouts/app_header.ex:220
-#: lib/mercato_web/components/layouts/sidebar.ex:112
+#: lib/mercato_web/components/layouts/sidebar.ex:115
 #: lib/mercato_web/components/layouts/user_menu.ex:53
+#: lib/mercato_web/live/admin/settings_live.ex:256
 #: lib/mercato_web/live/admin/users_live.ex:339
 #, elixir-autogen, elixir-format
 msgid "Admin"
@@ -208,9 +209,10 @@ msgid "By creating an account, you agree to Mercato's Terms of Service and Priva
 msgstr ""
 
 #: lib/mercato_web/components/layouts/app_header.ex:196
+#: lib/mercato_web/live/admin/settings_live.ex:83
 #: lib/mercato_web/live/carts/cart_live.ex:97
 #: lib/mercato_web/live/carts/cart_live.ex:101
-#: lib/mercato_web/live/checkout/checkout_live.ex:37
+#: lib/mercato_web/live/checkout/checkout_live.ex:94
 #, elixir-autogen, elixir-format
 msgid "Cart"
 msgstr ""
@@ -282,7 +284,7 @@ msgstr ""
 msgid "Cover photo"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_line.ex:49
+#: lib/mercato_web/live/carts/cart_line.ex:55
 #: lib/mercato_web/live/listings/browse_live.ex:420
 #: lib/mercato_web/live/listings/my_listings_live.ex:242
 #, elixir-autogen, elixir-format
@@ -459,7 +461,7 @@ msgstr ""
 
 #: lib/mercato_web/components/layouts/sidebar.ex:18
 #: lib/mercato_web/live/carts/cart_live.ex:96
-#: lib/mercato_web/live/checkout/checkout_live.ex:36
+#: lib/mercato_web/live/checkout/checkout_live.ex:93
 #: lib/mercato_web/live/listings/listing_form_live.ex:712
 #: lib/mercato_web/live/listings/my_listings_live.ex:171
 #: lib/mercato_web/live/profile/profile_live.ex:78
@@ -542,7 +544,7 @@ msgstr ""
 msgid "Magic link"
 msgstr ""
 
-#: lib/mercato_web/components/layouts/sidebar.ex:68
+#: lib/mercato_web/components/layouts/sidebar.ex:71
 #, elixir-autogen, elixir-format
 msgid "Main navigation"
 msgstr ""
@@ -864,6 +866,7 @@ msgstr ""
 msgid "Saved automatically as you type, so you can leave whenever you like."
 msgstr ""
 
+#: lib/mercato_web/live/admin/settings_live.ex:289
 #: lib/mercato_web/live/profile/profile_live.ex:108
 #: lib/mercato_web/live/profile/profile_live.ex:130
 #, elixir-autogen, elixir-format
@@ -1191,7 +1194,7 @@ msgstr ""
 msgid "User accounts with status and last activity"
 msgstr ""
 
-#: lib/mercato_web/components/layouts/sidebar.ex:29
+#: lib/mercato_web/components/layouts/sidebar.ex:30
 #: lib/mercato_web/live/admin/users_live.ex:339
 #: lib/mercato_web/live/admin/users_live.ex:342
 #, elixir-autogen, elixir-format
@@ -1238,7 +1241,7 @@ msgstr ""
 msgid "Welcome back"
 msgstr ""
 
-#: lib/mercato_web/components/layouts/sidebar.ex:96
+#: lib/mercato_web/components/layouts/sidebar.ex:99
 #, elixir-autogen, elixir-format
 msgid "You"
 msgstr ""
@@ -1459,6 +1462,7 @@ msgid "Categories"
 msgstr ""
 
 #: lib/mercato_web/components/layouts/app_header.ex:87
+#: lib/mercato_web/live/admin/settings_live.ex:45
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Listings"
 msgstr ""
@@ -1658,68 +1662,68 @@ msgstr ""
 msgid "Any"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:216
+#: lib/mercato_web/live/carts/cart_live.ex:217
 #, elixir-autogen, elixir-format
 msgid "%{count} sellers, %{count} separate purchases. Each one is paid for and delivered on its own — there is no single combined order."
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:209
+#: lib/mercato_web/live/carts/cart_live.ex:210
 #, elixir-autogen, elixir-format
 msgid "%{items} from %{sellers}"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_line.ex:84
+#: lib/mercato_web/live/carts/cart_line.ex:95
 #, elixir-autogen, elixir-format
 msgid "%{price} each"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_group.ex:121
-#: lib/mercato_web/live/carts/cart_live.ex:210
+#: lib/mercato_web/live/carts/cart_group.ex:131
+#: lib/mercato_web/live/carts/cart_live.ex:211
 #, elixir-autogen, elixir-format
 msgid "1 item"
 msgid_plural "%{count} items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:211
+#: lib/mercato_web/live/carts/cart_live.ex:212
 #, elixir-autogen, elixir-format
 msgid "1 seller"
 msgid_plural "%{count} sellers"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/carts/cart_group.ex:116
+#: lib/mercato_web/live/carts/cart_group.ex:126
 #, elixir-autogen, elixir-format
 msgid "A seller"
 msgstr ""
 
-#: lib/mercato_web/live/checkout/checkout_live.ex:49
+#: lib/mercato_web/live/checkout/checkout_live.ex:106
 #, elixir-autogen, elixir-format
 msgid "Back to the cart"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:166
+#: lib/mercato_web/live/carts/cart_live.ex:167
 #, elixir-autogen, elixir-format
 msgid "Browse listings"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_group.ex:86
+#: lib/mercato_web/live/carts/cart_group.ex:96
 #, elixir-autogen, elixir-format
 msgid "Check out with %{seller} for %{total}"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_group.ex:93
+#: lib/mercato_web/live/carts/cart_group.ex:103
 #, elixir-autogen, elixir-format
 msgid "Check out · %{total}"
 msgstr ""
 
-#: lib/mercato_web/live/checkout/checkout_live.ex:38
-#: lib/mercato_web/live/checkout/checkout_live.ex:41
+#: lib/mercato_web/live/checkout/checkout_live.ex:95
+#: lib/mercato_web/live/checkout/checkout_live.ex:98
 #, elixir-autogen, elixir-format
 msgid "Checkout"
 msgstr ""
 
-#: lib/mercato_web/live/checkout/checkout_live.ex:43
+#: lib/mercato_web/live/checkout/checkout_live.ex:100
 #, elixir-autogen, elixir-format
 msgid "Checkout is not built yet"
 msgstr ""
@@ -1729,7 +1733,7 @@ msgstr ""
 msgid "Decrease the quantity of %{label}"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:141
+#: lib/mercato_web/live/carts/cart_live.ex:142
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Everything in the cart"
 msgstr ""
@@ -1739,37 +1743,37 @@ msgstr ""
 msgid "Increase the quantity of %{label}"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:158
+#: lib/mercato_web/live/carts/cart_live.ex:159
 #, elixir-autogen, elixir-format
 msgid "Most things here are one of a kind, so adding early is the safer move — a cart holds nothing back from anyone else, but it keeps what you found in one place."
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:206
+#: lib/mercato_web/live/carts/cart_live.ex:207
 #, elixir-autogen, elixir-format
 msgid "Nothing gathered yet."
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:156
+#: lib/mercato_web/live/carts/cart_live.ex:157
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Nothing in your cart yet"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_line.ex:114
+#: lib/mercato_web/live/carts/cart_line.ex:134
 #, elixir-autogen, elixir-format
 msgid "One of a kind"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:223
+#: lib/mercato_web/live/carts/cart_live.ex:224
 #, elixir-autogen, elixir-format
 msgid "One purchase, from one seller."
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_line.ex:122
+#: lib/mercato_web/live/carts/cart_line.ex:142
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Remove %{title} from the cart"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_live.ex:227
+#: lib/mercato_web/live/carts/cart_live.ex:228
 #, elixir-autogen, elixir-format
 msgid "Split across %{count} payments, one per seller. Nothing is charged until you complete each one."
 msgstr ""
@@ -1789,12 +1793,12 @@ msgstr ""
 msgid "Total for this seller"
 msgstr ""
 
-#: lib/mercato_web/live/carts/cart_group.ex:102
+#: lib/mercato_web/live/carts/cart_group.ex:112
 #, elixir-autogen, elixir-format
 msgid "We hold your payment and release it to the seller only once you confirm the delivery arrived."
 msgstr ""
 
-#: lib/mercato_web/live/checkout/checkout_live.ex:44
+#: lib/mercato_web/live/checkout/checkout_live.ex:101
 #, elixir-autogen, elixir-format
 msgid "Your cart is kept exactly as you left it. Nothing has been charged."
 msgstr ""
@@ -1812,4 +1816,190 @@ msgstr ""
 #: lib/mercato_web/live/carts/gathering.ex:30
 #, elixir-autogen, elixir-format
 msgid "That could not be added to your cart."
+msgstr ""
+
+#: lib/mercato_web/live/carts/cart_line.ex:159
+#, elixir-autogen, elixir-format
+msgid "An item you gathered"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:59
+#, elixir-autogen, elixir-format
+msgid "Comma separated media types a gallery accepts."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:53
+#, elixir-autogen, elixir-format
+msgid "Comma separated. Leave empty to drop the field from every listing."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:38
+#, elixir-autogen, elixir-format
+msgid "Currency"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "Fewest images"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:105
+#, elixir-autogen, elixir-format
+msgid "Handle change cooldown (days)"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "How many photos a gallery holds."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:58
+#, elixir-autogen, elixir-format
+msgid "Image types"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "Largest image (bytes)"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:76
+#, elixir-autogen, elixir-format
+msgid "Most images"
+msgstr ""
+
+#: lib/mercato_web/live/carts/cart_line.ex:110
+#, elixir-autogen, elixir-format
+msgid "No longer available"
+msgstr ""
+
+#: lib/mercato_web/components/layouts/sidebar.ex:31
+#: lib/mercato_web/live/admin/settings_live.ex:256
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr ""
+
+#: lib/mercato_web/live/carts/cart_group.ex:86
+#, elixir-autogen, elixir-format
+msgid "Something here is no longer available. Remove it and the rest is yours to buy."
+msgstr ""
+
+#: lib/mercato_web/live/checkout/checkout_live.ex:59
+#, elixir-autogen, elixir-format
+msgid "Something in that group is no longer available. Remove it to check out."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:65
+#, elixir-autogen, elixir-format
+msgid "The biggest file a gallery accepts."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:234
+#, elixir-autogen, elixir-format
+msgid "Those settings could not be saved."
+msgstr ""
+
+#: lib/mercato_web/live/checkout/checkout_live.ex:53
+#, elixir-autogen, elixir-format
+msgid "What you had from that seller is no longer available."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:71
+#, elixir-autogen, elixir-format
+msgid "Zero lets a listing go on offer showing nothing."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:223
+#, elixir-autogen, elixir-format
+msgid "%{section} settings saved."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:92
+#, elixir-autogen, elixir-format
+msgid "A line the buyer has not touched in this long is dropped from their cart."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:98
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Accounts"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "An ISO 4217 code, such as USD or EUR."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:52
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Conditions"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:84
+#, elixir-autogen, elixir-format
+msgid "How long a buyer's intention to buy is kept."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:106
+#, elixir-autogen, elixir-format, fuzzy
+msgid "How long an account waits between changing its @handle."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:31
+#, elixir-autogen, elixir-format
+msgid "Marketplace"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:259
+#, elixir-autogen, elixir-format
+msgid "Marketplace settings"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "Retention (days)"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:100
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Save accounts"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Save cart"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:47
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Save listings"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:33
+#, elixir-autogen, elixir-format
+msgid "Save marketplace"
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:261
+#, elixir-autogen, elixir-format, fuzzy
+msgid "The values this platform runs on, editable without a deploy."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:99
+#, elixir-autogen, elixir-format
+msgid "What a member may change about their own account, and how often."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "What a seller may say about an item, and what they may show of it."
+msgstr ""
+
+#: lib/mercato_web/live/admin/settings_live.ex:32
+#, elixir-autogen, elixir-format
+msgid "What every price on this platform is denominated in."
+msgstr ""
+
+#: lib/mercato_web/live/checkout/checkout_live.ex:45
+#, elixir-autogen, elixir-format
+msgid "What you had from that seller sat in your cart too long and was cleared. Add it again to buy it."
 msgstr ""
