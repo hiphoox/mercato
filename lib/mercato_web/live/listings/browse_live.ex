@@ -265,6 +265,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
       current_path={~p"/"}
       query={@query}
       categories={@search_categories}
+      cart_count={@cart_count}
       category={@filters[:category]}
     >
       <%!-- No breadcrumb: this is where the trail every other page draws

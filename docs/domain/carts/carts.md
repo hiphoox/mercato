@@ -54,6 +54,12 @@ A listing its seller deletes outright leaves the carts holding it. There is noth
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
 
+## What the count says
+
+Every page carries the cart control, and it counts what the buyer has gathered: quantities rather than lines, so a line of three counts three, and only what can still be bought. A cart holding nothing buyable counts nothing at all.
+
+Reading the count leaves a lapsed line where it is. The cart is what sweeps, so that a buyer meets the news on the page that can explain it rather than watching a figure fall on a page that cannot.
+
 ## How long a line keeps
 
 A line stays in the cart for as long as the marketplace's retention window, counted from the last time the buyer touched it. Adding its listing again or changing how many they want renews it; opening the cart and scrolling past it does not.

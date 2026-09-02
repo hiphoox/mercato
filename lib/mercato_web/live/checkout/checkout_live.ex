@@ -99,6 +99,7 @@ defmodule MercatoWeb.Checkout.CheckoutLive do
     ~H"""
     <Layouts.app
       categories={@search_categories}
+      cart_count={@cart_count}
       flash={@flash}
       current_scope={@current_scope}
       current_path={~p"/checkout"}

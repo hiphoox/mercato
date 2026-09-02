@@ -14,6 +14,7 @@ defmodule MercatoWeb.Carts.Gathering do
   use Gettext, backend: MercatoWeb.Gettext
 
   alias Mercato.Carts
+  alias MercatoWeb.Carts.Counting
 
   def on_mount(:default, _params, _session, socket) do
     {:cont, attach_hook(socket, :gathering, :handle_event, &gather/3)}
@@ -22,7 +23,10 @@ defmodule MercatoWeb.Carts.Gathering do
   defp gather("add_to_cart", %{"listing" => listing_id}, socket) do
     case Carts.add_to_cart(listing_id, %{}, scope: socket.assigns.current_scope) do
       {:ok, _line} ->
-        {:halt, put_flash(socket, :info, gettext("Added to your cart."))}
+        {:halt,
+         socket
+         |> Counting.refresh()
+         |> put_flash(:info, gettext("Added to your cart."))}
 
       # Almost always a listing that stopped being available between the grid
       # being drawn and the control being pressed.

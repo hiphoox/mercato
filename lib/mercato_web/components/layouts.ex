@@ -48,6 +48,10 @@ defmodule MercatoWeb.Layouts do
     default: nil,
     doc: "the scope in force, so the header's selector still reads it after a search"
 
+  attr :cart_count, :integer,
+    default: 0,
+    doc: "how much the buyer has gathered; assigned by `MercatoWeb.Carts.Counting`"
+
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -60,6 +64,7 @@ defmodule MercatoWeb.Layouts do
         query={@query}
         categories={@categories}
         category={@category}
+        cart_count={@cart_count}
       />
 
       <%!-- The gap is lg-only: below that the sidebar is a fixed drawer and takes no

@@ -18,6 +18,7 @@ defmodule Mercato.Carts do
       define :add_to_cart, action: :add, args: [:listing_id]
       define :list_cart, action: :list_mine
       define :list_seller_cart, action: :list_for_seller, args: [:seller_id]
+      define :list_still_gathered, action: :still_gathered, args: [:cutoff]
       define :list_lapsed_seller_cart, action: :lapsed_for_seller, args: [:seller_id, :cutoff]
       define :set_cart_quantity, action: :set_quantity
       define :remove_from_cart, action: :remove
@@ -152,6 +153,20 @@ defmodule Mercato.Carts do
       {nil, []} -> {:error, :gone}
       {group, _lapsed} -> {:ok, group}
     end
+  end
+
+  @doc """
+  How many things the buyer has gathered, for the header to show.
+
+  Read without sweeping what has lapsed: the count is drawn on every page, and
+  a page that is not the cart has no business clearing it out from under the
+  buyer. A line past the window counts for nothing here and is dropped the
+  next time the cart itself is read.
+  """
+  def gathered_count(opts) do
+    retention_cutoff()
+    |> list_still_gathered!(opts)
+    |> item_count()
   end
 
   @doc """

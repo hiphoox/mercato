@@ -22,6 +22,7 @@ defmodule MercatoWeb.Carts.CartLive do
   import MercatoWeb.UI.EmptyState
 
   alias Mercato.Carts
+  alias MercatoWeb.Carts.Counting
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_optional}
 
@@ -44,6 +45,7 @@ defmodule MercatoWeb.Carts.CartLive do
     |> assign(:lines, lines)
     |> assign(:groups, Carts.group_by_seller(lines))
     |> assign(:cart_total, Carts.cart_total(lines))
+    |> Counting.assign_count(lines)
   end
 
   @impl true
@@ -87,6 +89,7 @@ defmodule MercatoWeb.Carts.CartLive do
     ~H"""
     <Layouts.app
       categories={@search_categories}
+      cart_count={@cart_count}
       flash={@flash}
       current_scope={@current_scope}
       current_path={~p"/cart"}

@@ -30,6 +30,10 @@ defmodule MercatoWeb.Layouts.AppHeader do
     default: nil,
     doc: "the slug of the scope in force, so the selector still reads it after a search"
 
+  attr :cart_count, :integer,
+    default: 0,
+    doc: "how much the buyer has gathered; assigned by `MercatoWeb.Carts.Counting`"
+
   def app_header(assigns) do
     ~H"""
     <%!-- Below md the bar wraps to two rows: controls on top, search underneath.
@@ -193,9 +197,9 @@ defmodule MercatoWeb.Layouts.AppHeader do
       <.link
         id="app-cart"
         navigate={~p"/cart"}
-        aria-label={gettext("Cart")}
+        aria-label={cart_label(@cart_count)}
         class={[
-          "order-3 flex-none flex items-center justify-center size-12 md:size-14 rounded-md no-underline",
+          "relative order-3 flex-none flex items-center justify-center size-12 md:size-14 rounded-md no-underline",
           "bg-bg dark:bg-ink-700 shadow-sm transition-[filter] hover:brightness-97",
           "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-primary-100"
         ]}
@@ -205,6 +209,22 @@ defmodule MercatoWeb.Layouts.AppHeader do
           aria-hidden="true"
           class="size-4.5 text-ink-900 dark:text-white"
         />
+
+        <%!-- Aria-hidden and pinned to the control rather than written into it:
+              the figure is already in the control's own name, and a reader
+              meeting it twice would hear the cart counted twice. --%>
+        <span
+          :if={@cart_count > 0}
+          id="app-cart-count"
+          aria-hidden="true"
+          class={[
+            "absolute -top-1 -right-1 flex items-center justify-center",
+            "min-w-5.5 h-5.5 px-1.5 rounded-full",
+            "bg-primary-500 text-white text-caption-md font-bold tabular-nums"
+          ]}
+        >
+          {cart_badge(@cart_count)}
+        </span>
       </.link>
 
       <%!-- `ml-auto` on the wrapped layout pins the account control to the right of
@@ -225,4 +245,16 @@ defmodule MercatoWeb.Layouts.AppHeader do
     </header>
     """
   end
+
+  # Named for what it holds rather than for what was gathered: past three
+  # figures the badge is wider than the control it sits on.
+  @most_shown 99
+
+  defp cart_badge(count) when count > @most_shown, do: "#{@most_shown}+"
+  defp cart_badge(count), do: count
+
+  defp cart_label(0), do: gettext("Cart")
+
+  defp cart_label(count),
+    do: gettext("Cart, %{items}", items: ngettext("1 item", "%{count} items", count))
 end

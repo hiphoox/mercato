@@ -78,6 +78,18 @@ defmodule Mercato.Carts.CartItem do
       prepare &load_carted_listing/2
     end
 
+    read :still_gathered do
+      description "The lines still inside the retention window, leaving the rest where they are."
+
+      argument :cutoff, :utc_datetime_usec do
+        allow_nil? false
+      end
+
+      filter expr(updated_at >= ^arg(:cutoff))
+
+      prepare &load_carted_listing/2
+    end
+
     read :list_for_seller do
       description "The lines one seller has in the buyer's cart — the group a checkout is for."
 

@@ -28,7 +28,7 @@ defmodule MercatoWeb.Router do
 
     ash_authentication_live_session :authenticated_routes,
       session: {MercatoWeb.GuestToken, :live_session, []},
-      on_mount: [{MercatoWeb.SearchScope, :categories}] do
+      on_mount: [{MercatoWeb.SearchScope, :categories}, {MercatoWeb.Carts.Counting, :count}] do
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:
