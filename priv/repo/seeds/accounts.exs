@@ -39,7 +39,14 @@ listing_delete =
     authorize?: false
   )
 
-for permission <- [user_update, user_delete, admin_access, listing_delete] do
+settings_update =
+  Ash.create!(
+    Permission,
+    %{name: "settings:update", description: "Change the marketplace's own settings"},
+    authorize?: false
+  )
+
+for permission <- [user_update, user_delete, admin_access, listing_delete, settings_update] do
   Ash.create!(RolePermission, %{role_id: admin.id, permission_id: permission.id},
     authorize?: false
   )

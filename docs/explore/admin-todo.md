@@ -36,10 +36,12 @@ Nothing here is required for the Phase 1 MVP. The listing side of a moderation d
 
 ### Marketplace settings
 
-The platform already holds a single admin-configurable settings record; the values a marketplace tunes are still spread across config files and only change on redeploy.
+The settings record and the screen over it are built, and the values a marketplace tunes today live there: currency, the listing condition list, allowed image types, the image size cap, the image count bounds, the cart retention window, and the handle change cooldown. What remains is the values other areas have yet to build.
 
-- [ ] Move the tunable values into that settings record so an operator edits them rather than a deployer: currency, the listing condition list, allowed image types, the image size cap, the image count bounds, the listing field bounds in [listings-todo.md](listings-todo.md), the declared browse filters in [discovery-todo.md](discovery-todo.md), the commission rule and completion window in [payments-todo.md](payments-todo.md), and the fulfillment methods in [shipping-todo.md](shipping-todo.md)
-- [ ] Settings screen in the admin dashboard for editing them, with the platform defaults still applying wherever nothing has been set
+- [x] Move the tunable values into that settings record so an operator edits them rather than a deployer
+- [x] Settings screen in the admin dashboard for editing them, with the platform defaults still applying wherever nothing has been set
+- [ ] The listing field bounds in [listings-todo.md](listings-todo.md), the commission rule and completion window in [payments-todo.md](payments-todo.md), and the fulfillment methods in [shipping-todo.md](shipping-todo.md), as each is built
+- [ ] The declared browse filters in [discovery-todo.md](discovery-todo.md), which stay in configuration for now: a facet declares where to read a value and how to parse it, which is a reference to code rather than a value an operator can type
 
 ## Waiting on
 

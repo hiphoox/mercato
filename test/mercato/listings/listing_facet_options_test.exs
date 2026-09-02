@@ -16,8 +16,7 @@ defmodule Mercato.Listings.ListingFacetOptionsTest do
     end
 
     test "offers nothing where the marketplace configures no conditions" do
-      Application.put_env(:mercato, :listing_conditions, [])
-      on_exit(fn -> Application.delete_env(:mercato, :listing_conditions) end)
+      put_setting(:listing_conditions, [])
 
       assert Listings.condition_options() == []
     end

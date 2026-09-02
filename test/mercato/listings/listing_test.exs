@@ -91,8 +91,10 @@ defmodule Mercato.Listings.ListingTest do
   end
 
   describe "currency" do
-    test "defaults to the currency configured for the instance", %{seller: seller} do
-      assert create_listing!(seller).currency == Application.fetch_env!(:mercato, :currency)
+    test "defaults to the currency the marketplace is set to", %{seller: seller} do
+      put_setting(:currency, "EUR")
+
+      assert create_listing!(seller).currency == "EUR"
     end
 
     test "refuses a seller-supplied currency on create", %{seller: seller} do

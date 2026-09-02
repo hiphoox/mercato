@@ -31,6 +31,13 @@ erDiagram
     settings {
         uuid id PK
         integer handle_change_cooldown_days
+        integer cart_retention_seconds
+        string currency
+        string_array listing_conditions
+        string_array listing_image_types
+        integer listing_image_max_bytes
+        integer listing_min_images
+        integer listing_max_images
     }
     roles {
         uuid id PK

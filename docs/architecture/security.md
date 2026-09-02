@@ -25,6 +25,8 @@ Users sign in with email + password or a magic link sent to their email. An acco
 
 **Admin area:** reaching any admin page requires the `admin:access` permission, seeded onto the `admin` role. The permission gates both the page and the data behind it, so a user without it is refused the listing itself, not merely redirected away from the URL.
 
+**Marketplace settings:** changing the platform's own settings requires the `settings:update` permission, seeded onto the `admin` role and separate from `admin:access`, so an operator can be given the admin area without being given the dials the marketplace runs on. Reading a setting is open to everyone, signed in or not — see [marketplace-settings.md](../domain/settings/marketplace-settings.md).
+
 **Access rules on a user's own record:**
 - Anyone can read a user's public profile fields (name, handle, avatar, email, status) — e.g. a buyer viewing a seller's profile on a product page.
 - A user can update their own record; an `admin` can update any user's record.

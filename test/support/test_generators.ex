@@ -3,7 +3,21 @@ defmodule Mercato.TestGenerators do
 
   use Ash.Generator
 
+  alias Mercato.Accounts
   alias Mercato.Accounts.{Permission, Role, RolePermission, UserRole}
+
+  @doc """
+  Sets one platform setting for the test that calls it.
+
+  The settings row is written inside the test's own sandbox, so a test tuning
+  what the marketplace sells stays isolated from every other one.
+  """
+  def put_setting(key, value) do
+    case Accounts.current_settings(authorize?: false, not_found_error?: false) do
+      {:ok, nil} -> Accounts.create_settings!(%{key => value}, authorize?: false)
+      {:ok, settings} -> Accounts.update_settings!(settings, %{key => value}, authorize?: false)
+    end
+  end
 
   @doc """
   Puts `user` in a fresh role granted `permission_name`.

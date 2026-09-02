@@ -46,6 +46,8 @@ defmodule Mercato.Accounts do
 
     resource Mercato.Accounts.Setting do
       define :current_settings, action: :current
+      define :create_settings, action: :create
+      define :update_settings, action: :update
     end
 
     resource Mercato.Accounts.Role do
