@@ -242,13 +242,45 @@ defmodule MercatoWeb.Listings.ListingDetailLiveTest do
       assert has_element?(view, "#buy-now")
     end
 
-    test "says checkout is not built yet rather than pretending to charge", %{
+    test "takes a signed-in buyer to the checkout for that seller's group", %{
       conn: conn,
-      listing: listing
+      listing: listing,
+      seller: seller
+    } do
+      buyer = generate(user())
+      {:ok, view, _html} = live(log_in(conn, buyer), ~p"/listings/#{listing}")
+
+      assert {:error, {:live_redirect, %{to: to}}} =
+               view |> element("#buy-now") |> render_click()
+
+      assert to == "/checkout?seller=#{seller.id}"
+      assert [%{listing_id: bought}] = Mercato.Carts.list_cart!(actor: buyer)
+      assert bought == listing.id
+    end
+
+    test "takes a visitor with no account there too", %{
+      conn: conn,
+      listing: listing,
+      seller: seller
     } do
       {:ok, view, _html} = live(conn, ~p"/listings/#{listing}")
 
-      assert view |> element("#buy-now") |> render_click() =~ "not available yet"
+      assert {:error, {:live_redirect, %{to: to}}} =
+               view |> element("#buy-now") |> render_click()
+
+      assert to == "/checkout?seller=#{seller.id}"
+    end
+
+    test "stays put where the listing went between the page and the press", %{
+      conn: conn,
+      listing: listing,
+      seller: seller
+    } do
+      {:ok, view, _html} = live(log_in(conn, generate(user())), ~p"/listings/#{listing}")
+
+      Listings.pause_listing!(listing, actor: seller)
+
+      assert view |> element("#buy-now") |> render_click() =~ "could not be added"
     end
 
     test "tells a visitor with no account that they need not make one", %{

@@ -113,4 +113,57 @@ defmodule MercatoWeb.Checkout.CheckoutLiveTest do
                live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
     end
   end
+
+  describe "what is being bought, from whom, and at what total" do
+    test "names every line in the group", ctx do
+      one = offered_listing(ctx.seller, title: "Walnut sideboard", price: 24_000)
+      two = offered_listing(ctx.seller, title: "Brass reading lamp", price: 6_000)
+      for l <- [one, two], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      assert has_element?(view, "#checkout", "Walnut sideboard")
+      assert has_element?(view, "#checkout", "Brass reading lamp")
+    end
+
+    test "says who the buyer is buying from", ctx do
+      seller = generate(user(first_name: "Marta", last_name: "Ribeiro"))
+      listing = offered_listing(seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/checkout?#{[seller: seller.id]}")
+
+      assert has_element?(view, "[data-role=seller-name]", "Marta Ribeiro")
+    end
+
+    test "states the total the group comes to", ctx do
+      listing = offered_listing(ctx.seller, price: 24_000)
+      {:ok, line} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+      {:ok, _} = Carts.set_cart_quantity(line, %{quantity: 2}, actor: ctx.buyer)
+
+      {:ok, group} = Carts.checkout_group(ctx.seller.id, actor: ctx.buyer)
+      {:ok, view, _html} = live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      assert has_element?(view, "[data-role=checkout-total]", group.total)
+    end
+
+    test "is a review and not a second cart, so nothing here is editable", ctx do
+      listing = offered_listing(ctx.seller, quantity: 5)
+      {:ok, line} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      refute has_element?(view, "#qty-#{line.id}")
+      refute has_element?(view, "#remove-#{line.id}")
+    end
+
+    test "carries the buyer-protection promise the cart made", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      assert has_element?(view, "#checkout-protection", "confirm the delivery arrived")
+    end
+  end
 end

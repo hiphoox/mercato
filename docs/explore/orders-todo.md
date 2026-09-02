@@ -36,7 +36,7 @@ _The card's add-to-cart control gathers into the cart from browse and from a sel
 
 ### Checkout
 
-10. [ ] Checkout reached either from a listing's buy action or from a seller group in the cart, stating what is being bought, from whom, and at what total
+10. [x] Checkout reached either from a listing's buy action or from a seller group in the cart, stating what is being bought, from whom, and at what total
 11. [ ] Checkout totals broken into their parts — item price, fulfillment cost where there is one, and platform fee where the instance charges one — rather than one opaque number — needs [shipping 8](shipping-todo.md) for the fulfillment line and [payments 11](payments-todo.md) for the fee
 12. [ ] Buyer's fulfillment details captured at checkout where the instance requires them, prefilled from the account where there is one and editable — needs [users 44](users-todo.md) for somewhere to hold them and [shipping 5](shipping-todo.md) for what an address is
 13. [ ] Placing an order authorizes payment before the order exists, so an order is never created against a payment that failed — needs [payments 1](payments-todo.md)

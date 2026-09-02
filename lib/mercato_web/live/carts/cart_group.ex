@@ -14,6 +14,8 @@ defmodule MercatoWeb.Carts.CartGroup do
 
   import MercatoWeb.UI.Avatar
 
+  alias Mercato.Accounts
+
   @doc "Renders one seller's group. The lines go in the default slot."
   attr :group, :map, required: true, doc: "a group from `Mercato.Carts.group_by_seller/1`"
   attr :rest, :global
@@ -119,13 +121,7 @@ defmodule MercatoWeb.Carts.CartGroup do
   end
 
   defp seller_name(seller) do
-    [seller.first_name, seller.last_name]
-    |> Enum.reject(&(&1 in [nil, ""]))
-    |> Enum.join(" ")
-    |> case do
-      "" -> seller.handle || gettext("A seller")
-      name -> name
-    end
+    Accounts.full_name(seller) || seller.handle || gettext("A seller")
   end
 
   defp item_count(count), do: ngettext("1 item", "%{count} items", count)

@@ -34,6 +34,10 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
 
+A checkout reviews the group rather than offering a second cart: the same lines, with what each comes to and what the group comes to in total, and no way to change a quantity or drop a line without going back to the cart. The total covers the items and nothing else.
+
+Buying a single listing from its own page gathers it into the cart first and goes on to that seller's checkout. A buyer who already had something of that seller's finds it in the same checkout, one seller being one purchase however its lines were gathered.
+
 A checkout names the seller whose group it is. A seller whose group holds nothing buyable names no checkout, and neither does a seller who does not exist — both lead back to the cart, saying that what was there is no longer available. A group that emptied by lapsing is told apart from one that emptied any other way, and says that the cart cleared itself rather than that the goods went.
 
 ## When a listing stops being buyable

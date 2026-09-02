@@ -4,7 +4,9 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   taking it costs.
 
   The page carries the whole decision and is also the buy surface, so the
-  gallery takes the room and the panel beside it holds the action. It is public
+  gallery takes the room and the panel beside it holds the action. Buying from
+  here gathers the listing into the cart and goes on to that seller's checkout,
+  so there is one way a purchase is put together rather than two. It is public
   — a visitor with no account reaches it — and the seller who owns the listing
   gets the same page with their own actions in the panel's slot, which is what
   makes it usable as a preview of what buyers see.
@@ -23,6 +25,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   import MercatoWeb.UI.SellerCard
 
   alias Mercato.Accounts
+  alias Mercato.Carts
   alias Mercato.Listings
   alias Mercato.Listings.Listing.Slug
 
@@ -100,12 +103,22 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
     {:noreply, update(socket, :description_expanded?, &(!&1))}
   end
 
-  # The buy surface is finished; what it starts is not. Saying so is better than
-  # a control that looks live and does nothing, and better than hiding the
-  # action the whole page is built around.
+  # Buying goes through the cart rather than around it: one line, gathered the
+  # ordinary way, and then the checkout for the seller whose it is. A buyer who
+  # already had something of that seller's finds it in the same checkout, which
+  # is right — one seller is one order however its lines were gathered.
   def handle_event("buy", _params, socket) do
-    {:noreply,
-     put_flash(socket, :error, "Checkout is not available yet — orders are still being built.")}
+    %{listing: listing, current_scope: scope} = socket.assigns
+
+    case Carts.add_to_cart(listing.id, %{}, scope: scope) do
+      {:ok, _line} ->
+        {:noreply, push_navigate(socket, to: ~p"/checkout?#{[seller: listing.seller_id]}")}
+
+      # Almost always a listing that stopped being available between the page
+      # being drawn and the button being pressed.
+      {:error, _refused} ->
+        {:noreply, put_flash(socket, :error, gettext("That could not be added to your cart."))}
+    end
   end
 
   def handle_event("publish", _params, socket) do

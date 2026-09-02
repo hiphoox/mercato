@@ -3,8 +3,9 @@ defmodule MercatoWeb.Carts.CartLine do
   One listing a buyer means to buy, as the cart shows it.
 
   Colocated with the cart rather than shared: it is a row of a cart and of
-  nothing else. It moves up to `MercatoWeb.UI` the day a second surface — a
-  cart drawer, an order review — needs the same row as-is.
+  nothing else. The checkout reviews the same rows with `editable?` false, so
+  what a buyer weighed in the cart is what they read before paying. It moves up
+  to `MercatoWeb.UI` the day a surface outside buying needs it.
 
   The figures arrive already worked out. What a line comes to is money
   arithmetic in a currency this layer does not know, so `Mercato.Carts` does
@@ -22,6 +23,9 @@ defmodule MercatoWeb.Carts.CartLine do
   A stepper only where there is something to step: a seller with one of a thing
   gets the one-of-a-kind pill instead, which says why the control is missing
   rather than showing a dead one.
+
+  A row that cannot be edited says how many are wanted in words, the figure
+  being what the stepper was carrying.
   """
   attr :line, :map, required: true, doc: "a `Mercato.Carts.CartItem` with its listing loaded"
   attr :total, :string, required: true, doc: "what the line comes to, already formatted"
@@ -29,6 +33,10 @@ defmodule MercatoWeb.Carts.CartLine do
   attr :buyable?, :boolean,
     default: true,
     doc: "whether the listing behind the line can still be bought"
+
+  attr :editable?, :boolean,
+    default: true,
+    doc: "false reviews the line instead of offering the controls to change it"
 
   attr :rest, :global
 
@@ -110,7 +118,15 @@ defmodule MercatoWeb.Carts.CartLine do
           {gettext("No longer available")}
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap pt-0.5">
+        <span
+          :if={!@editable? and @buyable?}
+          data-role="line-quantity"
+          class="text-caption-lg text-ink-500"
+        >
+          {gettext("Quantity: %{count}", count: @line.quantity)}
+        </span>
+
+        <div :if={@editable?} class="flex items-center gap-2 flex-wrap pt-0.5">
           <.quantity_stepper
             :if={@buyable? and @stock > 1}
             id={"qty-#{@line.id}"}
