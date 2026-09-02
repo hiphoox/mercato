@@ -31,7 +31,7 @@ _The card's add-to-cart control gathers into the cart from browse and from a sel
 5. [x] A cart holding listings from several sellers at once, grouped by seller
 6. [x] A visitor may fill a cart without an account; it survives their session, and becomes theirs if they sign in
 7. [x] One checkout per seller group, since each group becomes its own order — a seller naming no group of the buyer's is not a checkout and leads back to the cart
-8. [ ] What happens to a carted listing that sells to someone else first
+8. [x] What happens to a carted listing that sells to someone else first — the line stays, named and marked unbuyable, counts for nothing, and stops its group being checked out until it is cleared
 9. [ ] Cart retention: how long a listing stays in a cart before it is dropped
 
 ### Checkout

@@ -34,19 +34,29 @@ defmodule MercatoWeb.Checkout.CheckoutLive do
   @impl true
   def handle_params(params, _uri, socket) do
     case group_for(params["seller"], socket.assigns.current_scope) do
+      # The cart offers no checkout for a seller it holds nothing from, so an
+      # empty group is one that emptied.
       nil ->
+        {:noreply, back(socket, gettext("What you had from that seller is no longer available."))}
+
+      %{buyable?: false} ->
         {:noreply,
-         socket
-         |> put_flash(:error, gettext("There is nothing from that seller in your cart."))
-         |> push_navigate(to: ~p"/cart")}
+         back(
+           socket,
+           gettext("Something in that group is no longer available. Remove it to check out.")
+         )}
 
       group ->
         {:noreply, assign(socket, :group, group)}
     end
   end
 
-  # A seller id that is not a uuid never reaches the cart: it cannot name a
-  # group, so it is the same nothing as a seller they have gathered nothing from.
+  defp back(socket, said) do
+    socket
+    |> put_flash(:error, said)
+    |> push_navigate(to: ~p"/cart")
+  end
+
   defp group_for(seller_id, scope) when is_binary(seller_id) do
     case UUID.cast_input(seller_id, []) do
       {:ok, uuid} -> Carts.seller_group(uuid, scope: scope)

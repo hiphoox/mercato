@@ -3,7 +3,7 @@ type: domain
 title: Listings
 description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
 tags: [domain, listings, marketplace, pricing, categories, identifiers, visibility]
-timestamp: 2026-08-27T00:00:00Z
+timestamp: 2026-09-02T00:00:00Z
 ---
 
 A listing is what a seller publishes for a buyer to buy. The term is deliberately generic: the same entity covers physical goods, services, and rentals.
@@ -87,6 +87,8 @@ A sold listing is the one exception, and only in one place: it is visible to eve
 
 A listing is also only as public as the account behind it. Where the marketplace no longer shows a seller to strangers — a banned account, a deleted one — their listings leave the public catalog with them: they are absent from browsing, from their own page, and from the seller's profile. The seller keeps them, in whatever state they were in, so an account restored gets its listings back on offer. A restricted account is still shown publicly, and so are its listings.
 
+Somebody holding a listing in their cart keeps seeing it, whatever state it has since moved to. This reaches only the listings they hold a line for and only tells them what they had already seen, so a cart names what left it rather than turning into anonymous rows. A listing moderation has taken down is outside this, being hidden from everyone.
+
 Moderation sees every listing whatever state it is in and whoever owns it, since a listing taken out of public view is the thing a report is usually about.
 
 ## Who may change a listing
@@ -97,7 +99,7 @@ Only the seller who owns a listing may edit it, publish it, pause it, resume it,
 
 A listing is removed in one of two ways, and they are not the same thing.
 
-A seller removing their own listing removes it outright — the listing and its gallery are gone, and the storage its images occupied is freed. This is only available for a listing that never sold: once a purchase has completed, the listing is the record of that sale and is kept for accounting and for settling disputes, whatever the seller would prefer.
+A seller removing their own listing removes it outright — the listing, its gallery, and the cart lines holding it are gone, and the storage its images occupied is freed. A cart binds nobody, so it never stands between a seller and being rid of a listing. This is only available for a listing that never sold: once a purchase has completed, the listing is the record of that sale and is kept for accounting and for settling disputes, whatever the seller would prefer.
 
 Moderation removing a listing keeps it. The listing stops being visible to anyone — its seller included — but the record and its images survive as an internal backup, so a listing taken down in error can be restored and a report about one can still be investigated. Because nothing is lost this way, moderation may take down a listing that has sold.
 

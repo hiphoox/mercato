@@ -36,6 +36,18 @@ defmodule MercatoWeb.Checkout.CheckoutLiveTest do
                live(ctx.conn, ~p"/checkout?#{[seller: other_seller.id]}")
     end
 
+    test "says a deleted listing went rather than that it was never gathered", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      :ok = Mercato.Listings.delete_listing(listing, actor: ctx.seller)
+
+      assert {:error, {:live_redirect, %{to: "/cart", flash: flash}}} =
+               live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+
+      assert flash["error"] =~ "no longer available"
+    end
+
     test "sends the buyer back where the seller is not one at all", ctx do
       assert {:error, {:live_redirect, %{to: "/cart"}}} =
                live(ctx.conn, ~p"/checkout?#{[seller: Ash.UUID.generate()]}")
@@ -74,6 +86,19 @@ defmodule MercatoWeb.Checkout.CheckoutLiveTest do
 
       assert {:error, {:live_redirect, %{to: "/cart"}}} =
                live(conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
+    end
+  end
+
+  describe "a group holding something unbuyable" do
+    test "is refused, the cart's disabled button not being the only way in", ctx do
+      gone = offered_listing(ctx.seller)
+      kept = offered_listing(ctx.seller)
+      for l <- [gone, kept], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.pause_listing!(gone, actor: ctx.seller)
+
+      assert {:error, {:live_redirect, %{to: "/cart"}}} =
+               live(ctx.conn, ~p"/checkout?#{[seller: ctx.seller.id]}")
     end
   end
 end

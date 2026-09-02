@@ -22,6 +22,11 @@ defmodule Mercato.Carts.CartItem do
   sqlite do
     table "cart_items"
     repo Mercato.Repo
+
+    references do
+      # In the database rather than in the action, so it holds whoever deletes.
+      reference :listing, on_delete: :delete
+    end
   end
 
   actions do
@@ -41,10 +46,8 @@ defmodule Mercato.Carts.CartItem do
     read :list_mine do
       description "Everything the buyer has gathered, in the order a cart reads."
 
-      prepare build(
-                load: [:seller, listing: [:display_price, images: :url]],
-                sort: [seller_id: :asc, inserted_at: :asc]
-              )
+      prepare build(load: :seller, sort: [seller_id: :asc, inserted_at: :asc])
+      prepare &load_carted_listing/2
     end
 
     read :list_for_seller do
@@ -56,10 +59,8 @@ defmodule Mercato.Carts.CartItem do
 
       filter expr(seller_id == ^arg(:seller_id))
 
-      prepare build(
-                load: [:seller, listing: [:display_price, images: :url]],
-                sort: [inserted_at: :asc]
-              )
+      prepare build(load: :seller, sort: [inserted_at: :asc])
+      prepare &load_carted_listing/2
     end
 
     create :add do
@@ -162,6 +163,22 @@ defmodule Mercato.Carts.CartItem do
       allow_nil? false
       public? true
     end
+  end
+
+  # The listing's cart read, not its ordinary one, which hands back nothing for a
+  # line whose listing has since left the marketplace. A function because the
+  # query needs the caller, and to keep the listing off this module's compile
+  # time dependencies.
+  defp load_carted_listing(query, context) do
+    listing =
+      Ash.Query.for_read(
+        Mercato.Listings.Listing,
+        :for_cart_line,
+        %{},
+        Ash.Context.to_opts(context)
+      )
+
+    Ash.Query.load(query, listing: listing)
   end
 
   identities do

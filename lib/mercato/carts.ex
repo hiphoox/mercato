@@ -69,10 +69,24 @@ defmodule Mercato.Carts do
         seller: first.seller,
         lines: grouped,
         item_count: item_count(grouped),
-        total: total(grouped)
+        total: total(grouped),
+        buyable?: Enum.all?(grouped, &line_buyable?/1)
       }
     end)
   end
+
+  @doc """
+  Whether a line can still be bought.
+
+  A listing leaves the marketplace while it sits in carts — somebody else buys
+  it, the seller pauses or runs out of it, moderation takes it down. The line
+  stays where the buyer put it and says so, rather than vanishing without a word.
+
+  A listing moderation took down is hidden from the buyer, so it is unbuyable
+  and nameless both.
+  """
+  def line_buyable?(%{listing: nil}), do: false
+  def line_buyable?(%{listing: listing}), do: listing.buyable?
 
   @doc """
   One seller's group of the cart, or nil where the buyer has gathered nothing
@@ -110,8 +124,16 @@ defmodule Mercato.Carts do
   """
   def line_total(line), do: total([line])
 
-  @doc "How many things the lines add up to, counting a line of three as three."
-  def item_count(lines), do: Enum.sum_by(lines, & &1.quantity)
+  @doc """
+  How many things the lines add up to, counting a line of three as three.
+
+  Only what can still be bought.
+  """
+  def item_count(lines) do
+    lines
+    |> Enum.filter(&line_buyable?/1)
+    |> Enum.sum_by(& &1.quantity)
+  end
 
   # Read off the listings rather than off the lines, which hold no price: what
   # a listing costs is the listing's to say until a purchase agrees it.
@@ -119,9 +141,10 @@ defmodule Mercato.Carts do
   # An empty cart is denominated in the marketplace's own currency, there being
   # no listing to take one from.
   defp total(lines) do
-    amount = Enum.sum_by(lines, &(&1.listing.price * &1.quantity))
+    buyable = Enum.filter(lines, &line_buyable?/1)
+    amount = Enum.sum_by(buyable, &(&1.listing.price * &1.quantity))
 
-    Mercato.Money.format(amount, currency(lines))
+    Mercato.Money.format(amount, currency(buyable))
   end
 
   defp currency([%{listing: listing} | _rest]), do: listing.currency

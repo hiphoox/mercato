@@ -77,11 +77,21 @@ defmodule MercatoWeb.Carts.CartGroup do
       <div class="flex flex-col gap-2">
         <%!-- `critical`, the one variant above the primary CTA: paying is the
               highest-stakes thing on this screen. --%>
+        <div
+          :if={!@group.buyable?}
+          data-role="blocked"
+          class="flex items-start gap-2 p-3 rounded-md bg-error-bg text-caption-lg text-error-text text-pretty"
+        >
+          <.icon name="hero-exclamation-circle" aria-hidden="true" class="size-4.5 flex-none mt-px" />
+          {gettext("Something here is no longer available. Remove it and the rest is yours to buy.")}
+        </div>
+
         <.button
           id={"checkout-#{@seller.id}"}
           variant="critical"
           full_width
-          navigate={~p"/checkout?#{[seller: @seller.id]}"}
+          disabled={!@group.buyable?}
+          navigate={@group.buyable? && ~p"/checkout?#{[seller: @seller.id]}"}
           aria-label={
             gettext("Check out with %{seller} for %{total}",
               seller: seller_name(@seller),

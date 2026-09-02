@@ -178,4 +178,67 @@ defmodule MercatoWeb.Carts.CartLiveTest do
       refute has_element?(view, "#qty-#{cart_line.id}")
     end
   end
+
+  describe "a line that can no longer be bought" do
+    setup ctx do
+      gone = offered_listing(ctx.seller, price: 4000)
+      kept = offered_listing(ctx.seller, price: 1500)
+      {:ok, gone_line} = Carts.add_to_cart(gone.id, %{}, actor: ctx.buyer)
+      {:ok, kept_line} = Carts.add_to_cart(kept.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.pause_listing!(gone, actor: ctx.seller)
+
+      Map.merge(ctx, %{gone: gone, gone_line: gone_line, kept_line: kept_line})
+    end
+
+    test "still names what the buyer gathered, so they know which one went", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      assert view |> element("#cart-line-#{ctx.gone_line.id}") |> render() =~ ctx.gone.title
+      assert has_element?(view, "#cart-line-#{ctx.gone_line.id} [data-role=unavailable]")
+    end
+
+    test "offers nothing to step, there being nothing to buy", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      refute has_element?(view, "#qty-#{ctx.gone_line.id}")
+      assert has_element?(view, "#remove-#{ctx.gone_line.id}")
+    end
+
+    test "counts for nothing in the group's total or the cart's", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      assert view |> element("#cart-group-#{ctx.seller.id} [data-role=group-total]") |> render() =~
+               "$15.00"
+
+      assert view |> element("#cart-total") |> render() =~ "$15.00"
+    end
+
+    test "stops the group being checked out while it is there", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      assert has_element?(view, "#checkout-#{ctx.seller.id}[disabled]")
+      assert has_element?(view, "#cart-group-#{ctx.seller.id} [data-role=blocked]")
+    end
+
+    test "gives the group back its checkout once the buyer removes it", ctx do
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      view |> element("#remove-#{ctx.gone_line.id}") |> render_click()
+
+      refute has_element?(view, "#cart-line-#{ctx.gone_line.id}")
+      refute has_element?(view, "#checkout-#{ctx.seller.id}[disabled]")
+    end
+
+    test "leaves another seller's group checkable out", ctx do
+      other_seller = generate(user())
+      other = offered_listing(other_seller)
+      {:ok, _} = Carts.add_to_cart(other.id, %{}, actor: ctx.buyer)
+
+      {:ok, view, _html} = live(ctx.conn, ~p"/cart")
+
+      assert has_element?(view, "#checkout-#{ctx.seller.id}[disabled]")
+      refute has_element?(view, "#checkout-#{other_seller.id}[disabled]")
+    end
+  end
 end

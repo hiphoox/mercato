@@ -364,6 +364,121 @@ defmodule Mercato.Carts.CartItemTest do
     end
   end
 
+  describe "a listing that stops being buyable" do
+    test "keeps the line, so the buyer learns what happened to it", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.pause_listing!(listing, actor: ctx.seller)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert line.listing.title == listing.title
+      refute Carts.line_buyable?(line)
+    end
+
+    test "reads as unbuyable once it has sold to somebody else", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.mark_listing_sold!(listing)
+
+      assert [line] = cart_lines(ctx.buyer)
+      refute Carts.line_buyable?(line)
+    end
+
+    test "reads as unbuyable once the seller has run out", ctx do
+      listing = offered_listing(ctx.seller, quantity: 1)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.update_listing!(listing, %{quantity: 0}, actor: ctx.seller)
+
+      assert [line] = cart_lines(ctx.buyer)
+      refute Carts.line_buyable?(line)
+    end
+
+    test "counts for nothing in what its group comes to", ctx do
+      gone = offered_listing(ctx.seller, price: 4000)
+      still_there = offered_listing(ctx.seller, price: 1500)
+
+      for l <- [gone, still_there], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.pause_listing!(gone, actor: ctx.seller)
+
+      assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
+      assert group.total == "$15.00"
+      assert group.item_count == 1
+      assert length(group.lines) == 2
+      assert ctx.buyer |> cart_lines() |> Carts.cart_total() == "$15.00"
+    end
+
+    test "stops its group being checked out until the buyer clears it", ctx do
+      gone = offered_listing(ctx.seller)
+      still_there = offered_listing(ctx.seller)
+
+      for l <- [gone, still_there], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      Mercato.Listings.pause_listing!(gone, actor: ctx.seller)
+
+      assert %{buyable?: false} = Carts.seller_group(ctx.seller.id, actor: ctx.buyer)
+    end
+
+    test "leaves a group of buyable lines checkable out", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      assert %{buyable?: true} = Carts.seller_group(ctx.seller.id, actor: ctx.buyer)
+    end
+
+    test "is still the visitor's own to see and to remove", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor)
+
+      Mercato.Listings.pause_listing!(listing, actor: ctx.seller)
+
+      assert [line] = Carts.list_cart!(scope: visitor)
+      assert line.listing.title == listing.title
+      assert :ok = Carts.remove_from_cart(line, scope: visitor)
+    end
+
+    test "is nobody else's to see through a cart they do not hold", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+      Mercato.Listings.pause_listing!(listing, actor: ctx.seller)
+
+      stranger = generate(user())
+
+      assert {:error, _} =
+               Mercato.Listings.get_listing_for_cart_line(listing.id, actor: stranger)
+    end
+  end
+
+  describe "a listing the seller deletes" do
+    test "goes from the carts holding it rather than refusing to be deleted", ctx do
+      listing = offered_listing(ctx.seller)
+      other_buyer = generate(user())
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: other_buyer)
+
+      assert :ok = Mercato.Listings.delete_listing(listing, actor: ctx.seller)
+
+      assert cart_lines(ctx.buyer) == []
+      assert cart_lines(other_buyer) == []
+    end
+
+    test "leaves the rest of the cart alone", ctx do
+      gone = offered_listing(ctx.seller)
+      kept = offered_listing(ctx.seller)
+
+      for l <- [gone, kept], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      assert :ok = Mercato.Listings.delete_listing(gone, actor: ctx.seller)
+
+      assert [line] = cart_lines(ctx.buyer)
+      assert line.listing_id == kept.id
+    end
+  end
+
   defp cart_lines(actor), do: Carts.list_cart!(actor: actor)
 
   defp visitor, do: Scope.for_user(nil, Carts.new_guest_token())

@@ -126,6 +126,7 @@ defmodule MercatoWeb.Carts.CartLive do
             <.cart_line
               :for={line <- group.lines}
               line={line}
+              buyable?={Carts.line_buyable?(line)}
               total={Carts.line_total(line)}
             />
           </.cart_group>

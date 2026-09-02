@@ -51,6 +51,12 @@ defmodule Mercato.Listings.Listing do
   actions do
     defaults [:read]
 
+    read :for_cart_line do
+      description "One listing as the cart shows it, whatever state it has since moved to."
+
+      prepare build(load: [:display_price, :buyable?, images: :url])
+    end
+
     read :list_for_moderation do
       description "Every listing including those moderation has taken down."
     end
@@ -360,6 +366,17 @@ defmodule Mercato.Listings.Listing do
 
     # Filtering, like :read above — a signed-out visitor gets an empty list
     # rather than an error, which is what the page can actually render.
+    # Two checks rather than one: a check mentioning the actor is refused where
+    # there is no actor, and the token must not match every line that has none.
+    policy action(:for_cart_line) do
+      authorize_if expr(exists(cart_items, user_id == ^actor(:id)))
+
+      authorize_if expr(
+                     not is_nil(^context([:shared, :guest_token])) and
+                       exists(cart_items, guest_token == ^context([:shared, :guest_token]))
+                   )
+    end
+
     policy action([:list_mine, :get_mine]) do
       authorize_if expr(seller_id == ^actor(:id))
     end
@@ -488,6 +505,10 @@ defmodule Mercato.Listings.Listing do
       sort position: :asc
       public? true
     end
+
+    has_many :cart_items, Mercato.Carts.CartItem do
+      domain Mercato.Carts
+    end
   end
 
   calculations do
@@ -495,6 +516,15 @@ defmodule Mercato.Listings.Listing do
     # in minor units, and every place a listing is shown needs the same
     # conversion against the currency the listing itself carries.
     calculate :display_price, :string, Calculations.DisplayPrice do
+      public? true
+    end
+
+    calculate :buyable?,
+              :boolean,
+              expr(
+                status == :active and quantity > 0 and
+                  seller.status in ^SellerStatus.has_public_profile()
+              ) do
       public? true
     end
   end

@@ -34,7 +34,17 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
 
-A checkout names the seller whose group it is. A seller the buyer has gathered nothing from names no group, and neither does a seller who does not exist — both lead back to the cart rather than to a checkout with nothing in it.
+A checkout names the seller whose group it is. A seller whose group holds nothing buyable names no checkout, and neither does a seller who does not exist — both lead back to the cart, saying that what was there is no longer available.
+
+## When a listing stops being buyable
+
+A listing leaves the marketplace while it sits in carts: somebody else buys it, the seller pauses it or runs out of it, the seller leaves the marketplace, moderation takes it down.
+
+The line stays where the buyer put it and says it can no longer be bought. It counts for nothing while it is there — out of what its group comes to, out of what the cart comes to, out of both counts of how many things are gathered — and its group cannot be checked out until the buyer removes it.
+
+The buyer keeps seeing what they gathered: the title and the photo of a listing they hold a line for stay readable to them whatever state it has since moved to, so a cart says which thing went rather than that something did. A listing moderation has taken down is the exception, being hidden from the buyer as well as from everyone else; that line says it went without saying what it was.
+
+A listing its seller deletes outright leaves the carts holding it. There is nothing left to name, and a cart binds nobody, so it never stands between a seller and being rid of a listing.
 
 ## What may be gathered
 

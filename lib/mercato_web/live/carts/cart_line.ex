@@ -25,13 +25,19 @@ defmodule MercatoWeb.Carts.CartLine do
   """
   attr :line, :map, required: true, doc: "a `Mercato.Carts.CartItem` with its listing loaded"
   attr :total, :string, required: true, doc: "what the line comes to, already formatted"
+
+  attr :buyable?, :boolean,
+    default: true,
+    doc: "whether the listing behind the line can still be bought"
+
   attr :rest, :global
 
   def cart_line(assigns) do
     assigns =
       assigns
       |> assign(:listing, assigns.line.listing)
-      |> assign(:stock, assigns.line.listing.quantity)
+      |> assign(:title, title(assigns.line.listing))
+      |> assign(:stock, stock(assigns.line.listing))
 
     ~H"""
     <div
@@ -46,8 +52,8 @@ defmodule MercatoWeb.Carts.CartLine do
         <img
           :if={cover_url(@listing)}
           src={cover_url(@listing)}
-          alt={gettext("Cover photo of %{title}", title: @listing.title)}
-          class="size-full object-cover"
+          alt={gettext("Cover photo of %{title}", title: @title)}
+          class={["size-full object-cover", !@buyable? && "grayscale opacity-60"]}
         />
         <.icon
           :if={!cover_url(@listing)}
@@ -62,16 +68,21 @@ defmodule MercatoWeb.Carts.CartLine do
         <div class="flex items-start gap-3">
           <%!-- Two lines and no more: a long title pushes nothing else off the
                 row, and the figures keep their column on the right. --%>
-          <h3 class="flex-1 min-w-0 m-0 text-body-sm font-semibold leading-snug text-ink-900 dark:text-white line-clamp-2">
+          <h3 class={[
+            "flex-1 min-w-0 m-0 text-body-sm font-semibold leading-snug line-clamp-2",
+            if(@buyable?, do: "text-ink-900 dark:text-white", else: "text-ink-500 line-through")
+          ]}>
             <.link
+              :if={@buyable?}
               navigate={~p"/listings/#{@listing}"}
               class="no-underline hover:underline text-inherit"
             >
-              {@listing.title}
+              {@title}
             </.link>
+            <span :if={!@buyable?}>{@title}</span>
           </h3>
 
-          <div class="flex-none text-right">
+          <div :if={@buyable?} class="flex-none text-right">
             <div
               data-role="line-total"
               class="text-body-md font-bold tabular-nums text-ink-900 dark:text-white"
@@ -86,13 +97,22 @@ defmodule MercatoWeb.Carts.CartLine do
           </div>
         </div>
 
-        <div :if={@listing.condition} class="text-caption-lg text-ink-500 truncate">
+        <div :if={@buyable? and @listing.condition} class="text-caption-lg text-ink-500 truncate">
           {Listings.condition_label(@listing.condition)}
+        </div>
+
+        <div
+          :if={!@buyable?}
+          data-role="unavailable"
+          class="flex items-center gap-1.5 text-caption-lg font-semibold text-error-text"
+        >
+          <.icon name="hero-exclamation-circle" aria-hidden="true" class="size-4 flex-none" />
+          {gettext("No longer available")}
         </div>
 
         <div class="flex items-center gap-2 flex-wrap pt-0.5">
           <.quantity_stepper
-            :if={@stock > 1}
+            :if={@buyable? and @stock > 1}
             id={"qty-#{@line.id}"}
             value={@line.quantity}
             max={@stock}
@@ -102,7 +122,7 @@ defmodule MercatoWeb.Carts.CartLine do
           />
 
           <span
-            :if={@stock <= 1}
+            :if={@buyable? and @stock <= 1}
             data-role="one-of-a-kind"
             class={[
               "inline-flex items-center gap-1.5 h-6.5 px-2.5 flex-none rounded-full",
@@ -119,7 +139,7 @@ defmodule MercatoWeb.Carts.CartLine do
             id={"remove-#{@line.id}"}
             phx-click="remove"
             phx-value-id={@line.id}
-            aria-label={gettext("Remove %{title} from the cart", title: @listing.title)}
+            aria-label={gettext("Remove %{title} from the cart", title: @title)}
             class={[
               "ml-auto flex items-center justify-center size-9 flex-none rounded-md cursor-pointer",
               "text-ink-500 transition-colors",
@@ -134,6 +154,13 @@ defmodule MercatoWeb.Carts.CartLine do
     </div>
     """
   end
+
+  # Nil where moderation took the listing down, which hides it from the buyer too.
+  defp title(nil), do: gettext("An item you gathered")
+  defp title(listing), do: listing.title
+
+  defp stock(nil), do: 0
+  defp stock(listing), do: listing.quantity
 
   defp cover_url(%{images: images}) when is_list(images) do
     case Enum.find(images, & &1.is_cover) do
