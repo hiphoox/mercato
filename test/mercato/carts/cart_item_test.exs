@@ -158,6 +158,49 @@ defmodule Mercato.Carts.CartItemTest do
     end
   end
 
+  describe "one seller's group of the cart" do
+    test "reads the group a checkout is for, and nobody else's lines", ctx do
+      other_seller = generate(user())
+      one = offered_listing(ctx.seller, price: 1500)
+      two = offered_listing(ctx.seller, price: 4000)
+      three = offered_listing(other_seller, price: 9900)
+
+      for l <- [one, two, three], do: {:ok, _} = Carts.add_to_cart(l.id, %{}, actor: ctx.buyer)
+
+      assert %{} = group = Carts.seller_group(ctx.seller.id, actor: ctx.buyer)
+      assert group.seller.id == ctx.seller.id
+      assert group.item_count == 2
+      assert group.total == "$55.00"
+      assert Enum.map(group.lines, & &1.listing_id) |> Enum.sort() == Enum.sort([one.id, two.id])
+    end
+
+    test "is absent for a seller the buyer has gathered nothing from", ctx do
+      assert Carts.seller_group(generate(user()).id, actor: ctx.buyer) == nil
+    end
+
+    test "is absent for a seller that is not one at all", ctx do
+      assert Carts.seller_group(Ash.UUID.generate(), actor: ctx.buyer) == nil
+    end
+
+    test "is the visitor's own, gathered against their token", ctx do
+      listing = offered_listing(ctx.seller)
+      visitor = visitor()
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, scope: visitor)
+
+      assert %{} = group = Carts.seller_group(ctx.seller.id, scope: visitor)
+      assert [line] = group.lines
+      assert line.listing.title == listing.title
+    end
+
+    test "is nobody else's to read", ctx do
+      listing = offered_listing(ctx.seller)
+      {:ok, _} = Carts.add_to_cart(listing.id, %{}, actor: ctx.buyer)
+
+      assert Carts.seller_group(ctx.seller.id, actor: generate(user())) == nil
+      assert Carts.seller_group(ctx.seller.id, scope: visitor()) == nil
+    end
+  end
+
   describe "changing what is in the cart" do
     test "sets a line's quantity", ctx do
       listing = offered_listing(ctx.seller)

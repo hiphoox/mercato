@@ -7,8 +7,8 @@ defmodule Mercato.Carts.CartItem do
   what they were asking when the line was added.
 
   It belongs either to an account or to a visitor's guest token, never to
-  both and never to neither: an account is not needed to gather a cart, only
-  to buy one. Signing in claims the token's lines for the account.
+  both and never to neither: an account is needed neither to gather a cart nor
+  to check one out. Signing in claims the token's lines for the account.
   """
 
   use Ash.Resource,
@@ -44,6 +44,21 @@ defmodule Mercato.Carts.CartItem do
       prepare build(
                 load: [:seller, listing: [:display_price, images: :url]],
                 sort: [seller_id: :asc, inserted_at: :asc]
+              )
+    end
+
+    read :list_for_seller do
+      description "The lines one seller has in the buyer's cart — the group a checkout is for."
+
+      argument :seller_id, :uuid do
+        allow_nil? false
+      end
+
+      filter expr(seller_id == ^arg(:seller_id))
+
+      prepare build(
+                load: [:seller, listing: [:display_price, images: :url]],
+                sort: [inserted_at: :asc]
               )
     end
 

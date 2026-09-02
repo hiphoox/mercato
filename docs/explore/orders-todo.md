@@ -3,7 +3,7 @@ type: explore
 title: Orders Todo
 description: Backlog of the purchase a buyer makes on a listing and the order record it creates, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [orders, purchase, cart, checkout, escrow, todo, backlog, mvp]
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-02T00:00:00Z
 ---
 
 Working backlog for buying a listing. An order is its own entity with its own lifecycle, payment state, and authorization rules, so a capability belongs here rather than in [listings-todo.md](listings-todo.md) whenever it is the order that governs it.
@@ -30,7 +30,7 @@ _The card's add-to-cart control gathers into the cart from browse and from a sel
 
 5. [x] A cart holding listings from several sellers at once, grouped by seller
 6. [x] A visitor may fill a cart without an account; it survives their session, and becomes theirs if they sign in
-7. [ ] One checkout per seller group, since each group becomes its own order
+7. [x] One checkout per seller group, since each group becomes its own order — a seller naming no group of the buyer's is not a checkout and leads back to the cart
 8. [ ] What happens to a carted listing that sells to someone else first
 9. [ ] Cart retention: how long a listing stays in a cart before it is dropped
 
@@ -41,8 +41,8 @@ _The card's add-to-cart control gathers into the cart from browse and from a sel
 12. [ ] Buyer's fulfillment details captured at checkout where the instance requires them, prefilled from the account where there is one and editable — needs [users 44](users-todo.md) for somewhere to hold them and [shipping 5](shipping-todo.md) for what an address is
 13. [ ] Placing an order authorizes payment before the order exists, so an order is never created against a payment that failed — needs [payments 1](payments-todo.md)
 14. [ ] A listing that sold while the buyer was in checkout fails the purchase rather than overselling
-15. [ ] A visitor buys without creating an account, with account creation offered once the purchase is done
-16. [ ] What identifies a guest buyer on their order, and how they reach it afterwards without signing in
+15. [ ] A visitor buys without creating an account, with account creation offered once the purchase is done — reaching checkout without one is already built; placing the order is what is left
+16. [ ] What identifies a guest buyer on their order, and how they reach it afterwards without signing in — an email at the least, asked for at checkout and required before the order is placed
 
 ### The purchase through to completion
 

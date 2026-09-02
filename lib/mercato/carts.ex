@@ -16,6 +16,7 @@ defmodule Mercato.Carts do
     resource Mercato.Carts.CartItem do
       define :add_to_cart, action: :add, args: [:listing_id]
       define :list_cart, action: :list_mine
+      define :list_seller_cart, action: :list_for_seller, args: [:seller_id]
       define :set_cart_quantity, action: :set_quantity
       define :remove_from_cart, action: :remove
     end
@@ -71,6 +72,26 @@ defmodule Mercato.Carts do
         total: total(grouped)
       }
     end)
+  end
+
+  @doc """
+  One seller's group of the cart, or nil where the buyer has gathered nothing
+  from them.
+
+  What a checkout is for: a group is bought in one go and becomes one order, so
+  a checkout is addressed by the seller whose group it is rather than by the
+  cart. Nil covers a seller the buyer has nothing from and a seller that is not
+  one at all alike — neither is a group anyone could pay for, and a checkout
+  has nowhere to go in either case.
+
+  Built through `group_by_seller/1` so the figures a buyer weighed in the cart
+  are the same ones they are asked to pay.
+  """
+  def seller_group(seller_id, opts) do
+    seller_id
+    |> list_seller_cart!(opts)
+    |> group_by_seller()
+    |> List.first()
   end
 
   @doc """

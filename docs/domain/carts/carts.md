@@ -3,7 +3,7 @@ type: domain
 title: Carts
 description: Business rules for a buyer's cart — the lines it holds, the seller grouping it reads in, whose it is, and who may see one.
 tags: [domain, carts, buying, guest]
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-02T00:00:00Z
 ---
 
 A cart is what a buyer has gathered but not yet bought. It belongs to one person and holds one line per listing.
@@ -30,13 +30,19 @@ This is the opposite of an order, which copies the price at the moment of purcha
 
 A cart holds listings from any number of sellers at once, and reads as one group per seller. The grouping is not decoration: one seller's group is what becomes a single order, since one order covers one seller.
 
+## Checking out a group
+
+A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
+
+A checkout names the seller whose group it is. A seller the buyer has gathered nothing from names no group, and neither does a seller who does not exist — both lead back to the cart rather than to a checkout with nothing in it.
+
 ## What may be gathered
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
 
 ## Whose it is
 
-A cart belongs either to an account or to a visitor without one. An account is needed to buy a cart, not to gather one, so a visitor gathers against a token their browser holds for the visit.
+A cart belongs either to an account or to a visitor without one. An account is needed neither to gather a cart nor to check one out, so a visitor gathers against a token their browser holds for the visit and reaches a checkout with it.
 
 A line has one owner or the other, never both and never neither.
 
