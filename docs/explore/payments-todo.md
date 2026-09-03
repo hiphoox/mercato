@@ -3,12 +3,14 @@ type: explore
 title: Payments Todo
 description: Backlog of taking a buyer's money, holding it, and paying a seller out, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [payments, escrow, payouts, commission, todo, backlog, mvp]
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 Working backlog for the money in a purchase: charging the buyer, holding the funds while the order runs, and paying the seller out. What was bought and where it has got to is [orders-todo.md](orders-todo.md); this file covers only what happens to the money.
 
 Escrow is the defining trait of the marketplace this starter kit describes — a buyer's payment is held until delivery is confirmed rather than passed straight to the seller. That hold is what makes [disputes-todo.md](disputes-todo.md) meaningful, and it is why this is its own area rather than a step inside checkout.
+
+What the platform charges is built and no longer research: the seller deduction and buyer fee tables of items 20 and 21 are configured rows an operator manages, and the rules governing them live in [fees-and-deductions.md](../domain/settings/fees-and-deductions.md). What is missing is the money movement they describe — nothing yet deducts them from a real sale.
 
 The provider is an adapter behind a port, so an instance can charge through one processor and pay out through another, or through none at all — a marketplace listing free items still has orders — see [ports.md](../architecture/ports.md). Charging and paying out are separate concerns and get separate behaviours, per the interface-segregation rule in [principles.md](../architecture/principles.md).
 
@@ -40,6 +42,8 @@ Balances live in a double-entry ledger: every money movement is an immutable set
 11. [ ] Platform commission deducted when earnings become payable, calculated by a configured rule
 12. [ ] Seller requests a payout of their payable balance
 13. [ ] Payout history the seller can read
+20. [x] What is deducted from a seller's earnings held as named rows an admin manages — commission and tax alike — each a name and a value that is either a flat amount or a percentage naming what it is a percentage of (the sale price, or another row's amount), so a jurisdiction's tax stacked on the commission is one more configured row rather than a code change
+21. [x] A buyer-facing fee — protection or similar — held as its own named rows an admin manages, each a flat amount or a percentage of the sale price, added to what the buyer pays rather than taken from the seller; a marketplace charging none configures no rows
 
 ### Money handling
 

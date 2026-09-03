@@ -57,6 +57,7 @@ Flows referenced here are already specified in [commerce-ux-patterns.md](../arch
 25. [x] Draft auto-save so leaving the form does not lose work — the draft comes into being as soon as the form holds a title, a price and a category, and keeps itself from then on; a listing that has been on offer is saved only when the seller asks, so buyers never see a half-finished thought
 26. [x] Edit any field while `draft` or `active`
 27. [x] Publish and unpublish actions
+47. [ ] Net price breakdown shown before publish — every deduction row that applies and what the seller nets — snapshotted onto the listing at creation so a later change to the deduction table does not rewrite what an already-listed item owes — needs [payments 20](payments-todo.md)
 
 Publishing blocked on the seller's fulfillment prerequisites has moved to [orders-todo.md](orders-todo.md), which governs fulfillment.
 
@@ -100,7 +101,6 @@ Browse, search, filtering, and sorting are in [discovery-todo.md](discovery-todo
 ### Pricing
 
 46. [ ] Original-price field with strikethrough display
-47. [ ] Net-payout estimate shown before publish — needs [payments 11](payments-todo.md) for the commission rule
 
 ### Inventory & variants
 
