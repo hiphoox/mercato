@@ -11,7 +11,7 @@ Seed data is the baseline records a fresh database needs before anyone signs in 
 ## Layout
 
 - `priv/repo/seeds.exs` is the single entry point. It contains no seed data itself; it lists the concern files and the order they run in.
-- `priv/repo/seeds/<concern>.exs` holds the data for one concern. Today that is `accounts.exs` — roles, permissions, the grants between them, and sample traders — `fees.exs` — sample rows for what the marketplace deducts from a seller — and `listings.exs` — the category catalog, and a stock of listings for those traders to have on offer.
+- `priv/repo/seeds/<concern>.exs` holds the data for one concern. Today that is `accounts.exs` — roles, permissions, the grants between them, and sample traders — `fees.exs` — sample rows for what the marketplace deducts from a seller and adds to what a buyer pays — and `listings.exs` — the category catalog, and a stock of listings for those traders to have on offer.
 
 A new concern gets its own file and one added line in the entry point. When a concern depends on another's records — a listing needing a seller — the dependency is expressed by ordering the list, and the dependent file looks its prerequisites up rather than receiving them.
 
@@ -38,6 +38,10 @@ Fifty numbered accounts are seeded alongside them as bulk, holding no listings, 
 
 On top of those, a hundred numbered listings are seeded as bulk, all active, spread round-robin across the same five traders and every category, at random prices. They put several pages of results on the browse grid, so paging, sorting and filtering all have enough to work on.
 
-Three deduction rows are seeded ahead of the listings, one of each shape a deduction may take: a flat amount, a share of the sale, and a share of another row. They give the payout breakdown on the sell form and the fee tables in the admin area something to show, and every listing seeded after them copies them. What a buyer is charged on top is left empty, since nothing charges a buyer fee yet. These rows are dev-only: a fresh install charges nothing, and a deployment sets its own rates from the admin area.
+Three deduction rows are seeded ahead of the listings, one of each shape a deduction may take: a flat amount, a share of the sale, and a share of another row. They give the payout breakdown on the sell form and the fee tables in the admin area something to show, and every listing seeded after them copies them.
+
+Two buyer fee rows are seeded alongside them, one flat and one a share of the sale, which is every shape a buyer fee has. They give the total breakdown at checkout something to add on top of the items.
+
+All five rows are dev-only: a fresh install charges nothing, and a deployment sets its own rates from the admin area.
 
 A listing reaches its state the way a seller would reach it, so a paused one here has genuinely been published and paused. Photos are drawn rather than shipped: a flat-colour image is generated per photo and uploaded through the same gallery the app uploads with, which keeps binary files out of the repository and leaves a listing publishable. A described listing carries two photos, a numbered one carries a single photo.
