@@ -78,6 +78,7 @@ defmodule MercatoWeb.Router do
       scope "/admin" do
         live "/users", Admin.UsersLive
         live "/settings", Admin.SettingsLive
+        live "/fees", Admin.FeesLive
       end
     end
   end
