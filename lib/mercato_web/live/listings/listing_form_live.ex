@@ -24,6 +24,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.ChoiceChips
   import MercatoWeb.UI.ListingStatusBadge
+  import MercatoWeb.UI.MoneyBreakdown
 
   alias Mercato.Listings
   alias Mercato.Money
@@ -584,43 +585,22 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                 <%!-- Under the price rather than beside the publish button:
                       it is the consequence of the number just typed, and a
                       seller settles on a price by reading it. --%>
-                <div
+                <.money_breakdown
                   :if={@payout}
                   id="listing-payout"
-                  class="-mt-1 flex flex-col gap-1.5 pt-3.5 border-t border-ink-100 dark:border-ink-700"
+                  lines={@payout.lines}
+                  currency={Listings.currency()}
+                  total={@payout.net}
+                  total_label={gettext("You keep")}
+                  sign="−"
+                  class="-mt-1 pt-3.5 border-t border-ink-100 dark:border-ink-700"
                 >
-                  <dl class="flex flex-col gap-1.5">
-                    <div
-                      :for={line <- @payout.lines}
-                      class="flex items-baseline justify-between gap-3"
-                    >
-                      <%!-- The operator's own wording, shown as they typed
-                            it and never translated. --%>
-                      <dt class="min-w-0 text-caption-lg text-ink-500 break-words">{line.name}</dt>
-                      <dd class="shrink-0 text-caption-lg tabular-nums text-ink-500">
-                        −{Money.format(line.amount, Listings.currency())}
-                      </dd>
-                    </div>
-
-                    <%!-- Told apart from the deductions above it by weight
-                          rather than by a second rule, which on a card this
-                          narrow would read as another section. --%>
-                    <div class="flex items-baseline justify-between gap-3">
-                      <dt class="text-body-sm font-bold text-ink-900 dark:text-white">
-                        {gettext("You keep")}
-                      </dt>
-                      <dd class="text-body-sm font-extrabold tabular-nums text-ink-900 dark:text-white">
-                        {Money.format(@payout.net, Listings.currency())}
-                      </dd>
-                    </div>
-                  </dl>
-
-                  <p class="m-0 text-caption-md text-ink-500 text-pretty">
+                  <:note>
                     {gettext(
                       "Held from the moment you listed this, so a later change to what the marketplace charges leaves it alone."
                     )}
-                  </p>
-                </div>
+                  </:note>
+                </.money_breakdown>
 
                 <.input field={@form[:quantity]} type="number" label={gettext("Quantity")} min="0" />
                 <p class="-mt-1 text-caption-md text-ink-500">
