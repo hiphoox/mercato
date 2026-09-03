@@ -16,6 +16,7 @@ defmodule MercatoWeb.Admin.UsersLive do
   import MercatoWeb.UI.Breadcrumb
   import MercatoWeb.UI.Menu
   import MercatoWeb.UI.Pager
+  import MercatoWeb.UI.RecordList
 
   alias Mercato.Accounts
 
@@ -425,134 +426,84 @@ defmodule MercatoWeb.Admin.UsersLive do
           </button>
         </div>
 
-        <div
-          :if={@accounts == [] and not filtered?(@query, @status)}
-          class="py-14 px-6 text-center border border-ink-100 dark:border-ink-700 rounded-lg"
+        <.record_list
+          id="users"
+          rows={@accounts}
+          caption={gettext("User accounts with status and last activity")}
+          row_id={&"user-#{&1.id}"}
+          row_class={&dimmed/1}
         >
-          <p class="text-body-lg text-ink-500">
-            {gettext("No accounts exist on this platform yet.")}
-          </p>
-        </div>
+          <:col :let={account} label={gettext("User")} row_header>
+            <.identity account={account} size={40} />
+          </:col>
+          <:col
+            :let={account}
+            label={gettext("Email")}
+            class="hidden xl:table-cell"
+            cell_class={&["break-words", email_tone(&1)]}
+          >
+            {email(account)}
+          </:col>
+          <:col :let={account} label={gettext("Status")}>
+            <.badge kind={status_badge(account.status)}>{status_label(account.status)}</.badge>
+          </:col>
+          <:col :let={account} label={gettext("Role")} cell_class="whitespace-nowrap">
+            {role_label(account)}
+          </:col>
+          <:col
+            :let={account}
+            label={gettext("Last active")}
+            cell_class="whitespace-nowrap text-ink-500"
+          >
+            {last_active(account)}
+          </:col>
 
-        <div
-          :if={@accounts == [] and filtered?(@query, @status)}
-          class="flex flex-col items-center gap-3.5 py-12 px-6 border border-ink-100 dark:border-ink-700 rounded-lg"
-        >
-          <.icon name="hero-magnifying-glass" class="size-8 text-ink-300" />
-          <p class="max-w-[44ch] text-center text-body-md text-ink-700">
-            {gettext("No accounts match %{filters}.", filters: applied_summary(@query, @status))}
-          </p>
-        </div>
+          <:actions :let={%{row: account, prefix: prefix}}>
+            <.row_actions
+              account={account}
+              actionable={actionable?(assigns, account)}
+              deletable={deletable?(assigns, account)}
+              prefix={prefix}
+            />
+          </:actions>
 
-        <%!-- Table and card list are two renderings of one listing, so they share a
-              container and a single set of pagination controls. From md up the
-              container is the bordered card the table sits in; below that it is
-              transparent and each row card carries its own border. --%>
-        <div
-          :if={@accounts != []}
-          class="md:border md:border-ink-100 md:dark:border-ink-700 md:rounded-lg md:bg-white md:dark:bg-ink-900"
-        >
-          <div class="hidden md:block max-h-[min(58vh,520px)] overflow-y-auto rounded-t-lg">
-            <.table
-              id="users"
-              rows={@accounts}
-              caption={gettext("User accounts with status and last activity")}
-              row_id={&"user-#{&1.id}"}
-              row_class={&dimmed/1}
-            >
-              <:col :let={account} label={gettext("User")} row_header>
-                <.identity account={account} size={40} />
-              </:col>
-              <:col
-                :let={account}
-                label={gettext("Email")}
-                class="hidden xl:table-cell"
-                cell_class={&["break-words", email_tone(&1)]}
-              >
-                {email(account)}
-              </:col>
-              <:col :let={account} label={gettext("Status")}>
-                <.badge kind={status_badge(account.status)}>{status_label(account.status)}</.badge>
-              </:col>
-              <:col :let={account} label={gettext("Role")} cell_class="whitespace-nowrap">
-                {role_label(account)}
-              </:col>
-              <:col
-                :let={account}
-                label={gettext("Last active")}
-                cell_class="whitespace-nowrap text-ink-500"
-              >
-                {last_active(account)}
-              </:col>
-              <:action :let={account}>
-                <.row_actions
-                  account={account}
-                  actionable={actionable?(assigns, account)}
-                  deletable={deletable?(assigns, account)}
-                />
-              </:action>
-            </.table>
-          </div>
-
-          <div class="md:hidden flex flex-col gap-3">
+          <:empty>
             <div
-              :for={account <- @accounts}
-              id={"user-card-#{account.id}"}
-              class={[
-                "flex flex-col gap-3.5 p-4 rounded-lg border border-ink-100 dark:border-ink-700",
-                "bg-white dark:bg-ink-900",
-                dimmed(account)
-              ]}
+              :if={not filtered?(@query, @status)}
+              class="py-14 px-6 text-center border border-ink-100 dark:border-ink-700 rounded-lg"
             >
-              <div class="flex items-start justify-between gap-2">
-                <.identity account={account} size={44} />
-                <.row_actions
-                  account={account}
-                  actionable={actionable?(assigns, account)}
-                  deletable={deletable?(assigns, account)}
-                  prefix="card-"
-                />
-              </div>
-
-              <dl class="flex flex-col gap-2 text-body-sm text-ink-700 dark:text-ink-100">
-                <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">{gettext("Email")}</dt>
-                  <dd class={["min-w-0 break-words", email_tone(account)]}>{email(account)}</dd>
-                </div>
-                <div class="flex items-center gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">{gettext("Status")}</dt>
-                  <dd>
-                    <.badge kind={status_badge(account.status)}>
-                      {status_label(account.status)}
-                    </.badge>
-                  </dd>
-                </div>
-                <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">{gettext("Role")}</dt>
-                  <dd>{role_label(account)}</dd>
-                </div>
-                <div class="flex gap-2.5">
-                  <dt class="min-w-[88px] text-ink-500">{gettext("Last active")}</dt>
-                  <dd>{last_active(account)}</dd>
-                </div>
-              </dl>
+              <p class="text-body-lg text-ink-500">
+                {gettext("No accounts exist on this platform yet.")}
+              </p>
             </div>
-          </div>
+
+            <div
+              :if={filtered?(@query, @status)}
+              class="flex flex-col items-center gap-3.5 py-12 px-6 border border-ink-100 dark:border-ink-700 rounded-lg"
+            >
+              <.icon name="hero-magnifying-glass" class="size-8 text-ink-300" />
+              <p class="max-w-[44ch] text-center text-body-md text-ink-700">
+                {gettext("No accounts match %{filters}.", filters: applied_summary(@query, @status))}
+              </p>
+            </div>
+          </:empty>
 
           <%!-- The same control the browse grid pages with: an admin walking a
                 table and a buyer walking a shelf are doing the same thing. --%>
-          <.pager
-            page={@page}
-            pages={@last_page}
-            path={&users_path(query: @query, status: @status, page: &1)}
-            total={@total}
-            page_size={@page_size}
-            class={[
-              "pt-4 md:px-4 md:pt-3 md:pb-3",
-              "md:border-t md:border-ink-100 md:dark:border-ink-700"
-            ]}
-          />
-        </div>
+          <:footer>
+            <.pager
+              page={@page}
+              pages={@last_page}
+              path={&users_path(query: @query, status: @status, page: &1)}
+              total={@total}
+              page_size={@page_size}
+              class={[
+                "pt-4 md:px-4 md:pt-3 md:pb-3",
+                "md:border-t md:border-ink-100 md:dark:border-ink-700"
+              ]}
+            />
+          </:footer>
+        </.record_list>
       </div>
     </Layouts.app>
     """
