@@ -4,8 +4,13 @@ defmodule MercatoWeb.UI.Sheet do
 
   One markup tree, switched in CSS: a drawer down the right from `md` up, and a
   bottom sheet below it, where a thumb reaches the bottom of the screen more
-  easily than the side. Open state is client-only, so a sheet costs no assign
-  and no re-render.
+  easily than the side. Open state is client-only by default, so a sheet costs
+  no assign and no re-render.
+
+  A sheet holding a form is the exception: whether it stays open depends on
+  whether the save was taken, which only the server knows. Such a sheet is
+  given `open` and the server decides, so a refused save keeps the form and its
+  errors on screen instead of closing over them.
 
       <.button phx-click={show_sheet("filters")}>All filters</.button>
 
@@ -25,6 +30,15 @@ defmodule MercatoWeb.UI.Sheet do
   attr :id, :string, required: true
   attr :title, :string, required: true, doc: "the heading, and the dialog's accessible name"
   attr :class, :any, default: nil, doc: "classes for the panel"
+
+  attr :open, :boolean,
+    default: false,
+    doc: "renders it already open, for a sheet whose state the server owns rather than the client"
+
+  attr :on_close, JS,
+    default: %JS{},
+    doc: "what else closing does — how a server-owned sheet is told it has been closed"
+
   attr :rest, :global
 
   slot :inner_block, required: true
@@ -38,18 +52,18 @@ defmodule MercatoWeb.UI.Sheet do
         [
           # The `hidden` class, never the `hidden` attribute — preflight's
           # `display:none !important` would beat the display JS.show sets.
-          "hidden",
+          if(@open, do: "flex", else: "hidden"),
           "fixed inset-0 z-80 items-end justify-stretch md:items-stretch md:justify-end"
         ]
       }
-      phx-window-keydown={hide_sheet(@id)}
+      phx-window-keydown={hide_sheet(@on_close, @id)}
       phx-key="escape"
       {@rest}
     >
       <div
         id={"#{@id}-scrim"}
         aria-hidden="true"
-        phx-click={hide_sheet(@id)}
+        phx-click={hide_sheet(@on_close, @id)}
         class="absolute inset-0 bg-ink-900/45"
       >
       </div>
@@ -73,7 +87,7 @@ defmodule MercatoWeb.UI.Sheet do
             type="button"
             id={"#{@id}-close"}
             aria-label={gettext("Close")}
-            phx-click={hide_sheet(@id)}
+            phx-click={hide_sheet(@on_close, @id)}
             class={[
               "flex items-center justify-center size-11 flex-none rounded-md cursor-pointer",
               "text-ink-500 hover:bg-ink-100 hover:text-ink-900",

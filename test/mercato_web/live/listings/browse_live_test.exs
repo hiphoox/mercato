@@ -799,5 +799,19 @@ defmodule MercatoWeb.Listings.BrowseLiveTest do
 
       assert has_element?(view, "#add-to-cart-#{listing.id}")
     end
+
+    test "leaves it off the seller's own card, nobody buying from themselves", %{
+      conn: conn,
+      seller: seller
+    } do
+      mine = on_offer!(seller)
+      theirs = on_offer!(generate(user()))
+
+      {:ok, view, _html} = live(sign_in(conn, seller), ~p"/")
+
+      assert has_element?(view, "#browse-listing-#{mine.id}")
+      refute has_element?(view, "#add-to-cart-#{mine.id}")
+      assert has_element?(view, "#add-to-cart-#{theirs.id}")
+    end
   end
 end

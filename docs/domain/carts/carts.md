@@ -3,7 +3,7 @@ type: domain
 title: Carts
 description: Business rules for a buyer's cart — the lines it holds, the seller grouping it reads in, whose it is, and who may see one.
 tags: [domain, carts, buying, guest]
-timestamp: 2026-09-02T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 A cart is what a buyer has gathered but not yet bought. It belongs to one person and holds one line per listing.
@@ -34,6 +34,12 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
 
+A checkout reviews the group rather than offering a second cart: the same lines, with what each comes to and what the group comes to in total, and no way to change a quantity or drop a line without going back to the cart.
+
+The total is broken into what it is made of rather than shown as one number: what the items come to, then a line for each [buyer fee](../settings/fees-and-deductions.md) the marketplace charges on top, under the name the operator gave it. A row coming to nothing draws no line, a marketplace charging its buyers nothing showing the items and the total alone. The total is what the buyer pays, and nothing is added to it after this.
+
+Buying a single listing from its own page gathers it into the cart first and goes on to that seller's checkout. A buyer who already had something of that seller's finds it in the same checkout, one seller being one purchase however its lines were gathered.
+
 A checkout names the seller whose group it is. A seller whose group holds nothing buyable names no checkout, and neither does a seller who does not exist — both lead back to the cart, saying that what was there is no longer available. A group that emptied by lapsing is told apart from one that emptied any other way, and says that the cart cleared itself rather than that the goods went.
 
 ## When a listing stops being buyable
@@ -49,6 +55,14 @@ A listing its seller deletes outright leaves the carts holding it. There is noth
 ## What may be gathered
 
 Only a listing the buyer can see may be added. A draft or a paused listing cannot be gathered any more than it can be bought.
+
+A seller may not gather their own listing: nobody buys from themselves, and the money would be going where it came from. Their own storefront and their own card in a grid offer them no way to, and a line gathered before signing in is dropped when the account it turns out to belong to claims the cart.
+
+## What the count says
+
+Every page carries the cart control, and it counts what the buyer has gathered: quantities rather than lines, so a line of three counts three, and only what can still be bought. A cart holding nothing buyable counts nothing at all.
+
+Reading the count leaves a lapsed line where it is. The cart is what sweeps, so that a buyer meets the news on the page that can explain it rather than watching a figure fall on a page that cannot.
 
 ## How long a line keeps
 

@@ -16,10 +16,18 @@ defmodule Mercato.Listings.Listing do
   alias Mercato.Accounts.User.Checks.ActorHasPermission
   alias Mercato.Accounts.User.Status, as: SellerStatus
   alias Mercato.Listings.Listing.Calculations
+  alias Mercato.Payments.Deduction
+  alias Mercato.Payments.SellerDeduction
 
   sqlite do
     table "listings"
     repo Mercato.Repo
+
+    # The attribute's own default reads the deduction table, which no migration
+    # can express. Named here so the column carries one too: a listing written
+    # before the column existed deducted nothing, which is what an empty list
+    # says, and SQLite refuses to add a required column without one.
+    migration_defaults deductions: "[]"
   end
 
   json_api do
@@ -457,6 +465,17 @@ defmodule Mercato.Listings.Listing do
     attribute :currency, :string do
       allow_nil? false
       default &Mercato.Listings.currency/0
+      public? true
+    end
+
+    # What the marketplace deducted from a sale at the moment this was listed,
+    # copied for the same reason the currency above is stamped: an operator
+    # raising the commission changes what is listed from then on and leaves
+    # what is already on offer alone. Absent from every action's `accept`, so
+    # a seller can no more choose their own commission than their own currency.
+    attribute :deductions, {:array, Deduction} do
+      allow_nil? false
+      default &SellerDeduction.snapshot/0
       public? true
     end
 

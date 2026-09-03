@@ -79,7 +79,13 @@ config :ash_json_api, show_public_calculations_when_loaded?: false
 config :mercato,
   ecto_repos: [Mercato.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [Mercato.Carts, Mercato.Orders, Mercato.Listings, Mercato.Accounts],
+  ash_domains: [
+    Mercato.Payments,
+    Mercato.Carts,
+    Mercato.Orders,
+    Mercato.Listings,
+    Mercato.Accounts
+  ],
   ash_authentication: [return_error_on_invalid_magic_link_token?: true]
 
 # Configure the endpoint

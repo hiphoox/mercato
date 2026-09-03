@@ -3,7 +3,7 @@ type: domain
 title: Marketplace Settings
 description: The single set of values an operator tunes to fit what their marketplace sells, and what applies until they tune them.
 tags: [domain, settings, admin, configuration]
-timestamp: 2026-09-02T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 A marketplace runs on a handful of values that differ between instances: what it is priced in, what a listing may say about itself and show, how long a cart keeps an intention, how often an account may rename itself. They are held once for the whole platform and changed from the admin area.
@@ -11,6 +11,8 @@ A marketplace runs on a handful of values that differ between instances: what it
 ## One set for the platform
 
 There is a single set of settings, not one per seller, per category, or per listing. Every listing on an instance is priced in the same currency and offers the same conditions; a seller chooses among what the marketplace offers rather than extending it.
+
+What the platform charges on a sale is held separately, as tables of named rows rather than fields on this record — see [fees-and-deductions.md](fees-and-deductions.md).
 
 ## What applies before anything is set
 

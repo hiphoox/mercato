@@ -285,6 +285,36 @@ defmodule MercatoWeb.Layouts.AppHeaderTest do
              |> query("#app-cart")
              |> LazyHTML.attribute("href") == ["/cart"]
     end
+
+    test "counts what the buyer has gathered, on the control itself" do
+      assert [current_scope: %Scope{user: @user}, cart_count: 3]
+             |> query("#app-cart-count")
+             |> LazyHTML.text() =~ "3"
+    end
+
+    test "counts a visitor's cart the same way" do
+      assert [current_scope: %Scope{}, cart_count: 2]
+             |> query("#app-cart-count")
+             |> LazyHTML.text() =~ "2"
+    end
+
+    test "says nothing where nothing is gathered" do
+      assert [current_scope: %Scope{user: @user}, cart_count: 0]
+             |> query("#app-cart-count")
+             |> Enum.empty?()
+    end
+
+    test "stops counting past what the badge can hold" do
+      assert [current_scope: %Scope{user: @user}, cart_count: 140]
+             |> query("#app-cart-count")
+             |> LazyHTML.text() =~ "99+"
+    end
+
+    test "says the count in the control's own name, the badge being decoration" do
+      assert [current_scope: %Scope{user: @user}, cart_count: 3]
+             |> query("#app-cart")
+             |> LazyHTML.attribute("aria-label") == ["Cart, 3 items"]
+    end
   end
 
   describe "user menu" do

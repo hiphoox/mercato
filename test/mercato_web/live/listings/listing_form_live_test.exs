@@ -1438,4 +1438,80 @@ defmodule MercatoWeb.Listings.ListingFormLiveTest do
       assert view |> element("#listing-form") |> render() =~ "Saved automatically"
     end
   end
+
+  describe "what the sale would leave the seller" do
+    defp commission(rate_bp) do
+      Mercato.Payments.add_seller_deduction!(
+        %{name: "Commission", kind: :percentage, rate_bp: rate_bp},
+        authorize?: false
+      )
+    end
+
+    defp payout(view), do: view |> element("#listing-payout") |> render()
+
+    test "names each deduction and what is left over", %{conn: conn} do
+      commission(1000)
+      seller = generate(user())
+      listing = generate(listing(actor: seller, price: 42_000))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      assert payout(view) =~ "Commission"
+      assert payout(view) =~ "$42.00"
+      assert payout(view) =~ "$378.00"
+    end
+
+    test "follows the price as the seller retypes it", %{conn: conn} do
+      commission(1000)
+      seller = generate(user())
+      listing = generate(listing(actor: seller, price: 42_000))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      view |> form("#listing-form", listing: %{price: "100.00"}) |> render_change()
+
+      assert payout(view) =~ "$90.00"
+    end
+
+    test "says nothing where the marketplace deducts nothing", %{conn: conn} do
+      seller = generate(user())
+      listing = generate(listing(actor: seller, price: 42_000))
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      refute has_element?(view, "#listing-payout")
+    end
+
+    test "holds to the terms the listing was made under", %{conn: conn} do
+      commission = commission(1000)
+      seller = generate(user())
+      listing = generate(listing(actor: seller, price: 42_000))
+
+      Mercato.Payments.edit_seller_deduction!(commission, %{rate_bp: 5000}, authorize?: false)
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/#{listing.id}/edit")
+
+      assert payout(view) =~ "$378.00"
+    end
+
+    test "shows a new listing what the marketplace deducts today", %{conn: conn} do
+      commission(1000)
+      seller = generate(user())
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      view |> form("#listing-form", listing: %{price: "42.00"}) |> render_change()
+
+      assert payout(view) =~ "$37.80"
+    end
+
+    test "says nothing until there is a price to work from", %{conn: conn} do
+      commission(1000)
+      seller = generate(user())
+
+      {:ok, view, _html} = live(log_in(conn, seller), ~p"/listings/new")
+
+      refute has_element?(view, "#listing-payout")
+    end
+  end
 end

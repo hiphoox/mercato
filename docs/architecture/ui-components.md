@@ -3,7 +3,7 @@ type: architecture
 title: UI Components
 description: The rules every Mercato UI component follows, and the variant vocabulary components name their states from.
 tags: [ui, design, components]
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 See [design-tokens.md](design-tokens.md) for the color, spacing, and radius values referenced here, [ui-guidelines.md](ui-guidelines.md) for the principles behind them, and [liveview.md](liveview.md) for which tier a component belongs in.
@@ -37,6 +37,7 @@ A component's own anatomy — its slots, its states, what a variant means for it
 - Values arrive already formatted. A component that formatted money would have to know the record's currency.
 - A control hugs its content; filling the row it sits in is opt-in.
 - A component given a navigation target renders a link and renders a button otherwise, so one component covers acting and going somewhere.
+- Whether an overlay is open belongs to the browser, except where what closes it depends on an outcome only the server knows: an overlay holding a form is opened and closed by the server, so a refused save keeps the form and its errors on screen.
 - A collection that has never held anything and a filter matching nothing are two different empty states. The first explains how to start; the second names what is empty and offers a way back to everything.
 
 ## Accessibility baseline

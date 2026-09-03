@@ -19,6 +19,7 @@ defmodule Mercato.Carts.CartItem do
 
   alias Mercato.Carts.CartItem.Changes
   alias Mercato.Carts.CartItem.Preparations
+  alias Mercato.Carts.CartItem.Validations
 
   sqlite do
     table "cart_items"
@@ -78,6 +79,18 @@ defmodule Mercato.Carts.CartItem do
       prepare &load_carted_listing/2
     end
 
+    read :still_gathered do
+      description "The lines still inside the retention window, leaving the rest where they are."
+
+      argument :cutoff, :utc_datetime_usec do
+        allow_nil? false
+      end
+
+      filter expr(updated_at >= ^arg(:cutoff))
+
+      prepare &load_carted_listing/2
+    end
+
     read :list_for_seller do
       description "The lines one seller has in the buyer's cart — the group a checkout is for."
 
@@ -110,6 +123,11 @@ defmodule Mercato.Carts.CartItem do
 
       change Changes.AttachToBuyer
       change Changes.CopyFromListing
+
+      # After the listing is read and before the line is summed with one
+      # already there: it is the seller the listing named that decides this.
+      validate Validations.NotYourOwnListing
+
       change Changes.SumWithExistingLine
     end
 

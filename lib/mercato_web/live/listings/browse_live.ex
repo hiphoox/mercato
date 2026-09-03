@@ -265,6 +265,7 @@ defmodule MercatoWeb.Listings.BrowseLive do
       current_path={~p"/"}
       query={@query}
       categories={@search_categories}
+      cart_count={@cart_count}
       category={@filters[:category]}
     >
       <%!-- No breadcrumb: this is where the trail every other page draws
@@ -426,7 +427,9 @@ defmodule MercatoWeb.Listings.BrowseLive do
               <.badge kind="neutral">{Listings.condition_label(listing.condition)}</.badge>
             </:badges>
             <:meta>{seller_handle(listing)} · {listed_ago(listing)}</:meta>
-            <:corner>
+            <%!-- Off a seller's own card: gathering it would be refused, nobody
+                  buying from themselves. --%>
+            <:corner :if={!Listings.own?(listing, @current_scope.user)}>
               <.add_to_cart id={"add-to-cart-#{listing.id}"} listing_id={listing.id} />
             </:corner>
           </.listing_card>

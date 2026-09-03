@@ -28,7 +28,8 @@ defmodule MercatoWeb.Layouts.Sidebar do
   defp admin do
     [
       %{label: gettext("Users"), icon: "hero-users", navigate: "/admin/users"},
-      %{label: gettext("Settings"), icon: "hero-cog-6-tooth", navigate: "/admin/settings"}
+      %{label: gettext("Settings"), icon: "hero-cog-6-tooth", navigate: "/admin/settings"},
+      %{label: gettext("Fees"), icon: "hero-receipt-percent", navigate: "/admin/fees"}
     ]
   end
 

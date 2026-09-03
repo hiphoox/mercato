@@ -119,6 +119,18 @@ defmodule Mercato.Listings do
   """
   def image_types, do: Setting.get(:listing_image_types)
 
+  @doc """
+  Whether `viewer` is the seller of `listing`.
+
+  What a marketplace offers somebody about a listing turns on this: their own
+  listing is theirs to manage, and nobody buys from themselves.
+
+      iex> Mercato.Listings.own?(%{seller_id: "abc"}, %{id: "abc"})
+      true
+  """
+  def own?(%{seller_id: seller_id}, %{id: id}), do: seller_id == id
+  def own?(_listing, _viewer), do: false
+
   @doc "The largest image a listing's gallery accepts, in bytes."
   def image_max_bytes, do: Setting.get(:listing_image_max_bytes)
 

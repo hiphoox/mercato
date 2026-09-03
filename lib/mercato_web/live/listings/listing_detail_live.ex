@@ -4,7 +4,9 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   taking it costs.
 
   The page carries the whole decision and is also the buy surface, so the
-  gallery takes the room and the panel beside it holds the action. It is public
+  gallery takes the room and the panel beside it holds the action. Buying from
+  here gathers the listing into the cart and goes on to that seller's checkout,
+  so there is one way a purchase is put together rather than two. It is public
   — a visitor with no account reaches it — and the seller who owns the listing
   gets the same page with their own actions in the panel's slot, which is what
   makes it usable as a preview of what buyers see.
@@ -23,6 +25,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   import MercatoWeb.UI.SellerCard
 
   alias Mercato.Accounts
+  alias Mercato.Carts
   alias Mercato.Listings
   alias Mercato.Listings.Listing.Slug
 
@@ -100,12 +103,22 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
     {:noreply, update(socket, :description_expanded?, &(!&1))}
   end
 
-  # The buy surface is finished; what it starts is not. Saying so is better than
-  # a control that looks live and does nothing, and better than hiding the
-  # action the whole page is built around.
+  # Buying goes through the cart rather than around it: one line, gathered the
+  # ordinary way, and then the checkout for the seller whose it is. A buyer who
+  # already had something of that seller's finds it in the same checkout, which
+  # is right — one seller is one order however its lines were gathered.
   def handle_event("buy", _params, socket) do
-    {:noreply,
-     put_flash(socket, :error, "Checkout is not available yet — orders are still being built.")}
+    %{listing: listing, current_scope: scope} = socket.assigns
+
+    case Carts.add_to_cart(listing.id, %{}, scope: scope) do
+      {:ok, _line} ->
+        {:noreply, push_navigate(socket, to: ~p"/checkout?#{[seller: listing.seller_id]}")}
+
+      # Almost always a listing that stopped being available between the page
+      # being drawn and the button being pressed.
+      {:error, _refused} ->
+        {:noreply, put_flash(socket, :error, gettext("That could not be added to your cart."))}
+    end
   end
 
   def handle_event("publish", _params, socket) do
@@ -148,6 +161,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
     ~H"""
     <Layouts.app
       categories={@search_categories}
+      cart_count={@cart_count}
       flash={@flash}
       current_scope={@current_scope}
       current_path={@path}
@@ -270,7 +284,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
                 condition={Listings.condition_label(@listing.condition)}
                 status={@listing.status}
                 quantity={@listing.quantity}
-                owner?={owner?(@listing, @current_scope.user)}
+                owner?={Listings.own?(@listing, @current_scope.user)}
                 signed_in?={!is_nil(@current_scope.user)}
                 edit_path={~p"/listings/#{@listing.id}/edit"}
                 sold_at={@listing.updated_at}
@@ -304,11 +318,8 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
     """
   end
 
-  defp owner?(listing, %{id: id}), do: listing.seller_id == id
-  defp owner?(_listing, _viewer), do: false
-
   defp buyable?(listing, viewer) do
-    listing.status == :active and not owner?(listing, viewer)
+    listing.status == :active and not Listings.own?(listing, viewer)
   end
 
   # Draft and paused are worded apart on purpose: a draft was never public, and
@@ -316,7 +327,7 @@ defmodule MercatoWeb.Listings.ListingDetailLive do
   defp owner_banner(nil, _viewer), do: nil
 
   defp owner_banner(listing, viewer) do
-    if owner?(listing, viewer), do: banner(listing.status)
+    if Listings.own?(listing, viewer), do: banner(listing.status)
   end
 
   defp banner(:active) do

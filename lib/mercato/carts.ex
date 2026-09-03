@@ -18,6 +18,7 @@ defmodule Mercato.Carts do
       define :add_to_cart, action: :add, args: [:listing_id]
       define :list_cart, action: :list_mine
       define :list_seller_cart, action: :list_for_seller, args: [:seller_id]
+      define :list_still_gathered, action: :still_gathered, args: [:cutoff]
       define :list_lapsed_seller_cart, action: :lapsed_for_seller, args: [:seller_id, :cutoff]
       define :set_cart_quantity, action: :set_quantity
       define :remove_from_cart, action: :remove
@@ -84,7 +85,9 @@ defmodule Mercato.Carts do
   all, and grouped at all because each group is what becomes a single order.
 
   Each group carries what its lines come to, since a group is what a buyer
-  weighs and what they will eventually pay for in one go.
+  weighs and what they will eventually pay for in one go — both as a reading
+  and as the figure and currency behind it, so a checkout can go on to add
+  what the marketplace charges on top of the items.
   """
   def group_by_seller(lines) do
     lines
@@ -94,6 +97,8 @@ defmodule Mercato.Carts do
         seller: first.seller,
         lines: grouped,
         item_count: item_count(grouped),
+        amount: amount(grouped),
+        currency: currency(grouped),
         total: total(grouped),
         buyable?: Enum.all?(grouped, &line_buyable?/1)
       }
@@ -155,6 +160,20 @@ defmodule Mercato.Carts do
   end
 
   @doc """
+  How many things the buyer has gathered, for the header to show.
+
+  Read without sweeping what has lapsed: the count is drawn on every page, and
+  a page that is not the cart has no business clearing it out from under the
+  buyer. A line past the window counts for nothing here and is dropped the
+  next time the cart itself is read.
+  """
+  def gathered_count(opts) do
+    retention_cutoff()
+    |> list_still_gathered!(opts)
+    |> item_count()
+  end
+
+  @doc """
   What every line in the cart comes to, across sellers.
 
   One figure over a cart that is bought in several goes, so it is a summary
@@ -181,18 +200,22 @@ defmodule Mercato.Carts do
     |> Enum.sum_by(& &1.quantity)
   end
 
+  defp total(lines), do: Mercato.Money.format(amount(lines), currency(lines))
+
   # Read off the listings rather than off the lines, which hold no price: what
   # a listing costs is the listing's to say until a purchase agrees it.
-  #
-  # An empty cart is denominated in the marketplace's own currency, there being
-  # no listing to take one from.
-  defp total(lines) do
-    buyable = Enum.filter(lines, &line_buyable?/1)
-    amount = Enum.sum_by(buyable, &(&1.listing.price * &1.quantity))
-
-    Mercato.Money.format(amount, currency(buyable))
+  defp amount(lines) do
+    lines
+    |> Enum.filter(&line_buyable?/1)
+    |> Enum.sum_by(&(&1.listing.price * &1.quantity))
   end
 
-  defp currency([%{listing: listing} | _rest]), do: listing.currency
-  defp currency([]), do: Mercato.Listings.currency()
+  # An empty cart is denominated in the marketplace's own currency, there being
+  # no listing to take one from.
+  defp currency(lines) do
+    case Enum.filter(lines, &line_buyable?/1) do
+      [%{listing: listing} | _rest] -> listing.currency
+      [] -> Mercato.Listings.currency()
+    end
+  end
 end

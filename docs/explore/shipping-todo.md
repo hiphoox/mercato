@@ -3,7 +3,7 @@ type: explore
 title: Shipping Todo
 description: Backlog of getting a bought listing to its buyer, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [shipping, fulfillment, delivery, todo, backlog, mvp]
-timestamp: 2026-09-01T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 Working backlog for how a bought listing reaches its buyer. The order it belongs to is [orders-todo.md](orders-todo.md); this file covers only the fulfillment of it.
@@ -32,9 +32,9 @@ Carriers are adapters behind a port, so the default needs no external account �
 
 ### Cost
 
-8. [ ] Fulfillment cost as its own line on the checkout breakdown rather than folded into the price
+8. [ ] Fulfillment cost as its own line on the checkout breakdown rather than folded into the price — the breakdown is built and reads the items and the buyer fees already, so this is one more line to add to it — see [orders 11](orders-todo.md)
 9. [ ] Who pays it — buyer, seller, or split — decided by configuration
-10. [ ] A method that costs nothing shows no line, so a free or digital instance has no empty row
+10. [ ] A method that costs nothing shows no line, so a free or digital instance has no empty row — the breakdown already drops a line that comes to nothing, so this is a matter of the cost being read as such
 
 ## NICE TO HAVE — Phase 2
 

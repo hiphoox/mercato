@@ -3,7 +3,7 @@ type: domain
 title: Listings
 description: Business rules for the Listing entity — ownership, price, quantity, category, condition, lifecycle state, and who may see or change one.
 tags: [domain, listings, marketplace, pricing, categories, identifiers, visibility]
-timestamp: 2026-09-02T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 A listing is what a seller publishes for a buyer to buy. The term is deliberately generic: the same entity covers physical goods, services, and rentals.
@@ -31,6 +31,14 @@ A listing carries a title and an optional longer description. The title is requi
 A price is required and is at least one minor unit, so nothing is listed for free. It is held as a whole number of the currency's minor units — cents for a currency with hundredths, whole units for one without. Prices are never held as fractional amounts, so sums, fees, and payout splits stay exact rather than drifting by fractions of a unit.
 
 The marketplace runs on a single currency. It is set for the whole instance and is not a per-listing choice; a seller has no say in it. Each listing records the currency in force when it was created, so a stored price stays unambiguous even if the instance is later reconfigured.
+
+## What a sale leaves the seller
+
+Every listing carries a copy of what the marketplace deducts from a seller's earnings, taken as the listing is created. The copy holds each deduction's name, what it takes, and what a percentage is charged on — the same rows described in [what a marketplace charges](../settings/fees-and-deductions.md).
+
+The copy is the listing's own from then on. An operator adding, changing, or removing a deduction governs what a listing created afterwards carries, and leaves every listing already made as it stands. A seller has no say in the copy and no way to supply one; a listing created on a marketplace deducting nothing carries an empty one, and its seller keeps the whole sale price.
+
+What the seller nets is the price less what that copy takes, read against the price as it currently stands, so repricing the listing moves it. The seller is shown each deduction and what is left over while the listing is being composed, before it goes on offer.
 
 ## Quantity
 

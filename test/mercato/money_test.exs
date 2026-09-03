@@ -87,4 +87,71 @@ defmodule Mercato.MoneyTest do
       assert Money.to_minor("-5.00") == :error
     end
   end
+
+  describe "percent/1" do
+    test "reads basis points back as a percentage a person writes" do
+      assert Money.percent(250) == "2.5%"
+    end
+
+    test "drops the decimals a whole percentage does not need" do
+      assert Money.percent(1000) == "10%"
+    end
+
+    test "keeps the fraction of a percent a small rate is made of" do
+      assert Money.percent(5) == "0.05%"
+    end
+
+    test "reads nothing back for a rate that has not been set" do
+      assert Money.percent(nil) == nil
+    end
+  end
+
+  describe "rate/1" do
+    test "reads basis points back with no percent sign on the end" do
+      assert Money.rate(250) == "2.5"
+      assert Money.rate(1000) == "10"
+      assert Money.rate(nil) == nil
+    end
+  end
+
+  describe "to_basis_points/1" do
+    test "reads a typed percentage as the basis points a rate stores" do
+      assert Money.to_basis_points("2.5") == {:ok, 250}
+      assert Money.to_basis_points("10") == {:ok, 1000}
+      assert Money.to_basis_points("0.05") == {:ok, 5}
+    end
+
+    test "ignores the spaces a person leaves around what they typed" do
+      assert Money.to_basis_points("  2.5  ") == {:ok, 250}
+    end
+
+    test "refuses more precision than a basis point holds, rather than rounding it away" do
+      assert Money.to_basis_points("2.555") == :error
+    end
+
+    test "refuses a rate that is not a number" do
+      assert Money.to_basis_points("abc") == :error
+      assert Money.to_basis_points("") == :error
+      assert Money.to_basis_points("-2.5") == :error
+    end
+  end
+
+  describe "apply_rate/2" do
+    test "takes a rate of an amount" do
+      assert Money.apply_rate(10_000, 250) == 250
+    end
+
+    test "rounds a half minor unit up rather than losing it" do
+      assert Money.apply_rate(1010, 250) == 25
+      assert Money.apply_rate(1030, 250) == 26
+    end
+
+    test "takes nothing at all for a rate of nothing" do
+      assert Money.apply_rate(10_000, 0) == 0
+    end
+
+    test "takes the whole amount for a rate of everything" do
+      assert Money.apply_rate(10_000, 10_000) == 10_000
+    end
+  end
 end

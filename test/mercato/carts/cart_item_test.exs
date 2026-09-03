@@ -57,6 +57,15 @@ defmodule Mercato.Carts.CartItemTest do
       assert {:error, %Ash.Error.Invalid{}} = Carts.add_to_cart(draft.id, %{}, actor: ctx.buyer)
     end
 
+    test "refuses the seller their own listing, nobody buying from themselves", ctx do
+      listing = offered_listing(ctx.seller)
+
+      assert {:error, %Ash.Error.Invalid{}} =
+               Carts.add_to_cart(listing.id, %{}, actor: ctx.seller)
+
+      assert Carts.list_cart!(actor: ctx.seller) == []
+    end
+
     test "refuses a visitor carrying nothing to be told apart by", ctx do
       listing = offered_listing(ctx.seller)
 
@@ -132,6 +141,18 @@ defmodule Mercato.Carts.CartItemTest do
 
       assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
       assert group.total == "$70.00"
+    end
+
+    test "carries that total as a figure too, for what is added on top of it", ctx do
+      one = offered_listing(ctx.seller, price: 1500, quantity: 5)
+      two = offered_listing(ctx.seller, price: 4000)
+
+      {:ok, _} = Carts.add_to_cart(one.id, %{quantity: 2}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(two.id, %{}, actor: ctx.buyer)
+
+      assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
+      assert group.amount == 7000
+      assert group.currency == Mercato.Listings.currency()
     end
 
     test "totals one line at its listing's price, as many times as it is wanted", ctx do
@@ -361,6 +382,22 @@ defmodule Mercato.Carts.CartItemTest do
     test "is untroubled by a visitor who gathered nothing", ctx do
       assert :ok = Carts.claim_cart(ctx.buyer, Carts.new_guest_token())
       assert cart_lines(ctx.buyer) == []
+    end
+  end
+
+  describe "a listing the buyer turns out to be the seller of" do
+    test "is dropped when they sign in, a sign-in failing over nothing", ctx do
+      mine = offered_listing(ctx.seller)
+      theirs = offered_listing(generate(user()))
+      visitor = Scope.for_user(nil, "guest-token-of-the-seller")
+
+      {:ok, _} = Carts.add_to_cart(mine.id, %{}, scope: visitor)
+      {:ok, _} = Carts.add_to_cart(theirs.id, %{}, scope: visitor)
+
+      :ok = Carts.claim_cart(ctx.seller, "guest-token-of-the-seller")
+
+      assert [line] = Carts.list_cart!(actor: ctx.seller)
+      assert line.listing_id == theirs.id
     end
   end
 
