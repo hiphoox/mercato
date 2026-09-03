@@ -3,7 +3,7 @@ type: domain
 title: Carts
 description: Business rules for a buyer's cart — the lines it holds, the seller grouping it reads in, whose it is, and who may see one.
 tags: [domain, carts, buying, guest]
-timestamp: 2026-09-02T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 A cart is what a buyer has gathered but not yet bought. It belongs to one person and holds one line per listing.
@@ -34,7 +34,9 @@ A cart holds listings from any number of sellers at once, and reads as one group
 
 A checkout covers one seller's group. A cart holding three sellers is checked out three times, each with its own total and each becoming its own order, and no total across sellers is ever charged.
 
-A checkout reviews the group rather than offering a second cart: the same lines, with what each comes to and what the group comes to in total, and no way to change a quantity or drop a line without going back to the cart. The total covers the items and nothing else.
+A checkout reviews the group rather than offering a second cart: the same lines, with what each comes to and what the group comes to in total, and no way to change a quantity or drop a line without going back to the cart.
+
+The total is broken into what it is made of rather than shown as one number: what the items come to, then a line for each [buyer fee](../settings/fees-and-deductions.md) the marketplace charges on top, under the name the operator gave it. A row coming to nothing draws no line, a marketplace charging its buyers nothing showing the items and the total alone. The total is what the buyer pays, and nothing is added to it after this.
 
 Buying a single listing from its own page gathers it into the cart first and goes on to that seller's checkout. A buyer who already had something of that seller's finds it in the same checkout, one seller being one purchase however its lines were gathered.
 

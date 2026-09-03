@@ -3,7 +3,7 @@ type: explore
 title: Orders Todo
 description: Backlog of the purchase a buyer makes on a listing and the order record it creates, split into Phase 1 MVP musts and Phase 2 nice-to-haves.
 tags: [orders, purchase, cart, checkout, escrow, todo, backlog, mvp]
-timestamp: 2026-09-02T00:00:00Z
+timestamp: 2026-09-03T00:00:00Z
 ---
 
 Working backlog for buying a listing. An order is its own entity with its own lifecycle, payment state, and authorization rules, so a capability belongs here rather than in [listings-todo.md](listings-todo.md) whenever it is the order that governs it.
@@ -37,7 +37,7 @@ _The card's add-to-cart control gathers into the cart from browse and from a sel
 ### Checkout
 
 10. [x] Checkout reached either from a listing's buy action or from a seller group in the cart, stating what is being bought, from whom, and at what total
-11. [ ] Checkout totals broken into their parts — item price, fulfillment cost where there is one, and any buyer-facing fee row that applies — rather than one opaque number, with a row configured at zero showing no line — needs [shipping 8](shipping-todo.md) for the fulfillment line and [payments 21](payments-todo.md) for the fee rows
+11. [x] Checkout totals broken into their parts — the item price, and any buyer-facing fee row that applies under the name the operator gave it — rather than one opaque number, with a row coming to nothing showing no line; what fulfillment costs is a line of the same kind and is [shipping 8](shipping-todo.md), which adds itself to this breakdown
 12. [ ] Buyer's fulfillment details captured at checkout where the instance requires them, prefilled from the account where there is one and editable — needs [users 44](users-todo.md) for somewhere to hold them and [shipping 5](shipping-todo.md) for what an address is
 13. [ ] Placing an order authorizes payment before the order exists, so an order is never created against a payment that failed — needs [payments 1](payments-todo.md)
 14. [ ] A listing that sold while the buyer was in checkout fails the purchase rather than overselling

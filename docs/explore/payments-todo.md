@@ -94,5 +94,6 @@ Balances live in a double-entry ledger: every money movement is an immutable set
 | [disputes-todo.md](disputes-todo.md) | A dispute decides the fate of held funds; without a hold it decides nothing. Mutual |
 | [offers-todo.md](offers-todo.md) | An offer commits a buyer to a price, which is only binding if it can be charged |
 | [listings-todo.md](listings-todo.md) | The net-payout estimate shown before publish needs the deduction rows. Satisfied: a listing copies them as it is created |
+| [orders-todo.md](orders-todo.md) | The checkout breakdown needs the buyer fee rows to draw a line for. Satisfied: a checkout reads them on what the items come to |
 | [users-todo.md](users-todo.md) | Payout account details, and the credit a referral issues |
 | [admin-todo.md](admin-todo.md) | A seller's balance and payout history to display, and the commission rule to make editable |

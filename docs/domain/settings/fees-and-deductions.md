@@ -35,6 +35,8 @@ A buyer fee that is a percentage is always a percentage of the sale price. A buy
 
 Seller deductions come off what a seller is paid. Buyer fees are added to the sale price at checkout, so the buyer pays more rather than the seller receiving less.
 
+A buyer reads the fees they are charged as lines of their own beside what the items come to, so what they are paying is broken into its parts rather than shown as one number — see [checking out a group](../carts/carts.md).
+
 Both tables are read on a sale of a given price as a set of lines — one per row, in the order the rows were added — and the total they come to. Nothing is capped: rows adding up to more than the sale read as a total larger than the price rather than a number quietly trimmed to fit.
 
 A listing takes its own copy of the seller table as it is created, and what that listing owes is read against the copy rather than against the table. Changing the table governs what is listed from then on — see [what a sale leaves the seller](../listings/listings.md).

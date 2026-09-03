@@ -143,6 +143,18 @@ defmodule Mercato.Carts.CartItemTest do
       assert group.total == "$70.00"
     end
 
+    test "carries that total as a figure too, for what is added on top of it", ctx do
+      one = offered_listing(ctx.seller, price: 1500, quantity: 5)
+      two = offered_listing(ctx.seller, price: 4000)
+
+      {:ok, _} = Carts.add_to_cart(one.id, %{quantity: 2}, actor: ctx.buyer)
+      {:ok, _} = Carts.add_to_cart(two.id, %{}, actor: ctx.buyer)
+
+      assert [group] = ctx.buyer |> cart_lines() |> Carts.group_by_seller()
+      assert group.amount == 7000
+      assert group.currency == Mercato.Listings.currency()
+    end
+
     test "totals one line at its listing's price, as many times as it is wanted", ctx do
       listing = offered_listing(ctx.seller, price: 1500, quantity: 5)
       {:ok, _} = Carts.add_to_cart(listing.id, %{quantity: 3}, actor: ctx.buyer)
