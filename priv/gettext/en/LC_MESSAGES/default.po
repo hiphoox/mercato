@@ -99,7 +99,7 @@ msgid_plural "%{count} photos"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:515
+#: lib/mercato_web/live/listings/listing_form_live.ex:533
 #, elixir-autogen, elixir-format
 msgid "About the item"
 msgstr ""
@@ -137,7 +137,7 @@ msgstr ""
 msgid "Admin"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:534
+#: lib/mercato_web/live/listings/listing_form_live.ex:552
 #, elixir-autogen, elixir-format
 msgid "Age, materials, dimensions, any marks or repairs."
 msgstr ""
@@ -219,7 +219,7 @@ msgid "Cart"
 msgstr ""
 
 #: lib/mercato_web/components/ui/facet_controls.ex:268
-#: lib/mercato_web/live/listings/listing_form_live.ex:574
+#: lib/mercato_web/live/listings/listing_form_live.ex:630
 #, elixir-autogen, elixir-format
 msgid "Category"
 msgstr ""
@@ -229,12 +229,12 @@ msgstr ""
 msgid "Change photo"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:262
+#: lib/mercato_web/live/listings/listing_form_live.ex:266
 #, elixir-autogen, elixir-format
 msgid "Changes discarded."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:299
+#: lib/mercato_web/live/listings/listing_form_live.ex:303
 #, elixir-autogen, elixir-format
 msgid "Changes saved."
 msgstr ""
@@ -250,7 +250,7 @@ msgid "Clear filters"
 msgstr ""
 
 #: lib/mercato_web/components/ui/facet_controls.ex:270
-#: lib/mercato_web/live/listings/listing_form_live.ex:581
+#: lib/mercato_web/live/listings/listing_form_live.ex:637
 #, elixir-autogen, elixir-format
 msgid "Condition"
 msgstr ""
@@ -329,7 +329,7 @@ msgstr ""
 msgid "Delete my account"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:675
+#: lib/mercato_web/live/listings/listing_form_live.ex:731
 #, elixir-autogen, elixir-format
 msgid "Delete this listing"
 msgstr ""
@@ -354,12 +354,12 @@ msgstr ""
 msgid "Deleting…"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:532
+#: lib/mercato_web/live/listings/listing_form_live.ex:550
 #, elixir-autogen, elixir-format
 msgid "Description"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:617
+#: lib/mercato_web/live/listings/listing_form_live.ex:673
 #, elixir-autogen, elixir-format
 msgid "Discard changes"
 msgstr ""
@@ -374,7 +374,7 @@ msgstr ""
 msgid "Draft"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:298
+#: lib/mercato_web/live/listings/listing_form_live.ex:302
 #, elixir-autogen, elixir-format
 msgid "Draft saved."
 msgstr ""
@@ -384,14 +384,14 @@ msgstr ""
 msgid "Drafts"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:708
+#: lib/mercato_web/live/listings/listing_form_live.ex:779
 #: lib/mercato_web/live/listings/my_listings_live.ex:42
 #: lib/mercato_web/live/listings/my_listings_live.ex:53
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:719
+#: lib/mercato_web/live/listings/listing_form_live.ex:790
 #, elixir-autogen, elixir-format
 msgid "Edit listing"
 msgstr ""
@@ -417,7 +417,7 @@ msgstr ""
 msgid "Every listing you have is in another state."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:722
+#: lib/mercato_web/live/listings/listing_form_live.ex:793
 #, elixir-autogen, elixir-format
 msgid "Everything on one page. Leave whenever you like — a draft keeps your place."
 msgstr ""
@@ -462,7 +462,7 @@ msgstr ""
 #: lib/mercato_web/components/layouts/sidebar.ex:18
 #: lib/mercato_web/live/carts/cart_live.ex:99
 #: lib/mercato_web/live/checkout/checkout_live.ex:109
-#: lib/mercato_web/live/listings/listing_form_live.ex:713
+#: lib/mercato_web/live/listings/listing_form_live.ex:784
 #: lib/mercato_web/live/listings/my_listings_live.ex:172
 #: lib/mercato_web/live/profile/profile_live.ex:79
 #, elixir-autogen, elixir-format
@@ -558,7 +558,7 @@ msgstr ""
 msgid "Manage your profile and security"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:568
+#: lib/mercato_web/live/listings/listing_form_live.ex:624
 #, elixir-autogen, elixir-format
 msgid "Most sellers list one of a kind."
 msgstr ""
@@ -602,7 +602,7 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:718
+#: lib/mercato_web/live/listings/listing_form_live.ex:789
 #: lib/mercato_web/live/listings/my_listings_live.ex:182
 #, elixir-autogen, elixir-format
 msgid "New listing"
@@ -640,7 +640,7 @@ msgstr ""
 msgid "None yet"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:583
+#: lib/mercato_web/live/listings/listing_form_live.ex:639
 #, elixir-autogen, elixir-format
 msgid "Not stated"
 msgstr ""
@@ -670,7 +670,7 @@ msgstr ""
 msgid "Only one image at a time."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:733
+#: lib/mercato_web/live/listings/listing_form_live.ex:804
 #, elixir-autogen, elixir-format
 msgid "Only you can see this listing until you publish it."
 msgstr ""
@@ -680,7 +680,7 @@ msgstr ""
 msgid "Optional here, but a photo is the first thing a buyer looks at. The first one is the cover shown everywhere else."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:537
+#: lib/mercato_web/live/listings/listing_form_live.ex:555
 #, elixir-autogen, elixir-format
 msgid "Optional, but buyers ask fewer questions when this is thorough."
 msgstr ""
@@ -703,7 +703,7 @@ msgstr ""
 msgid "Pause"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:652
+#: lib/mercato_web/live/listings/listing_form_live.ex:708
 #, elixir-autogen, elixir-format
 msgid "Pause this listing"
 msgstr ""
@@ -734,12 +734,12 @@ msgstr ""
 msgid "Photos, a price, and a short description are all it takes."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:552
+#: lib/mercato_web/live/listings/listing_form_live.ex:570
 #, elixir-autogen, elixir-format
 msgid "Price (%{symbol})"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:547
+#: lib/mercato_web/live/listings/listing_form_live.ex:565
 #, elixir-autogen, elixir-format
 msgid "Price and stock"
 msgstr ""
@@ -755,13 +755,13 @@ msgstr ""
 msgid "Publish"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:738
-#: lib/mercato_web/live/listings/listing_form_live.ex:739
+#: lib/mercato_web/live/listings/listing_form_live.ex:809
+#: lib/mercato_web/live/listings/listing_form_live.ex:810
 #, elixir-autogen, elixir-format
 msgid "Publish listing"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:566
+#: lib/mercato_web/live/listings/listing_form_live.ex:622
 #, elixir-autogen, elixir-format
 msgid "Quantity"
 msgstr ""
@@ -781,7 +781,7 @@ msgstr ""
 msgid "Relist"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:638
+#: lib/mercato_web/live/listings/listing_form_live.ex:694
 #, elixir-autogen, elixir-format
 msgid "Relist this listing"
 msgstr ""
@@ -831,12 +831,12 @@ msgstr ""
 msgid "Role"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:606
+#: lib/mercato_web/live/listings/listing_form_live.ex:662
 #, elixir-autogen, elixir-format
 msgid "Save and finish later"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:740
+#: lib/mercato_web/live/listings/listing_form_live.ex:811
 #, elixir-autogen, elixir-format
 msgid "Save changes"
 msgstr ""
@@ -851,7 +851,7 @@ msgstr ""
 msgid "Save name"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:589
+#: lib/mercato_web/live/listings/listing_form_live.ex:645
 #, elixir-autogen, elixir-format
 msgid "Save or publish"
 msgstr ""
@@ -861,7 +861,7 @@ msgstr ""
 msgid "Saved %{when} · %{photos}"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:623
+#: lib/mercato_web/live/listings/listing_form_live.ex:679
 #, elixir-autogen, elixir-format
 msgid "Saved automatically as you type, so you can leave whenever you like."
 msgstr ""
@@ -874,7 +874,7 @@ msgstr ""
 msgid "Saving…"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:526
+#: lib/mercato_web/live/listings/listing_form_live.ex:544
 #, elixir-autogen, elixir-format
 msgid "Say what it is first, then the detail that matters most."
 msgstr ""
@@ -915,7 +915,7 @@ msgstr ""
 msgid "Sell an item"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:714
+#: lib/mercato_web/live/listings/listing_form_live.ex:785
 #: lib/mercato_web/live/listings/my_listings_live.ex:173
 #, elixir-autogen, elixir-format
 msgid "Selling"
@@ -1061,50 +1061,50 @@ msgstr ""
 msgid "That is all %{max} of them"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:252
+#: lib/mercato_web/live/listings/listing_form_live.ex:256
 #: lib/mercato_web/live/listings/my_listings_live.ex:115
 #, elixir-autogen, elixir-format
 msgid "That listing could not be paused."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:219
+#: lib/mercato_web/live/listings/listing_form_live.ex:223
 #: lib/mercato_web/live/listings/my_listings_live.ex:105
 #, elixir-autogen, elixir-format
 msgid "That listing could not be removed."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:303
+#: lib/mercato_web/live/listings/listing_form_live.ex:307
 #: lib/mercato_web/live/listings/my_listings_live.ex:125
 #, elixir-autogen, elixir-format
 msgid "That listing could not go back on offer."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:312
+#: lib/mercato_web/live/listings/listing_form_live.ex:316
 #, elixir-autogen, elixir-format
 msgid "That listing could not go on offer."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:76
+#: lib/mercato_web/live/listings/listing_form_live.ex:79
 #, elixir-autogen, elixir-format
 msgid "That listing has sold, so it can no longer be changed."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:86
+#: lib/mercato_web/live/listings/listing_form_live.ex:90
 #, elixir-autogen, elixir-format
 msgid "That listing is not one of yours."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:429
+#: lib/mercato_web/live/listings/listing_form_live.ex:433
 #, elixir-autogen, elixir-format
 msgid "That photo %{problem}."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:434
+#: lib/mercato_web/live/listings/listing_form_live.ex:438
 #, elixir-autogen, elixir-format
 msgid "That photo could not be added."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:190
+#: lib/mercato_web/live/listings/listing_form_live.ex:194
 #, elixir-autogen, elixir-format
 msgid "That photo could not be made the cover."
 msgstr ""
@@ -1114,37 +1114,37 @@ msgstr ""
 msgid "The first photo is the cover buyers see everywhere. Daylight and a plain background sell faster."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:229
+#: lib/mercato_web/live/listings/listing_form_live.ex:233
 #, elixir-autogen, elixir-format
 msgid "This listing is back on offer."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:174
+#: lib/mercato_web/live/listings/listing_form_live.ex:178
 #, elixir-autogen, elixir-format
 msgid "This listing is not ready yet — see what is marked below."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:726
+#: lib/mercato_web/live/listings/listing_form_live.ex:797
 #, elixir-autogen, elixir-format
 msgid "This listing is on offer, so saved changes are visible to buyers immediately."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:246
+#: lib/mercato_web/live/listings/listing_form_live.ex:250
 #, elixir-autogen, elixir-format
 msgid "This listing is paused. Buyers cannot see it until you relist it."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:730
+#: lib/mercato_web/live/listings/listing_form_live.ex:801
 #, elixir-autogen, elixir-format
 msgid "This listing is paused. Changes are saved, and buyers see them when you relist."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:613
+#: lib/mercato_web/live/listings/listing_form_live.ex:669
 #, elixir-autogen, elixir-format
 msgid "Throw away everything you have changed here?"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:521
+#: lib/mercato_web/live/listings/listing_form_live.ex:539
 #, elixir-autogen, elixir-format
 msgid "Title"
 msgstr ""
@@ -1261,7 +1261,7 @@ msgstr ""
 msgid "Your first listing starts here"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:284
+#: lib/mercato_web/live/listings/listing_form_live.ex:288
 #, elixir-autogen, elixir-format
 msgid "Your listing is on offer."
 msgstr ""
@@ -1286,7 +1286,7 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:523
+#: lib/mercato_web/live/listings/listing_form_live.ex:541
 #, elixir-autogen, elixir-format
 msgid "e.g. Eames-style lounge chair, walnut"
 msgstr ""
@@ -1326,13 +1326,13 @@ msgstr ""
 msgid "“%{title}” was paused."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:213
+#: lib/mercato_web/live/listings/listing_form_live.ex:217
 #: lib/mercato_web/live/listings/my_listings_live.ex:100
 #, elixir-autogen, elixir-format
 msgid "“%{title}” was removed."
 msgstr ""
 
-#: lib/mercato_web/live/listings/listing_form_live.ex:668
+#: lib/mercato_web/live/listings/listing_form_live.ex:724
 #, elixir-autogen, elixir-format
 msgid "“%{title}” will be taken off Mercato, along with its photos. This cannot be undone."
 msgstr ""
@@ -2208,4 +2208,14 @@ msgstr ""
 #: lib/mercato_web/live/admin/fees_live.ex:64
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Remove this fee"
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:616
+#, elixir-autogen, elixir-format
+msgid "Held from the moment you listed this, so a later change to what the marketplace charges leaves it alone."
+msgstr ""
+
+#: lib/mercato_web/live/listings/listing_form_live.ex:607
+#, elixir-autogen, elixir-format
+msgid "You keep"
 msgstr ""

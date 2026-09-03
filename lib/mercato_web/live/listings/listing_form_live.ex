@@ -27,6 +27,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   alias Mercato.Listings
   alias Mercato.Money
+  alias Mercato.Payments.Deduction
+  alias Mercato.Payments.SellerDeduction
 
   on_mount {MercatoWeb.LiveUserAuth, :live_user_required}
 
@@ -64,6 +66,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
   defp load_listing(%{assigns: %{live_action: :new}} = socket, _params) do
     socket
     |> assign(:listing, nil)
+    |> assign_deductions()
     |> assign_form()
   end
 
@@ -79,6 +82,7 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       {:ok, listing} ->
         socket
         |> assign(:listing, listing)
+        |> assign_deductions()
         |> assign_form()
 
       {:error, _reason} ->
@@ -458,8 +462,20 @@ defmodule MercatoWeb.Listings.ListingFormLive do
     socket
     |> assign(:listing, listing)
     |> assign(:gallery_error, nil)
+    |> assign_deductions()
     |> assign_form()
   end
+
+  # What this listing owes: the copy it took when it was made, so an operator
+  # raising the commission since then leaves what is on screen alone. A listing
+  # that does not exist yet owes what the marketplace deducts today, which is
+  # the copy it will take the moment it becomes a draft.
+  defp assign_deductions(socket) do
+    assign(socket, :deductions, deductions(socket.assigns.listing))
+  end
+
+  defp deductions(nil), do: SellerDeduction.snapshot()
+  defp deductions(%{deductions: deductions}), do: deductions
 
   # Only a listing just made needs its address changed. Patched rather than
   # navigated, so the page stays and keeps what the save had to say.
@@ -471,6 +487,8 @@ defmodule MercatoWeb.Listings.ListingFormLive do
 
   @impl true
   def render(assigns) do
+    assigns = assign(assigns, :payout, payout(assigns))
+
     ~H"""
     <Layouts.app
       categories={@search_categories}
@@ -561,6 +579,47 @@ defmodule MercatoWeb.Listings.ListingFormLive do
                     placeholder="0.00"
                     required
                   />
+                </div>
+
+                <%!-- Under the price rather than beside the publish button:
+                      it is the consequence of the number just typed, and a
+                      seller settles on a price by reading it. --%>
+                <div
+                  :if={@payout}
+                  id="listing-payout"
+                  class="-mt-1 flex flex-col gap-1.5 pt-3.5 border-t border-ink-100 dark:border-ink-700"
+                >
+                  <dl class="flex flex-col gap-1.5">
+                    <div
+                      :for={line <- @payout.lines}
+                      class="flex items-baseline justify-between gap-3"
+                    >
+                      <%!-- The operator's own wording, shown as they typed
+                            it and never translated. --%>
+                      <dt class="min-w-0 text-caption-lg text-ink-500 break-words">{line.name}</dt>
+                      <dd class="shrink-0 text-caption-lg tabular-nums text-ink-500">
+                        −{Money.format(line.amount, Listings.currency())}
+                      </dd>
+                    </div>
+
+                    <%!-- Told apart from the deductions above it by weight
+                          rather than by a second rule, which on a card this
+                          narrow would read as another section. --%>
+                    <div class="flex items-baseline justify-between gap-3">
+                      <dt class="text-body-sm font-bold text-ink-900 dark:text-white">
+                        {gettext("You keep")}
+                      </dt>
+                      <dd class="text-body-sm font-extrabold tabular-nums text-ink-900 dark:text-white">
+                        {Money.format(@payout.net, Listings.currency())}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <p class="m-0 text-caption-md text-ink-500 text-pretty">
+                    {gettext(
+                      "Held from the moment you listed this, so a later change to what the marketplace charges leaves it alone."
+                    )}
+                  </p>
                 </div>
 
                 <.input field={@form[:quantity]} type="number" label={gettext("Quantity")} min="0" />
@@ -682,6 +741,21 @@ defmodule MercatoWeb.Listings.ListingFormLive do
       </div>
     </Layouts.app>
     """
+  end
+
+  # What the sale would leave the seller at the price as it currently reads.
+  # Nothing where the marketplace deducts nothing, and nothing where there is
+  # no price yet to work from — neither has anything to explain, and a price
+  # the form is already refusing is not one to do arithmetic on.
+  defp payout(%{deductions: []}), do: nil
+
+  defp payout(%{deductions: deductions, form: form, listing: listing}) do
+    with typed when is_binary(typed) <- price(form, listing),
+         {:ok, price} when price > 0 <- Money.to_minor(typed) do
+      Deduction.breakdown(deductions, price)
+    else
+      _no_price -> nil
+    end
   end
 
   # What the seller typed wins over what is stored, so the re-render that
