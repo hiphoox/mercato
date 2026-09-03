@@ -22,6 +22,10 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
 
   defp fee(attrs), do: Payments.add_buyer_fee!(attrs, authorize?: false)
 
+  # The panel is one markup tree either way; open is what its own class says,
+  # not what anything inside it happens to be styled with.
+  defp open?(view, sheet), do: has_element?(view, "##{sheet}.flex")
+
   describe "access" do
     test "redirects a signed-out visitor to sign-in", %{conn: conn} do
       assert {:error, {:redirect, %{to: "/sign-in"}}} = live(conn, ~p"/admin/fees")
@@ -83,6 +87,8 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
     test "adds a flat deduction typed in major units", %{conn: conn} do
       {:ok, view, _html} = open(conn)
 
+      view |> element("#add-seller-deduction") |> render_click()
+
       assert view
              |> form("#seller-deduction-form",
                seller_deduction: %{"name" => "Listing fee", "kind" => "flat", "amount" => "1.99"}
@@ -95,6 +101,8 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
 
     test "adds a percentage deduction typed as a percentage", %{conn: conn} do
       {:ok, view, _html} = open(conn)
+
+      view |> element("#add-seller-deduction") |> render_click()
 
       # Picking the kind is what reveals the field it takes: an operator is
       # asked for an amount or a percentage, never both.
@@ -117,6 +125,8 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
 
       {:ok, view, _html} = open(conn)
 
+      view |> element("#add-seller-deduction") |> render_click()
+
       view
       |> form("#seller-deduction-form", seller_deduction: %{"kind" => "percentage"})
       |> render_change()
@@ -137,6 +147,8 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
 
     test "adds a buyer fee", %{conn: conn} do
       {:ok, view, _html} = open(conn)
+
+      view |> element("#add-buyer-fee") |> render_click()
 
       view
       |> form("#buyer-fee-form",
@@ -162,6 +174,61 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
     end
   end
 
+  describe "the form panel" do
+    test "stays shut until an operator asks to add something", %{conn: conn} do
+      {:ok, view, _html} = open(conn)
+
+      refute open?(view, "seller-deduction-sheet")
+    end
+
+    test "opens on the add control", %{conn: conn} do
+      {:ok, view, _html} = open(conn)
+
+      view |> element("#add-seller-deduction") |> render_click()
+
+      assert open?(view, "seller-deduction-sheet")
+      refute open?(view, "buyer-fee-sheet")
+    end
+
+    test "closes once the row is saved", %{conn: conn} do
+      {:ok, view, _html} = open(conn)
+
+      view |> element("#add-seller-deduction") |> render_click()
+
+      view
+      |> form("#seller-deduction-form",
+        seller_deduction: %{"name" => "Listing fee", "kind" => "flat", "amount" => "1.99"}
+      )
+      |> render_submit()
+
+      refute open?(view, "seller-deduction-sheet")
+    end
+
+    test "stays open when the save is refused, so the errors are read where they were typed",
+         %{conn: conn} do
+      {:ok, view, _html} = open(conn)
+
+      view |> element("#add-seller-deduction") |> render_click()
+
+      view
+      |> form("#seller-deduction-form",
+        seller_deduction: %{"name" => "Listing fee", "kind" => "flat", "amount" => "a lot"}
+      )
+      |> render_submit()
+
+      assert open?(view, "seller-deduction-sheet")
+    end
+
+    test "closing it tells the server, so it does not spring back open", %{conn: conn} do
+      {:ok, view, _html} = open(conn)
+
+      view |> element("#add-seller-deduction") |> render_click()
+      view |> element("#seller-deduction-sheet-close") |> render_click()
+
+      refute open?(view, "seller-deduction-sheet")
+    end
+  end
+
   describe "editing a row" do
     test "loads the row into the form and saves what is changed", %{conn: conn} do
       row = deduction(%{name: "Commission", kind: :percentage, rate_bp: 1000})
@@ -172,6 +239,7 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
 
       assert html =~ "Commission"
       assert html =~ ~s(value="10")
+      assert open?(view, "seller-deduction-sheet")
 
       view
       |> form("#seller-deduction-form",
@@ -182,14 +250,25 @@ defmodule MercatoWeb.Admin.FeesLiveTest do
       assert [%{rate_bp: 750}] = Payments.list_seller_deductions!(authorize?: false)
     end
 
-    test "goes back to adding when the edit is cancelled", %{conn: conn} do
+    test "goes back to adding when the edit is closed", %{conn: conn} do
       row = deduction(%{name: "Commission", kind: :percentage, rate_bp: 1000})
 
       {:ok, view, _html} = open(conn)
 
       view |> element("#edit-seller-deduction-#{row.id}") |> render_click()
+      view |> element("#seller-deduction-sheet-close") |> render_click()
+      view |> element("#add-seller-deduction") |> render_click()
 
-      assert view |> element("#cancel-seller-deduction") |> render_click() =~ "Add a deduction"
+      refute view |> element("#seller-deduction-form") |> render() =~ "Commission"
+    end
+
+    test "offers the same row actions on the cards a narrow screen reads", %{conn: conn} do
+      row = deduction(%{name: "Commission", kind: :percentage, rate_bp: 1000})
+
+      {:ok, view, _html} = open(conn)
+
+      assert has_element?(view, "#edit-card-seller-deduction-#{row.id}")
+      assert has_element?(view, "#remove-card-seller-deduction-#{row.id}")
     end
   end
 

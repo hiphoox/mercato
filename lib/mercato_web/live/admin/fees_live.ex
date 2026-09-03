@@ -8,14 +8,21 @@ defmodule MercatoWeb.Admin.FeesLive do
   are the same shape of thing, and which of them a marketplace charges is its
   own business. A fresh install charges none and the tables are empty.
 
-  Each table has one form under it, adding a row or editing the one an operator
-  picked. Amounts are typed the way a person writes money and rates the way
-  they write a percentage; both are stored as integers.
+  Each table's rows carry the actions that change them, and adding or editing
+  one opens a panel holding the form. The panel's state is the server's rather
+  than the browser's, so a save that is refused keeps the form and its errors
+  on screen instead of closing over them.
+
+  Amounts are typed the way a person writes money and rates the way they write
+  a percentage; both are stored as integers.
   """
 
   use MercatoWeb, :live_view
 
   import MercatoWeb.UI.Breadcrumb
+  import MercatoWeb.UI.Menu
+  import MercatoWeb.UI.RecordList
+  import MercatoWeb.UI.Sheet
 
   alias Mercato.Accounts.Setting
   alias Mercato.Money
@@ -42,6 +49,7 @@ defmodule MercatoWeb.Admin.FeesLive do
         empty: gettext("Nothing is deducted. A seller keeps the whole sale price."),
         add: gettext("Add a deduction"),
         edit: gettext("Edit this deduction"),
+        remove: gettext("Remove this deduction"),
         stackable?: true
       },
       %{
@@ -53,6 +61,7 @@ defmodule MercatoWeb.Admin.FeesLive do
         empty: gettext("Nothing is charged. A buyer pays the sale price and no more."),
         add: gettext("Add a fee"),
         edit: gettext("Edit this fee"),
+        remove: gettext("Remove this fee"),
         stackable?: false
       }
     ]
@@ -66,6 +75,7 @@ defmodule MercatoWeb.Admin.FeesLive do
      socket
      |> assign(:currency, Setting.get(:currency))
      |> assign(:editing, %{seller: nil, buyer: nil})
+     |> assign(:open, nil)
      |> load_rows()
      |> assign_forms()}
   end
@@ -167,6 +177,7 @@ defmodule MercatoWeb.Admin.FeesLive do
         {:noreply,
          socket
          |> put_flash(:info, saved(section))
+         |> assign(:open, nil)
          |> stop_editing(section.key)}
 
       # The fields carry the detail. The flash is there because the operator
@@ -180,18 +191,27 @@ defmodule MercatoWeb.Admin.FeesLive do
     end
   end
 
+  def handle_event("add", %{"section" => key}, socket) do
+    key = String.to_existing_atom(key)
+
+    {:noreply, socket |> assign(:open, key) |> stop_editing(key)}
+  end
+
   def handle_event("edit", %{"section" => key, "id" => id}, socket) do
     key = String.to_existing_atom(key)
     row = Enum.find(socket.assigns.rows[key], &(&1.id == id))
 
     {:noreply,
      socket
+     |> assign(:open, key)
      |> assign(:editing, Map.put(socket.assigns.editing, key, row))
      |> assign_forms()}
   end
 
-  def handle_event("cancel", %{"section" => key}, socket) do
-    {:noreply, stop_editing(socket, String.to_existing_atom(key))}
+  # The panel closes itself in the browser; this is how the server hears about
+  # it, so a later render does not put back what the operator dismissed.
+  def handle_event("close", %{"section" => key}, socket) do
+    {:noreply, socket |> assign(:open, nil) |> stop_editing(String.to_existing_atom(key))}
   end
 
   def handle_event("remove", %{"section" => key, "id" => id}, socket) do
@@ -203,6 +223,7 @@ defmodule MercatoWeb.Admin.FeesLive do
         {:noreply,
          socket
          |> put_flash(:info, removed(section(key)))
+         |> assign(:open, nil)
          |> stop_editing(key)}
 
       {:error, _reason} ->
@@ -247,6 +268,17 @@ defmodule MercatoWeb.Admin.FeesLive do
     do: gettext("That deduction stays while another deduction is a percentage of it.")
 
   defp undroppable(%{key: :buyer}), do: gettext("That fee could not be removed.")
+
+  defp actions_label(%{key: :seller}, row), do: gettext("Actions for %{name}", name: row.name)
+  defp actions_label(%{key: :buyer}, row), do: gettext("Actions for %{name}", name: row.name)
+
+  defp confirm(%{key: :seller}, row) do
+    gettext("%{name} will stop being deducted from what a seller is paid.", name: row.name)
+  end
+
+  defp confirm(%{key: :buyer}, row) do
+    gettext("%{name} will stop being added to what a buyer pays.", name: row.name)
+  end
 
   # What a field shows before anybody has typed in it: the row being edited,
   # rendered the way it was typed rather than the way it is stored.
@@ -306,118 +338,150 @@ defmodule MercatoWeb.Admin.FeesLive do
         </.header>
       </div>
 
-      <div class="flex flex-col items-center gap-8 max-w-[720px] mx-auto py-8">
-        <.card :for={section <- sections()} class="w-full flex flex-col gap-5">
-          <div>
-            <h2 class="text-title-lg font-bold text-ink-900">{section.title}</h2>
-            <p class="text-caption-lg text-ink-500 mt-0.5">{section.hint}</p>
+      <div class="flex flex-col gap-10 max-w-[860px] mx-auto py-8">
+        <section :for={section <- sections()} class="flex flex-col gap-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-title-lg font-bold text-ink-900 dark:text-white">{section.title}</h2>
+              <p class="text-caption-lg text-ink-500 mt-0.5">{section.hint}</p>
+            </div>
+            <.button
+              id={"add-#{section.dom}"}
+              size="sm"
+              variant="primary"
+              phx-click="add"
+              phx-value-section={section.key}
+            >
+              {section.add}
+            </.button>
           </div>
 
-          <p
-            :if={@rows[section.key] == []}
-            id={"#{section.dom}s-empty"}
-            class="text-body-sm text-ink-500"
-          >
-            {section.empty}
-          </p>
-
-          <.table
-            :if={@rows[section.key] != []}
+          <.record_list
             id={"#{section.dom}s"}
             rows={@rows[section.key]}
             caption={section.title}
             row_id={&"#{section.dom}-#{&1.id}"}
           >
-            <:col :let={row} label={gettext("Name")} row_header>{row.name}</:col>
+            <:col :let={row} label={gettext("Name")} row_header>
+              <span class="font-semibold text-ink-900 dark:text-white">{row.name}</span>
+            </:col>
             <:col :let={row} label={gettext("Takes")}>{shown(row, @currency)}</:col>
             <:col :let={row} :if={section.stackable?} label={gettext("Of")}>
               {basis(row, @rows[section.key])}
             </:col>
-            <:action :let={row}>
-              <button
-                id={"edit-#{section.dom}-#{row.id}"}
-                type="button"
-                phx-click="edit"
-                phx-value-section={section.key}
-                phx-value-id={row.id}
-                class="text-body-sm font-semibold text-primary-700 hover:text-primary-600 underline cursor-pointer"
-              >
-                {gettext("Edit")}
-              </button>
-              <button
-                id={"remove-#{section.dom}-#{row.id}"}
-                type="button"
-                phx-click="remove"
-                phx-value-section={section.key}
-                phx-value-id={row.id}
-                class="text-body-sm font-semibold text-error hover:opacity-80 underline cursor-pointer"
-              >
-                {gettext("Remove")}
-              </button>
-            </:action>
-          </.table>
 
-          <.form
-            :let={form}
-            id={"#{section.dom}-form"}
-            for={@forms[section.key]}
-            phx-change="validate"
-            phx-submit="save"
-            class="flex flex-col gap-5 pt-2 border-t border-ink-100 dark:border-ink-700"
+            <:actions :let={%{row: row, prefix: prefix}}>
+              <.menu
+                id={"#{section.dom}-actions-#{prefix}#{row.id}"}
+                trigger_class="hover:bg-bg-2 dark:hover:bg-ink-700"
+              >
+                <:trigger>
+                  <span class="flex items-center justify-center size-9">
+                    <.icon
+                      name="hero-ellipsis-vertical"
+                      class="size-5 text-ink-700 dark:text-ink-100"
+                    />
+                    <span class="sr-only">{actions_label(section, row)}</span>
+                  </span>
+                </:trigger>
+                <.menu_item
+                  id={"edit-#{prefix}#{section.dom}-#{row.id}"}
+                  role="menuitem"
+                  icon="hero-pencil-square"
+                  label={section.edit}
+                  phx-click="edit"
+                  phx-value-section={section.key}
+                  phx-value-id={row.id}
+                />
+                <%!-- Separated from the edit above it: that one is reversible
+                      by editing again, this one is not. --%>
+                <div class="my-1 border-t border-ink-100 dark:border-ink-700"></div>
+                <.menu_item
+                  id={"remove-#{prefix}#{section.dom}-#{row.id}"}
+                  role="menuitem"
+                  icon="hero-trash"
+                  label={section.remove}
+                  variant={:danger}
+                  phx-click="remove"
+                  phx-value-section={section.key}
+                  phx-value-id={row.id}
+                  data-confirm={confirm(section, row)}
+                />
+              </.menu>
+            </:actions>
+
+            <:empty>
+              <div
+                id={"#{section.dom}s-empty"}
+                class="py-11 px-6 text-center border border-ink-100 dark:border-ink-700 rounded-lg"
+              >
+                <p class="text-body-lg text-ink-500">{section.empty}</p>
+              </div>
+            </:empty>
+          </.record_list>
+
+          <.sheet
+            id={"#{section.dom}-sheet"}
+            title={if @editing[section.key], do: section.edit, else: section.add}
+            open={@open == section.key}
+            on_close={JS.push("close", value: %{section: section.key})}
           >
-            <h3 class="text-title-md font-bold text-ink-900">
-              {if @editing[section.key], do: section.edit, else: section.add}
-            </h3>
+            <.form
+              :let={form}
+              id={"#{section.dom}-form"}
+              for={@forms[section.key]}
+              phx-change="validate"
+              phx-submit="save"
+              class="flex flex-col gap-5"
+            >
+              <.input
+                field={form[:name]}
+                type="text"
+                value={value(@forms[section.key], @editing[section.key], :name)}
+                label={gettext("Name")}
+              />
 
-            <.input
-              field={form[:name]}
-              type="text"
-              value={value(@forms[section.key], @editing[section.key], :name)}
-              label={gettext("Name")}
-            />
+              <.input
+                field={form[:kind]}
+                type="select"
+                value={value(@forms[section.key], @editing[section.key], :kind)}
+                options={kinds()}
+                label={gettext("Takes")}
+              />
 
-            <.input
-              field={form[:kind]}
-              type="select"
-              value={value(@forms[section.key], @editing[section.key], :kind)}
-              options={kinds()}
-              label={gettext("Takes")}
-            />
+              <.input
+                :if={value(@forms[section.key], @editing[section.key], :kind) == "flat"}
+                field={form[:amount]}
+                type="text"
+                inputmode="decimal"
+                value={value(@forms[section.key], @editing[section.key], :amount)}
+                placeholder="0.00"
+                label={gettext("Amount (%{symbol})", symbol: Money.symbol(@currency))}
+              />
 
-            <.input
-              :if={value(@forms[section.key], @editing[section.key], :kind) == "flat"}
-              field={form[:amount]}
-              type="text"
-              inputmode="decimal"
-              value={value(@forms[section.key], @editing[section.key], :amount)}
-              placeholder="0.00"
-              label={gettext("Amount (%{symbol})", symbol: Money.symbol(@currency))}
-            />
+              <.input
+                :if={value(@forms[section.key], @editing[section.key], :kind) == "percentage"}
+                field={form[:rate_bp]}
+                type="text"
+                inputmode="decimal"
+                value={value(@forms[section.key], @editing[section.key], :rate_bp)}
+                placeholder="0"
+                label={gettext("Percentage (%)")}
+              />
 
-            <.input
-              :if={value(@forms[section.key], @editing[section.key], :kind) == "percentage"}
-              field={form[:rate_bp]}
-              type="text"
-              inputmode="decimal"
-              value={value(@forms[section.key], @editing[section.key], :rate_bp)}
-              placeholder="0"
-              label={gettext("Percentage (%)")}
-            />
+              <.input
+                :if={
+                  section.stackable? and
+                    value(@forms[section.key], @editing[section.key], :kind) == "percentage"
+                }
+                field={form[:of_id]}
+                type="select"
+                value={value(@forms[section.key], @editing[section.key], :of_id)}
+                prompt={gettext("Sale price")}
+                options={bases(@rows[section.key], @editing[section.key])}
+                label={gettext("Of")}
+              />
 
-            <.input
-              :if={
-                section.stackable? and
-                  value(@forms[section.key], @editing[section.key], :kind) == "percentage"
-              }
-              field={form[:of_id]}
-              type="select"
-              value={value(@forms[section.key], @editing[section.key], :of_id)}
-              prompt={gettext("Sale price")}
-              options={bases(@rows[section.key], @editing[section.key])}
-              label={gettext("Of")}
-            />
-
-            <div class="flex gap-3">
               <.button
                 type="submit"
                 variant="primary"
@@ -426,19 +490,9 @@ defmodule MercatoWeb.Admin.FeesLive do
               >
                 {if @editing[section.key], do: section.edit, else: section.add}
               </.button>
-              <.button
-                :if={@editing[section.key]}
-                id={"cancel-#{section.dom}"}
-                type="button"
-                variant="secondary"
-                phx-click="cancel"
-                phx-value-section={section.key}
-              >
-                {gettext("Cancel")}
-              </.button>
-            </div>
-          </.form>
-        </.card>
+            </.form>
+          </.sheet>
+        </section>
       </div>
     </Layouts.app>
     """
