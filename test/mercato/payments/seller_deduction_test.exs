@@ -4,6 +4,7 @@ defmodule Mercato.Payments.SellerDeductionTest do
   import Mercato.TestGenerators
 
   alias Mercato.Payments
+  alias Mercato.Payments.Deduction
   alias Mercato.Payments.SellerDeduction
 
   defp error_for(%Ash.Error.Invalid{errors: errors}, field) do
@@ -107,9 +108,41 @@ defmodule Mercato.Payments.SellerDeductionTest do
     end
   end
 
+  describe "snapshot/0" do
+    test "copies nothing where the marketplace has configured no rows" do
+      assert SellerDeduction.snapshot() == []
+    end
+
+    test "copies each row as it stands, in the order they are applied" do
+      flat("Listing fee", 99)
+      percentage("Commission", 1000)
+
+      assert [
+               %Deduction{name: "Listing fee", kind: :flat, amount: 99},
+               %Deduction{name: "Commission", kind: :percentage, rate_bp: 1000}
+             ] = SellerDeduction.snapshot()
+    end
+
+    test "names what a row is a percentage of rather than pointing at it" do
+      commission = percentage("Commission", 1000)
+      percentage("VAT", 2100, of: commission)
+
+      assert [%Deduction{of: nil}, %Deduction{name: "VAT", of: "Commission"}] =
+               SellerDeduction.snapshot()
+    end
+
+    test "is what a sale is broken down against, so the two agree" do
+      commission = percentage("Commission", 1000)
+      percentage("VAT", 2100, of: commission)
+
+      assert Deduction.breakdown(SellerDeduction.snapshot(), 10_000) ==
+               SellerDeduction.breakdown(10_000)
+    end
+  end
+
   describe "breakdown/1" do
     test "deducts nothing from a marketplace that has configured no rows" do
-      assert SellerDeduction.breakdown(10_000) == %{lines: [], total: 0}
+      assert SellerDeduction.breakdown(10_000) == %{lines: [], total: 0, net: 10_000}
     end
 
     test "takes a flat row whatever the sale came to" do

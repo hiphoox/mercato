@@ -19,8 +19,8 @@ defmodule Mercato.Payments.SellerDeduction do
     authorizers: [Ash.Policy.Authorizer]
 
   alias Mercato.Accounts.User.Checks.ActorHasPermission
-  alias Mercato.Money
   alias Mercato.Payments
+  alias Mercato.Payments.Deduction
   alias Mercato.Payments.SellerDeduction.Validations
 
   @editable [:name, :kind, :amount, :rate_bp, :of_id]
@@ -140,49 +140,34 @@ defmodule Mercato.Payments.SellerDeduction do
   end
 
   @doc """
+  The configured rows as they stand, in the order they are applied.
+
+  A copy rather than the rows themselves, so whatever is priced against it
+  carries the terms it was priced under: see `Mercato.Payments.Deduction`.
+  """
+  def snapshot do
+    rows = Payments.list_seller_deductions!(authorize?: false)
+    names = Map.new(rows, &{&1.id, &1.name})
+
+    Enum.map(rows, fn row ->
+      Deduction.new!(
+        name: row.name,
+        kind: row.kind,
+        amount: row.amount,
+        rate_bp: row.rate_bp,
+        of: names[row.of_id]
+      )
+    end)
+  end
+
+  @doc """
   What the configured rows take off a sale of `sale_price` minor units.
 
-  Returns each row as a line of its own, in the order the rows are applied, and
-  the total they come to. The lines are what a seller is shown; the total is
-  what comes off what they are paid.
-
-  Nothing is capped: a marketplace that has configured rows adding up to more
-  than the sale is told so by a total larger than the price, rather than by a
-  number quietly trimmed to fit.
+  Read against the rows as they stand now, which is what an operator weighing
+  a change to them wants. What a listing already on offer owes is read against
+  the copy it took, not against this.
   """
   def breakdown(sale_price) when is_integer(sale_price) do
-    rows = Payments.list_seller_deductions!(authorize?: false)
-    amounts = amounts(rows, sale_price)
-    lines = Enum.map(rows, &%{name: &1.name, amount: Map.fetch!(amounts, &1.id)})
-
-    %{lines: lines, total: lines |> Enum.map(& &1.amount) |> Enum.sum()}
-  end
-
-  defp amounts(rows, sale_price) do
-    by_id = Map.new(rows, &{&1.id, &1})
-
-    Enum.reduce(rows, %{}, &resolve(&1, by_id, sale_price, &2))
-  end
-
-  # A row that is a percentage of another needs that one's amount first, so the
-  # rows are resolved by following what they name rather than by their order.
-  # The chain always ends, `BasisNotCircular` having refused one that loops.
-  defp resolve(row, by_id, sale_price, amounts) do
-    cond do
-      Map.has_key?(amounts, row.id) ->
-        amounts
-
-      row.kind == :flat ->
-        Map.put(amounts, row.id, row.amount)
-
-      is_nil(row.of_id) ->
-        Map.put(amounts, row.id, Money.apply_rate(sale_price, row.rate_bp))
-
-      true ->
-        amounts = resolve(Map.fetch!(by_id, row.of_id), by_id, sale_price, amounts)
-        base = Map.fetch!(amounts, row.of_id)
-
-        Map.put(amounts, row.id, Money.apply_rate(base, row.rate_bp))
-    end
+    Deduction.breakdown(snapshot(), sale_price)
   end
 end

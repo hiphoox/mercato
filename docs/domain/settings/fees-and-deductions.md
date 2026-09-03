@@ -37,6 +37,8 @@ Seller deductions come off what a seller is paid. Buyer fees are added to the sa
 
 Both tables are read on a sale of a given price as a set of lines — one per row, in the order the rows were added — and the total they come to. Nothing is capped: rows adding up to more than the sale read as a total larger than the price rather than a number quietly trimmed to fit.
 
+A listing takes its own copy of the seller table as it is created, and what that listing owes is read against the copy rather than against the table. Changing the table governs what is listed from then on — see [what a sale leaves the seller](../listings/listings.md).
+
 Amounts are held in the currency's minor units and rates in hundredths of a percent, both as whole numbers, so what is taken is arithmetic that never rounds twice. A share of an amount rounds a half unit up.
 
 ## Who may change them
