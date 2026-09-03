@@ -141,3 +141,9 @@ msgstr ""
 
 msgid "account is not active"
 msgstr ""
+
+msgid "would make a deduction a percentage of itself"
+msgstr ""
+
+msgid "is what another deduction is a percentage of"
+msgstr ""
