@@ -4,6 +4,7 @@ defmodule MercatoWeb.UI.SheetTest do
   import Phoenix.LiveViewTest
 
   alias MercatoWeb.UI.Sheet
+  alias Phoenix.LiveView.JS
 
   defp slot(name, text) do
     [{name, [%{__slot__: name, inner_block: fn _, _ -> text end}]}]
@@ -82,6 +83,26 @@ defmodule MercatoWeb.UI.SheetTest do
 
     test "names the dismiss button, since its icon is hidden from screen readers" do
       assert filters("#filters-close") |> LazyHTML.attribute("aria-label") != []
+    end
+  end
+
+  describe "a sheet the server opens" do
+    test "starts hidden, since a sheet is closed until something opens it" do
+      assert filters("#filters") |> LazyHTML.attribute("class") |> to_string() =~ "hidden"
+    end
+
+    test "tells the server it was closed when the caller asks to be told" do
+      told = JS.push(%JS{}, "close")
+      closer = filters("#filters-close", open: true, on_close: told)
+
+      assert closer |> LazyHTML.attribute("phx-click") |> to_string() =~ "close"
+    end
+
+    test "starts open when the server says it is, so a refused save keeps its form on screen" do
+      class = filters("#filters", open: true) |> LazyHTML.attribute("class") |> to_string()
+
+      refute class =~ "hidden"
+      assert class =~ "flex"
     end
   end
 end
