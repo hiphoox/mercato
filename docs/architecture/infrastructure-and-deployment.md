@@ -3,10 +3,10 @@ type: architecture
 title: Infrastructure & Deployment
 description: Compute, persistence, and deployment mechanics on Fly.io.
 tags: [infrastructure, fly-io, deployment, sqlite, infra-less]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 ---
 
-The technical infrastructure and deployment machinery for Mercato, leveraging Fly.io's micro-VM architecture. Mercato is built to be **infra-less as much as possible**: no separate database server, no required external services beyond the app itself — everything the app needs to run defaults to living on the same Fly.io instance, with external providers (object storage, payments, shipping) as opt-in, swappable adapters rather than hard dependencies.
+The technical infrastructure and deployment machinery for Mercato, leveraging Fly.io's micro-VM architecture. Everything the app needs to run defaults to living on the same Fly.io instance, per the infra-less rule of thumb in [AGENTS.md](../../AGENTS.md).
 
 ## High-level traffic flow
 
