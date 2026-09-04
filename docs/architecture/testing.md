@@ -3,7 +3,7 @@ type: architecture
 title: Testing
 description: Backend and Ash test conventions.
 tags: [architecture, testing, ash]
-timestamp: 2026-07-23T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 ---
 
 Standards for writing backend tests. See also [coding-standards.md](coding-standards.md) and [liveview-testing.md](liveview-testing.md) for LiveView-specific conventions.
@@ -23,7 +23,7 @@ Standards for writing backend tests. See also [coding-standards.md](coding-stand
 
 ## Ash resource tests
 
-- Test domain actions through the code interface (`Mercato.Transactions.checkout/2`, per [principles.md → SRP](principles.md#srp--single-responsibility)) — not by building `Ash.Changeset`s by hand.
+- Test domain actions through the code interface (`Mercato.Transactions.checkout/2`, per [principles.md → SRP](principles.md#srp--single-responsibility)) — not by building `Ash.Changeset`s by hand. Which actions get an interface, and why tests must use it, is in [code-interfaces.md](code-interfaces.md).
 - Use `Ash.Test` utilities and the raising action variants (`create!`, `checkout!`) over pattern-matching `{:ok, _}` tuples.
 - Test authorization with `Ash.can?/3`. Pass `authorize?: false` in tests where authorization isn't the focus.
 - Build fixtures with `Ash.Generator`, not hand-built maps — put reusable generators in a `TestGenerators` module:

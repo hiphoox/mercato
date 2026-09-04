@@ -3,7 +3,7 @@ type: index
 title: Architecture Docs
 description: Map of docs/architecture/.
 tags: [architecture, index]
-timestamp: 2026-08-31T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 ---
 
 Map of `docs/architecture/`. Open a file only when its concern is relevant — none of these are loaded by default.
@@ -13,6 +13,7 @@ Map of `docs/architecture/`. Open a file only when its concern is relevant — n
 - [architecture.md](architecture.md) — Logical layers (Web/Core/Data/Infra) + dependency flow. Read it when orienting yourself or deciding where code belongs.
 - [principles.md](principles.md) — SOLID applied to Elixir/Ash, with code examples. Read it when designing or writing a resource, boundary, or action.
 - [ash-declarative-conventions.md](ash-declarative-conventions.md) — When to reach for Ash's built-in DSL (`accept`, builtin changes/validations/checks) over custom modules. Read it when writing or reviewing an Ash action, change, validation, or policy.
+- [code-interfaces.md](code-interfaces.md) — Which resource actions are exposed on their domain's code interface, and why callers and tests go through it. Read it when adding or changing an action, or writing a test that calls one.
 - [ports.md](ports.md) — The `Mercato.Ports` namespace: behaviour-plus-adapter pattern for swappable external-service boundaries (storage, and future payments/search). Read it when adding a new boundary module or a new adapter to an existing one.
 - [data-architecture.md](data-architecture.md) — SQLite, AshSqlite, migrations, soft-delete, audit log, backups. Read it when touching persistence, schema, or data retention.
 - [seeds.md](seeds.md) — How seed data is organised across `priv/repo/seeds/` and what belongs in it. Read it when adding or changing seed data.
