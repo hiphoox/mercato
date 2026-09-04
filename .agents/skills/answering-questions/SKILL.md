@@ -7,7 +7,7 @@ description: Use when the user asks a conceptual question or expresses a doubt â
 
 ## Overview
 
-A question gets an answer shaped like the question, not a report. Lead with the direct answer; support it with a short bullet list; stop.
+A question gets an answer shaped like the question, not a report. Lead with the direct answer; support it with a short bullet list; stop.Sacrifice grammar for the sake of concision
 
 ## The Recipe
 
@@ -19,11 +19,11 @@ A question gets an answer shaped like the question, not a report. Lead with the 
 
 ## Quick Reference
 
-| Question shape | Answer shape |
-|---|---|
-| "What is X for?" | 1 sentence + bullets, one per thing X does |
+| Question shape        | Answer shape                                                 |
+| --------------------- | ------------------------------------------------------------ |
+| "What is X for?"      | 1 sentence + bullets, one per thing X does                   |
 | "Why X instead of Y?" | 1 sentence naming the deciding factor + bullets for the rest |
-| "How does X work?" | Bullets tracing the mechanism, shortest path first |
+| "How does X work?"    | Bullets tracing the mechanism, shortest path first           |
 
 ## When NOT to Use
 
