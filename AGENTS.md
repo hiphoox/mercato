@@ -2,21 +2,17 @@
 
 ## 📌 Project Overview
 
-Mercato is a general-purpose C2C marketplace platform, built to be infrastructure-less as much as possible. Users buy and sell items through an escrow-style flow where payment is held until delivery is confirmed.
+Mercato is a general-purpose marketplace based primarily on the C2C model; it is designed to be infrastructure-less as much as possible and serve as a foundation for building any marketplace on top of it.
 
-**IMPORTANT: Rule of thumb — infra-less as much as possible:** no separate database server, no required external services beyond the app itself. Everything the app needs to run defaults to living on the same Fly.io instance, with external providers (object storage, payments, shipping) as opt-in, swappable adapters rather than hard dependencies. When adding a new integration or persistence need, prefer a local/in-app default with an external provider as a pluggable option, not the other way around.
-
-Payment, shipping, and similar third-party vendors are pluggable — the platform is designed to accept additional providers beyond the ones currently integrated.
-
-**IMPORTANT: Rule of thumb — minimal core, extend on top:** entities and features default to the smallest field/action set a use case actually needs, not the largest one it might someday need. A `User` starts with the fields auth and a listing actually require; a marketplace-specific field (e.g. a seller rating, a shipping preference) gets added when a feature needs it, not speculatively. This keeps the starter kit generic and reusable — see [principles.md → OCP](docs/architecture/principles.md#ocp--openclosed) for how extension happens without touching existing code.
+**IMPORTANT: Rule of thumb — infra-less as much as possible:** no separate database server, no required external services beyond the app itself. External providers (object storage, payments, shipping) as opt-in, swappable adapters rather than hard dependencies. When adding a new integration or persistence need, prefer a local/in-app default with an external provider as a pluggable option, not the other way around.
 
 ## 🛠 Tech Stack
 
 - **Core:** Elixir v1.20, Erlang/OTP 29, Phoenix 1.8.7, Ash Framework.
-- **UI:** LiveView, Tidewave, Tailwind CSS 4.x.
+- **UI:** LiveView, Tailwind CSS 4.x.
 - **Data:** SQLite
-- **Infrastructure:** Fly.io, Tigris.
-- **Integrations (defaults, swappable):** Google & Apple OAuth (social sign-in, alongside email + password), Stripe + Stripe Connect (payments & seller payouts), Shippo (multi-carrier shipping API).
+- **Infrastructure:** It is opt-in.
+- **Integrations (defaults, swappable):** Stripe + Stripe Connect (payments & seller payouts), Shippo (multi-carrier shipping API).
 
 ## 🗺️ Documentation
 
@@ -24,7 +20,7 @@ This project uses a distributed documentation model: one source of truth per con
 
 Before researching or designing an approach for something that doesn't exist in the codebase yet (a new library, integration, or capability), check [docs/explore/index.md](docs/explore/index.md) first — the exploration may already be done. `docs/explore/` holds decisions/research for not-yet-built capabilities; once built, the file graduates to the section that owns it (usually `docs/architecture/`) and is reconciled to match the real code.
 
-## 🤖 Agent Skills
+## 🤖 Agent Skills IMPORTANT
 
 - **`working-on-changes`** — **MANDATORY prerequisite.** Invoke this before and during any task that changes code, schema, or docs: ask clarifying questions, read docs/code first, propose a plan, implement with TDD, run the full suite, and always ask explicit permission before committing.
 - **`read-docs`** — **MANDATORY prerequisite.** Invoke this BEFORE any other skill (including brainstorming) and before writing, editing, or reviewing any code, schema, or docs in this repo. Find and read the specific `docs/` files that govern the task, and only those. `docs/architecture/` often already contains the authoritative spec for a task (e.g. CI, testing, deployment) — check there before treating something as an open design question.
