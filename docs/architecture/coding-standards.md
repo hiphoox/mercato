@@ -3,7 +3,7 @@ type: architecture
 title: Coding Standards
 description: Mandated Elixir, Mix, and Phoenix (backend) conventions.
 tags: [elixir, mix, phoenix, backend]
-timestamp: 2026-08-21T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 ---
 
 See also [liveview.md](liveview.md) and [testing.md](testing.md).
@@ -15,11 +15,12 @@ See also [liveview.md](liveview.md) and [testing.md](testing.md).
 
 ## Documentation in code
 
-- A module's purpose goes in `@moduledoc` and a public function's in `@doc`, never in a `#` comment above the definition. A `#` comment is for a note that is not documentation: why a line reads the way it does, or a caveat about the code directly below it
-- `@doc` is discarded on a `defp`, so a private function's explanation is a `#` comment
+- A module's purpose goes in `@moduledoc` and a public function's in `@doc`, never in a `#` comment above the definition
+- A docstring is concise: what the thing is for and how to call it. It may carry detail when the reader needs it — mechanism, invariants, trade-offs, the history of a decision. Detail lives in the docstring, not in comments
+- A `#` comment is one or two lines. It says *why* a line reads the way it does, or a caveat about the code directly below it — never what the code does. When a comment needs more than that, the detail moves to the nearest `@moduledoc` or `@doc`, or the code is made clearer
+- `@doc` is discarded on a `defp`, so a private function's explanation is a `#` comment — the same one-or-two-line rule applies
 - One `@doc` per function, on the first clause or on a bodyless function head. A second `@doc` on a later clause silently replaces the first and fails the build under `--warnings-as-errors`
-- A docstring says what the thing is for and how to call it. Mechanism, trade-offs, and the history of a decision go in `#` comments beside the code they explain
-- Keep both short. A docstring is read by someone already in the code, so it states what that reader needs rather than pointing at a `docs/` file for it. A module or function supporting a fixed set of values lists them where they are defined, so the list cannot drift from the code implementing it
+- A docstring is read by someone already in the code, so it states what that reader needs rather than pointing at a `docs/` file for it. A module or function supporting a fixed set of values lists them where they are defined, so the list cannot drift from the code implementing it
 
 ## Elixir guidelines
 

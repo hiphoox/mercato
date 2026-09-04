@@ -3,7 +3,7 @@ name: implementing-changes
 description: Use before and during any task that changes code, schema, or docs in this repo — implementing a feature, fixing a bug, or picking up a todo item. Governs the workflow from clarifying questions through implementation to the commit proposal.
 ---
 
-# Working on Changes
+# Implementing Changes
 
 A fixed sequence for turning a task into a change. The user stays in control of scope, of what gets built, and of when anything is committed. Applies to every change — bug fix, feature, todo item — regardless of size.
 
