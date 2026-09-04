@@ -3,7 +3,7 @@ type: architecture
 title: Copy & Translation
 description: Where user-facing copy lives, which layer owns it, and how it gets translated.
 tags: [i18n, gettext, copy, translation, ui]
-timestamp: 2026-08-27T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 ---
 
 Every string a user reads is translatable, and the layer that produces it decides how. Copy is never assembled from fragments, and operator-configured values are never translated.
@@ -24,6 +24,18 @@ Wrap the string where it is written, with a literal. A translation is extracted 
 
 - A label held in a module attribute, a map, or a `@doc` is invisible to extraction. Where a component maps a value to a label — a status to its badge wording — give each value its own clause returning a wrapped literal, rather than a lookup table built at compile time.
 - Interpolation goes through named bindings, never string interpolation. The name is what a translator moves around the sentence.
+
+## Where unwrapped copy hides
+
+A bare literal the user reads is a defect, wherever it sits. The places it slips through are the ones that do not look like copy:
+
+- Attributes: `aria-label`, `placeholder`, `title`, `alt`, and a component's `label` or `title` attr.
+- Short labels: badge text, button text, tab and count labels, a table column header.
+- Empty states, helper lines, and captions under a control.
+- Flash messages built in an event handler, and page titles set in `mount`.
+- A default in a component's `attr` declaration.
+
+Before finishing a change to the web layer, read every literal in the template and the module and ask whether a user sees it. If yes, wrap it.
 
 ## Never assemble a sentence
 

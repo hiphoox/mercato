@@ -3,7 +3,7 @@ type: architecture
 title: Ash Declarative Conventions
 description: Principles for writing Ash resources as declarations, not programs.
 tags: [architecture, ash, conventions]
-timestamp: 2026-08-20T00:00:00Z
+timestamp: 2026-09-04T00:00:00Z
 resource: https://ash.hexdocs.pm/design-principles.html
 ---
 
@@ -18,6 +18,18 @@ Where the DSL can derive a value from something already declared elsewhere on th
 ## Prefer a built-in over a custom module
 
 `Ash.Resource.Change.Builtins`, `Ash.Resource.Validation.Builtins`, and `Ash.Policy.Check.Builtins` cover the common cases — setting a static or computed attribute, confirming two arguments match, relating the actor, and more. A custom module earns its place only when the logic can't be expressed as one of these — a database lookup, a third-party call, multi-step branching.
+
+## Reach data through declared relationships
+
+A rule that depends on related records is expressed against a declared relationship — a `has_many` or `many_to_many` plus `exists/2` in an expression — rather than a query hand-built inside a change or check. The relationship is the fact; the expression reads it.
+
+## Lookups are actions, called through the domain
+
+A resource that needs a lookup declares it as a read action and exposes it on the domain's code interface. Plain functions reading the resource directly bypass the interface layer; see [code-interfaces.md](code-interfaces.md) for which actions get one.
+
+## Declare a shared change once
+
+A change repeated across several actions is hoisted into the resource's top-level `changes` block, scoped with `on:` to the action types it applies to, so the rule exists in one place.
 
 ## Keep each concern in its own DSL section
 

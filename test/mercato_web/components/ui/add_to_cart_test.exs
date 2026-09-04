@@ -5,7 +5,7 @@ defmodule MercatoWeb.UI.AddToCartTest do
 
   alias MercatoWeb.UI.AddToCart
 
-  defp button(assigns \\ []) do
+  defp button(assigns) do
     LazyHTML.from_fragment(
       render_component(
         &AddToCart.add_to_cart/1,
