@@ -1,5 +1,5 @@
 ---
-name: understand-code
+name: understanding-code
 description: Use before implementing, changing, debugging, or reviewing any code in this project — finding a function or symbol, tracing callers/callees, understanding structure, confirming something exists (or doesn't), or answering "where is X defined" / "what calls Y" / "what does X call" / "does Z already do this". Triggers before any Grep/Read-based code exploration, not just multi-file ones — including a single lookup you think you already know the answer to.
 ---
 

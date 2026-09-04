@@ -1,5 +1,5 @@
 ---
-name: read-docs
+name: reading-docs
 description: Use when starting any work on this project — implementing, changing, debugging, or reviewing code, schema, or docs — to find and read the specific docs/ files that govern the task, and only those, before acting. Triggers whenever you are about to write code or make a decision that a baseline doc (architecture, domain, feature) may already constrain.
 ---
 

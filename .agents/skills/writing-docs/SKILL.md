@@ -1,5 +1,5 @@
 ---
-name: write-docs
+name: writing-docs
 description: Use when creating, editing, converting, or splitting any markdown file under docs/ (architecture, domain, explore, guides) in this project — the baseline knowledge docs that follow Open Knowledge Format (OKF) with YAML frontmatter, one-concern-per-file, and an agent-discoverable index.
 ---
 

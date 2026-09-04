@@ -28,11 +28,15 @@ truth per concern, read on demand, nothing loaded upfront.
 
 ## Skills
 
-| Situation                                           | Skill                                                                              |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Changing code, schema, or docs                      | **`working-on-changes`** — the entry point; it invokes the others as its own steps |
-| Any other work on the repo                          | **`read-docs`** first                                                              |
-| Finding, tracing, or confirming code exists         | `understand-code`                                                                  |
-| Writing or editing under `docs/`                    | `write-docs`                                                                       |
-| A task a CLI/Mix command could do deterministically | `deterministic-commands`                                                           |
-| A conceptual question rather than a change          | `answering-questions`                                                              |
+When work on this project, ALWAYS USE THE SKILLS.
+
+| Skill                      | Purpose                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| **`implementing-changes`** | The entry point for changing code, schema, or docs — it invokes the others as its own steps. |
+| `reading-docs`             | Understand the project domain and guidelines before making changes or answering questions.   |
+| `understanding-code`       | Understand the codebase and its dependencies before making changes or answering questions.   |
+| `writing-docs`             | Document, and keep documentation up to date, when making changes.                            |
+| `answering-questions`      | Answer a conceptual question instead of making a change.                                     |
+
+`reading-docs` and `understanding-code` come before any work — changes or answers alike. Never
+explore with Grep/Read before `understanding-code`, even for a single lookup.
