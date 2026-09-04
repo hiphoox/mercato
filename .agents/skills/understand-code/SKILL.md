@@ -7,7 +7,7 @@ description: Use before implementing, changing, debugging, or reviewing any code
 
 ## Overview
 
-This project uses the `codebase-memory-mcp` server for structural code queries — a knowledge graph that answers "who calls X", "what does X call", "where is X defined" in ~500 tokens instead of grepping thousands of lines. Prefer it over Grep/Read for any code question beyond text already on screen.
+This skill requires the `codebase-memory-mcp` server for structural code queries — a knowledge graph that answers "who calls X", "what does X call", "where is X defined" in ~500 tokens instead of grepping thousands of lines. Prefer (IMPORTANT) it over Grep/Read for any code question beyond text already on screen.
 
 Two failures to avoid, both costly:
 
@@ -21,7 +21,7 @@ The workflow below resolves both: query narrow and specific first, widen only if
 Look for `mcp__codebase-memory-mcp__*` tools in the current tool listing (`ToolSearch("select:mcp__codebase-memory-mcp__search_graph")` or the deferred-tools system reminder).
 
 - **Available** → use it (workflow below).
-- **Not available** → warn once: "codebase-memory-mcp isn't installed in this session — code search will fall back to Grep/Read. Install: https://github.com/DeusData/codebase-memory-mcp" Then proceed with Grep/Read; don't block the task on it.
+- **Not available** → warn : "codebase-memory-mcp isn't installed in this session — code search will fall back to Grep/Read. Install: https://github.com/DeusData/codebase-memory-mcp" Then proceed with Grep/Read; don't block the task on it.
 
 If we had not indexed the code yet in this session, `index_repository` will automatically be called first.
 
@@ -39,16 +39,16 @@ Use Grep/Read directly for text in non-code files, configs, a single already-kno
 
 These thoughts mean you're about to skip the tool. Each one means: run the query first, then proceed.
 
-| Thought | Reality |
-|---|---|
-| "I'll just grep this real quick" | The graph answers it in fewer tokens and catches callers grep misses. |
-| "It's one function, I basically know where it lives" | "Basically know" is a guess. Confirm it. |
-| "This is too small a lookup to bother with the tool" | The tool call is cheaper than a wrong assumption downstream. |
-| "I remember this codebase from earlier in the session" | Code changes underfoot; re-query rather than trust recall. |
-| "Let me just read the file, it's faster" | Reading a whole file to answer one structural question is the over-reading failure this tool exists to prevent. |
-| "This task is about changing code, not searching it" | Changing code requires understanding it first — that's this skill's trigger, not just explicit search requests. |
+| Thought                                                | Reality                                                                                                         |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| "I'll just grep this real quick"                       | The graph answers it in fewer tokens and catches callers grep misses.                                           |
+| "It's one function, I basically know where it lives"   | "Basically know" is a guess. Confirm it.                                                                        |
+| "This is too small a lookup to bother with the tool"   | The tool call is cheaper than a wrong assumption downstream.                                                    |
+| "I remember this codebase from earlier in the session" | Code changes underfoot; re-query rather than trust recall.                                                      |
+| "Let me just read the file, it's faster"               | Reading a whole file to answer one structural question is the over-reading failure this tool exists to prevent. |
+| "This task is about changing code, not searching it"   | Changing code requires understanding it first — that's this skill's trigger, not just explicit search requests. |
 
-## Common Mistakes
+## Common Mistakes IMPORTANT
 
 - Grepping first "to be quick" when the MCP is installed — it's slower and burns more context for anything beyond one file.
 - Not checking `index_status` before querying a project that was never indexed.
